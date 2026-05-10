@@ -66,17 +66,17 @@ export default function Home() {
     <div className="min-h-screen bg-gray-900 p-10 flex flex-col items-center">
       <h1 className="text-4xl font-black text-white mb-8">Pusat Data RuLaF (Mod Admin)</h1>
 
-      {/* Kotak Carian & Dropdown Tapisan */}
+            {/* Kotak Carian & Dropdown Tapisan */}
       <div className="flex flex-col md:flex-row gap-4 mb-10 w-full max-w-4xl justify-center">
         <input
           type="text"
           placeholder="Cari nama murid..."
-          className="p-4 rounded-xl w-full md:w-2/3 text-gray-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500 shadow-lg"
+          className="p-4 rounded-xl w-full md:w-2/3 bg-white text-gray-900 font-bold focus:outline-none focus:ring-4 focus:ring-blue-500 shadow-lg"
           value={carian}
           onChange={(e) => setCarian(e.target.value)}
         />
         <select
-          className="p-4 rounded-xl w-full md:w-1/3 text-gray-900 font-bold focus:outline-none focus:ring-4 focus:ring-yellow-500 cursor-pointer shadow-lg uppercase"
+          className="p-4 rounded-xl w-full md:w-1/3 bg-white text-gray-900 font-bold focus:outline-none focus:ring-4 focus:ring-yellow-500 cursor-pointer shadow-lg uppercase"
           value={tapisTahap}
           onChange={(e) => setTapisTahap(e.target.value)}
         >
@@ -86,6 +86,7 @@ export default function Home() {
           <option value="Khas">RuLaF Khas Sahaja</option>
         </select>
       </div>
+
 
       {/* Paparan Kad */}
       <div className="flex flex-wrap gap-6 justify-center">
