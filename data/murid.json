@@ -1,0 +1,212 @@
+[
+  {
+    "id": "170819010824",
+    "nama": "QASEH NUR DAMIA",
+    "tahap": "Khas",
+    "markah": 47,
+    "stat": { "tiga_m": 3, "solat": 60, "kerja": 21, "quran": 14, "iqra": 4, "hadir": 95, "peperiksaan": 39, "jawi": 4 }
+  },
+  {
+    "id": "171220011737",
+    "nama": "MUHAMMAD ARIFFUDDIN AZHAR",
+    "tahap": "Khas",
+    "markah": 50,
+    "stat": { "tiga_m": 6, "solat": 75, "kerja": 32, "quran": 17, "iqra": 4, "hadir": 65, "peperiksaan": 49, "jawi": 7 }
+  },
+  {
+    "id": "171008010630",
+    "nama": "NUR AISYAH AZREEN",
+    "tahap": "Khas",
+    "markah": 56,
+    "stat": { "tiga_m": 6, "solat": 74, "kerja": 32, "quran": 18, "iqra": 5, "hadir": 89, "peperiksaan": 53, "jawi": 7 }
+  },
+  {
+    "id": "170821012568",
+    "nama": "PUTERI NUR HAWA",
+    "tahap": "Khas",
+    "markah": 56,
+    "stat": { "tiga_m": 6, "solat": 82, "kerja": 35, "quran": 15, "iqra": 4, "hadir": 81, "peperiksaan": 54, "jawi": 7 }
+  },
+  {
+    "id": "170117011056",
+    "nama": "NUR QUDWATUN HASANAH",
+    "tahap": "Khas",
+    "markah": 56,
+    "stat": { "tiga_m": 6, "solat": 70, "kerja": 29, "quran": 15, "iqra": 4, "hadir": 92, "peperiksaan": 56, "jawi": 13 }
+  },
+  {
+    "id": "171118010156",
+    "nama": "NUR AISYAH HUMAIRA (NORAZIZI)",
+    "tahap": "Khas",
+    "markah": 56,
+    "stat": { "tiga_m": 5, "solat": 77, "kerja": 32, "quran": 19, "iqra": "AQ", "hadir": 95, "peperiksaan": 45, "jawi": 8 }
+  },
+  {
+    "id": "171126010172",
+    "nama": "NUR AYRA",
+    "tahap": "Khas",
+    "markah": 58,
+    "stat": { "tiga_m": 6, "solat": 74, "kerja": 36, "quran": 17, "iqra": 5, "hadir": 100, "peperiksaan": 49, "jawi": 8 }
+  },
+  {
+    "id": "170322010714",
+    "nama": "NUR RAISHA FAIHA",
+    "tahap": "Khas",
+    "markah": 58,
+    "stat": { "tiga_m": 11, "solat": 75, "kerja": 27, "quran": 14, "iqra": 4, "hadir": 100, "peperiksaan": 53, "jawi": 9 }
+  },
+  {
+    "id": "170906010398",
+    "nama": "INSYIRAH DHARIYAH",
+    "tahap": "Khas",
+    "markah": 61,
+    "stat": { "tiga_m": 6, "solat": 87, "kerja": 31, "quran": 22, "iqra": 5, "hadir": 97, "peperiksaan": 54, "jawi": 8 }
+  },
+  {
+    "id": "170306011282",
+    "nama": "ARIYANA MIKAYLA",
+    "tahap": "Khas",
+    "markah": 62,
+    "stat": { "tiga_m": 6, "solat": 84, "kerja": 43, "quran": 20, "iqra": 5, "hadir": 92, "peperiksaan": 51, "jawi": 12 }
+  },
+  {
+    "id": "171211010564",
+    "nama": "HAURA AMEERA",
+    "tahap": "Ba",
+    "markah": 62,
+    "stat": { "tiga_m": 18, "solat": 84, "kerja": 32, "quran": 21, "iqra": "AQ", "hadir": 85, "peperiksaan": 62, "jawi": 8 }
+  },
+  {
+    "id": "170219010222",
+    "nama": "NUR MAISARAH",
+    "tahap": "Ba",
+    "markah": 64,
+    "stat": { "tiga_m": 12, "solat": 85, "kerja": 37, "quran": 22, "iqra": "AQ", "hadir": 89, "peperiksaan": 62, "jawi": 13 }
+  },
+  {
+    "id": "170119011236",
+    "nama": "HAURA AMEENA",
+    "tahap": "Ba",
+    "markah": 64,
+    "stat": { "tiga_m": 18, "solat": 93, "kerja": 32, "quran": 20, "iqra": "AQ", "hadir": 87, "peperiksaan": 62, "jawi": 8 }
+  },
+  {
+    "id": "170203010236",
+    "nama": "NUR AMIRAH SOPHEA",
+    "tahap": "Ba",
+    "markah": 65,
+    "stat": { "tiga_m": 16, "solat": 82, "kerja": 33, "quran": 20, "iqra": "AQ", "hadir": 100, "peperiksaan": 62, "jawi": 13 }
+  },
+  {
+    "id": "170717020271",
+    "nama": "MUHAMMAD HAFIZUDDIN JALIL",
+    "tahap": "Ba",
+    "markah": 66,
+    "stat": { "tiga_m": 17, "solat": 89, "kerja": 41, "quran": 18, "iqra": "AQ", "hadir": 87, "peperiksaan": 68, "jawi": 8 }
+  },
+  {
+    "id": "170415010887",
+    "nama": "MUHAMMAD IZDIYAD NAUFAL",
+    "tahap": "Ba",
+    "markah": 66,
+    "stat": { "tiga_m": 17, "solat": 90, "kerja": 42, "quran": 17, "iqra": "AQ", "hadir": 95, "peperiksaan": 61, "jawi": 8 }
+  },
+  {
+    "id": "170519010435",
+    "nama": "QALISH QAYYUM",
+    "tahap": "Ba",
+    "markah": 66,
+    "stat": { "tiga_m": 18, "solat": 83, "kerja": 35, "quran": 22, "iqra": "AQ", "hadir": 100, "peperiksaan": 64, "jawi": 10 }
+  },
+  {
+    "id": "170329010960",
+    "nama": "PUTERI CAHAYA DANIELLA",
+    "tahap": "Ba",
+    "markah": 67,
+    "stat": { "tiga_m": 18, "solat": 81, "kerja": 38, "quran": 22, "iqra": "AQ", "hadir": 98, "peperiksaan": 66, "jawi": 10 }
+  },
+  {
+    "id": "171101011590",
+    "nama": "NUR ADRA IRDINA",
+    "tahap": "Ba",
+    "markah": 67,
+    "stat": { "tiga_m": 18, "solat": 74, "kerja": 51, "quran": 19, "iqra": "AQ", "hadir": 94, "peperiksaan": 63, "jawi": 15 }
+  },
+  {
+    "id": " 171031010110",
+    "nama": "NUR AISYAH HUMAIRA (ZULHELMI)",
+    "tahap": "Ba",
+    "markah": 68,
+    "stat": { "tiga_m": 19, "solat": 87, "kerja": 32, "quran": 24, "iqra": "AQ", "hadir": 97, "peperiksaan": 74, "jawi": 8 }
+  },
+  {
+    "id": "170913011188",
+    "nama": "AQILAH DARWISYAH",
+    "tahap": "Ba",
+    "markah": 69,
+    "stat": { "tiga_m": 21, "solat": 89, "kerja": 27, "quran": 24, "iqra": "AQ", "hadir": 92, "peperiksaan": 70, "jawi": 14 }
+  },
+  {
+    "id": "171119011425",
+    "nama": "MUHAMMAD NASRUL HAQ",
+    "tahap": "Ba",
+    "markah": 72,
+    "stat": { "tiga_m": 19, "solat": 93, "kerja": 45, "quran": 24, "iqra": "AQ", "hadir": 100, "peperiksaan": 73, "jawi": 6 }
+  },
+  {
+    "id": "170515011326",
+    "nama": "SITI NUR BATRISYA",
+    "tahap": "Ba",
+    "markah": 73,
+    "stat": { "tiga_m": 17, "solat": 91, "kerja": 44, "quran": 23, "iqra": "AQ", "hadir": 100, "peperiksaan": 73, "jawi": 16 }
+  },
+  {
+    "id": "170726010980",
+    "nama": "AISYAH SUMAYYAH",
+    "tahap": "Ba",
+    "markah": 74,
+    "stat": { "tiga_m": 21, "solat": 97, "kerja": 38, "quran": 24, "iqra": "AQ", "hadir": 95, "peperiksaan": 79, "jawi": 15 }
+  },
+  {
+    "id": "170401010368",
+    "nama": "AINIYAH SHABIRA",
+    "tahap": "Ta",
+    "markah": 77,
+    "stat": { "tiga_m": 24, "solat": 96, "kerja": 46, "quran": 24, "iqra": "AQ", "hadir": 95, "peperiksaan": 86, "jawi": 16 }
+  },
+  {
+    "id": "171008010278",
+    "nama": "NUR SYAZWIN",
+    "tahap": "Ta",
+    "markah": 77,
+    "stat": { "tiga_m": 25, "solat": 93, "kerja": 52, "quran": 24, "iqra": "AQ", "hadir": 100, "peperiksaan": 78, "jawi": 15 }
+  },
+  {
+    "id": "170222010143",
+    "nama": "HARRAZ IQBAL",
+    "tahap": "Ta",
+    "markah": 77,
+    "stat": { "tiga_m": 25, "solat": 97, "kerja": 56, "quran": 23, "iqra": "AQ", "hadir": 94, "peperiksaan": 84, "jawi": 8 }
+  },
+  {
+    "id": "170807010333",
+    "nama": "ADI ISKANDAR ALHAQ",
+    "tahap": "Ta",
+    "markah": 77,
+    "stat": { "tiga_m": 25, "solat": 92, "kerja": 58, "quran": 24, "iqra": "AQ", "hadir": 97, "peperiksaan": 82, "jawi": 9 }
+  },
+  {
+    "id": "170504010336",
+    "nama": "QASEH NUR AIN",
+    "tahap": "Ta",
+    "markah": 77,
+    "stat": { "tiga_m": 26, "solat": 97, "kerja": 35, "quran": 24, "iqra": "AQ", "hadir": 98, "peperiksaan": 90, "jawi": 17 }
+  },
+  {
+    "id": "170506010962",
+    "nama": "NUR QAMARINA NURAIN",
+    "tahap": "Ta",
+    "markah": 78,
+    "stat": { "tiga_m": 26, "solat": 91, "kerja": 47, "quran": 24, "iqra": "AQ", "hadir": 100, "peperiksaan": 84, "jawi": 17 }
+  }
+]
