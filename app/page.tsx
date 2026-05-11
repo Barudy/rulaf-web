@@ -1,23 +1,41 @@
+import Image from "next/image";
+
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-10 text-center">
-      <h1 className="text-5xl font-black text-white mb-6 tracking-tighter">
-        RuLaF<span className="text-blue-500">Hub</span>
-      </h1>
-      <p className="text-gray-400 max-w-2xl text-lg leading-relaxed">
-        Selamat Datang ke Pusat Dokumentasi & Jurnal Penyelidikan Program RuLaF. 
-        Misi kami adalah mendigitalisasi ekosistem pendidikan Jawi & Al-Quran 
-        demi melahirkan generasi hibrid yang cemerlang.
-      </p>
-      
-      <div className="mt-10 flex gap-4">
-        <div className="px-6 py-3 bg-blue-600 text-white rounded-full font-bold shadow-lg">
-          Blog Akan Datang
+    <div className="min-h-screen bg-black text-white font-sans">
+      {/* Navbar / Header */}
+      <nav className="p-6 border-b border-gray-800 flex justify-between items-center max-w-6xl mx-auto">
+        <div className="flex items-center gap-3">
+          <img src="/rulafhub.png" alt="Logo" className="w-10 h-10 object-contain" />
+          <span className="text-2xl font-black tracking-tighter">RuLaF<span className="text-blue-500">Hub</span></span>
         </div>
-        <div className="px-6 py-3 border border-gray-700 text-gray-400 rounded-full font-bold">
-          Dokumentasi Tesis
+        <div className="flex gap-6 text-sm font-medium text-gray-400">
+          <a href="/admin" className="hover:text-white">Admin</a>
+          <a href="/semakan" className="hover:text-white">Semakan</a>
         </div>
-      </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="py-20 px-6 text-center">
+        <h1 className="text-6xl font-black mb-6 leading-none">Dokumentasi <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Tesis Digital</span></h1>
+        <p className="text-gray-500 max-w-xl mx-auto text-lg italic">"Mentransformasikan kaedah perkilangan kepada pendidikan hibrid yang manusiawi."</p>
+      </section>
+
+      {/* Blog List Section */}
+      <section className="max-w-4xl mx-auto px-6 py-10">
+        <h2 className="text-2xl font-bold mb-8 border-l-4 border-blue-500 pl-4">Jurnal Terkini</h2>
+        
+        {/* Contoh Item Blog (Bosskur boleh letak fail Markdown nanti) */}
+        <div className="grid gap-8">
+          <article className="p-6 bg-gray-900 rounded-2xl border border-gray-800 hover:border-blue-500 transition cursor-pointer">
+            <p className="text-blue-400 text-xs font-bold mb-2 uppercase">11 Mei 2026</p>
+            <h3 className="text-xl font-bold mb-2">Kenapa RuLaF Menjadi Tesis Master Saya?</h3>
+            <p className="text-gray-400 text-sm">Membongkar kelemahan sistem PdP sedia ada dan bagaimana pendekatan digital membantu murid Khas menguasai Jawi...</p>
+          </article>
+
+          {/* Sini bosskur tambah artikel seterusnya */}
+        </div>
+      </section>
 
       {/* --- BAHAGIAN SUMBANGAN (DNQR & LINK) --- */}
       <div className="mt-16 pt-10 border-t border-gray-800 flex flex-col items-center w-full max-w-md">
