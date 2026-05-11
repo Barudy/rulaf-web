@@ -37,8 +37,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* --- BAHAGIAN SUMBANGAN (DNQR & LINK) --- */}
-      <div className="mt-16 pt-10 border-t border-gray-800 flex flex-col items-center w-full max-w-md">
+            {/* --- BAHAGIAN SUMBANGAN (DNQR & LINK) --- */}
+      <footer className="mt-16 pt-10 pb-20 border-t border-gray-800 flex flex-col items-center w-full max-w-md mx-auto text-center">
         <h2 className="text-2xl font-bold text-white mb-2">Sokong Inovasi RuLaFHub</h2>
         <p className="text-sm text-gray-400 mb-8">
           Sumbangan ikhlas anda amat bermakna untuk menampung kos pelayan (server) dan pembangunan aplikasi percuma pada masa hadapan.
@@ -66,7 +66,7 @@ export default function HomePage() {
         >
           💳 Klik Untuk Menyumbang
         </a>
-      </div>
+      </footer>
 
     </div>
   );
