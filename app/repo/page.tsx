@@ -36,12 +36,12 @@ export default function RepositoryPage() {
 
   // Tarik data secara terbuka (Public Read)
   const tarikDataRepo = async () => {
-    const { data } = await supabase.from('rulaf_repo').select('*').order('date', { ascending: false });
+    const { data } = await supabase.from('rulaf_repo').select('*').order('created_at', { ascending: false });
     if (data) setBahanRepo(data);
   };
 
   const tarikDataForum = async () => {
-    const { data } = await supabase.from('rulaf_forum').select('*').order('date', { ascending: false });
+    const { data } = await supabase.from('rulaf_forum').select('*').order('created_at', { ascending: false });
     if (data) setForumTopik(data);
   };
 
@@ -109,7 +109,7 @@ export default function RepositoryPage() {
                   <div key={repo.id} className="p-4 border border-gray-800 hover:bg-gray-900 transition-colors">
                     <h4 className="text-lg font-bold text-white flex justify-between">
                       <span>{repo.tajuk}</span>
-                      <span className="text-xs text-gray-500 font-mono">{new Date(repo.date).toLocaleDateString('ms-MY')}</span>
+                      <span className="text-xs text-gray-500 font-mono">{new Date(repo.created_at).toLocaleDateString('ms-MY')}</span>
                     </h4>
                     <p className="text-sm text-gray-400 mt-1">Sumbangan: {repo.penyumbang}</p>
                     <a href={repo.pautan} target="_blank" rel="noopener noreferrer" className="text-[#1793D1] text-sm mt-3 inline-block hover:underline font-bold">[ wget / muat turun bahan ]</a>
@@ -137,7 +137,7 @@ export default function RepositoryPage() {
                   <div key={forum.id} className="p-4 border border-gray-800 hover:bg-gray-900 transition-colors">
                     <h4 className="text-lg font-bold text-purple-400 flex justify-between">
                       <span>{forum.tajuk}</span>
-                      <span className="text-xs text-gray-500 font-mono">{new Date(forum.date).toLocaleDateString('ms-MY')}</span>
+                      <span className="text-xs text-gray-500 font-mono">{new Date(forum.created_at).toLocaleDateString('ms-MY')}</span>
                     </h4>
                     <p className="text-sm text-gray-400 mt-1">Topik oleh: <span className="text-gray-300">{forum.penulis}</span></p>
                     <p className="text-sm text-gray-300 mt-3 border-t border-gray-800 pt-3 whitespace-pre-wrap">{forum.soalan}</p>
