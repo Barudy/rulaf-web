@@ -19,7 +19,7 @@ export default function SemakanIbuBapa() {
     const { data, error } = await supabase
       .from('markah_murid')
       .select('*')
-      .ilike('nama', `%${carian}%`); // Carian separa tepat (LIKE)
+      .eq('mykid', carian); // Carian tepat (EQUAL)
 
     if (error) {
       setMesejRalat('Ralat sistem: ' + error.message);

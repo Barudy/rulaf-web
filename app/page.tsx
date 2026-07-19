@@ -38,7 +38,7 @@ export default function HomePage() {
       <main className="max-w-5xl mx-auto bg-[#282C34] p-8 mt-2 rounded-b-lg shadow-lg border border-gray-800">
         <div className="border-b border-gray-700 pb-4 mb-6">
             <h1 className="text-3xl font-bold text-white">Jurnal Inovasi & Berita Terkini</h1>
-            <p className="text-sm mt-2 font-mono text-gray-400">Arch-style documentation for Pendidikan Jawi</p>
+            <p className="text-sm mt-2 font-mono text-gray-400">Arch-style documentation for Pendidikan Jawi dan Inovasi RuLaF</p>
         </div>
 
         {isLoading ? (
