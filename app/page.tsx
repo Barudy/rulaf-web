@@ -63,6 +63,7 @@ export default function HomePage() {
         </div> 
         <div className="flex gap-6 text-sm font-semibold"> 
           <a href="/semakan" className="text-[#1793D1] hover:underline">Semakan Markah</a> 
+          <a href="/docs" className="text-[#1793D1] hover:underline">Dokumentasi</a>
         </div> 
       </nav>
 
