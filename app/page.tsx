@@ -5,8 +5,6 @@ import { supabase } from './lib/supabaseClient';
 export default function HomePage() { 
   const [blogs, setBlogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // TAMBAHAN BARU: State untuk mengawal artikel mana yang sedang dibuka
   const [artikelBuka, setArtikelBuka] = useState<number | null>(null);
 
   useEffect(() => {
@@ -22,13 +20,36 @@ export default function HomePage() {
     fetchBlogs();
   }, []);
 
-  // Fungsi untuk buka dan tutup artikel
   const klikArtikel = (id: number) => {
-    if (artikelBuka === id) {
-      setArtikelBuka(null); // Tutup jika sudah dibuka
-    } else {
-      setArtikelBuka(id); // Buka artikel yang baru ditekan
-    }
+    if (artikelBuka === id) setArtikelBuka(null); 
+    else setArtikelBuka(id); 
+  };
+
+  // TAMBAHAN BARU: Fungsi ajaib untuk mengesan pautan dan menjadikannya boleh ditekan!
+  const jadikanLinkBolehDitekan = (teks: string) => {
+    if (!teks) return teks;
+    // Kod Regex (Regular Expression) untuk mencari URL
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const bahagianTeks = teks.split(urlRegex);
+
+    return bahagianTeks.map((bahagian, indeks) => {
+      // Jika bahagian itu adalah URL, bungkus ia dengan tag <a>
+      if (bahagian.match(urlRegex)) {
+        return (
+          <a 
+            key={indeks} 
+            href={bahagian} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-[#1793D1] font-bold hover:text-white hover:underline transition-colors"
+          >
+            {bahagian}
+          </a>
+        );
+      }
+      // Jika teks biasa, paparkan seperti biasa
+      return bahagian;
+    });
   };
 
   return ( 
@@ -48,7 +69,7 @@ export default function HomePage() {
       <main className="max-w-5xl mx-auto bg-[#282C34] p-8 mt-2 rounded-b-lg shadow-lg border border-gray-800">
         <div className="border-b border-gray-700 pb-4 mb-6">
             <h1 className="text-3xl font-bold text-white">Jurnal Inovasi & Berita Terkini</h1>
-            <p className="text-sm mt-2 font-mono text-gray-400">Arch-style documentation for Pendidikan Jawi dan RuLaFHub</p>
+            <p className="text-sm mt-2 font-mono text-gray-400">Arch-style documentation for Pendidikan Jawi</p>
         </div>
 
         {isLoading ? (
@@ -64,7 +85,6 @@ export default function HomePage() {
                   </div>
                   
                   <div className="flex-1">
-                    {/* TAJUK ARTIKEL: Ditambah fungsi onClick dan ikon [+] / [-] */}
                     <h2 
                       className="text-lg font-bold text-[#1793D1] hover:underline cursor-pointer flex items-center gap-2"
                       onClick={() => klikArtikel(blog.id)}
@@ -73,14 +93,13 @@ export default function HomePage() {
                       {blog.tajuk}
                     </h2>
                     
-                    {/* KANDUNGAN ARTIKEL: Expand / Collapse */}
                     {artikelBuka === blog.id ? (
-                      // Paparan Penuh (Terbuka) - Format kotak terminal
+                      // Paparan Penuh: Fungsi 'jadikanLinkBolehDitekan' dipanggil di sini!
                       <div className="mt-4 text-sm text-gray-300 whitespace-pre-wrap bg-black p-5 rounded border border-gray-700 font-mono leading-relaxed">
-                        {blog.kandungan}
+                        {jadikanLinkBolehDitekan(blog.kandungan)}
                       </div>
                     ) : (
-                      // Paparan Ringkas (Tertutup) - Hanya 2 baris
+                      // Paparan Ringkas (Tertutup)
                       <p 
                         className="text-sm mt-1 line-clamp-2 text-gray-400 cursor-pointer"
                         onClick={() => klikArtikel(blog.id)}
