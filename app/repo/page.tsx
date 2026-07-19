@@ -1,111 +1,148 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient'; // Pastikan path ini betul
+import { supabase } from '../lib/supabaseClient'; 
 
 export default function RepositoryPage() {
   const [activeTab, setActiveTab] = useState('repository');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   
-  // State untuk Data
+  // State untuk Data Pangkalan Data
   const [bahanRepo, setBahanRepo] = useState<any[]>([]);
   const [forumTopik, setForumTopik] = useState<any[]>([]);
 
-  // Semak status log masuk pengguna (Auth)
+  // State untuk Input Borang (Repo)
+  const [tajukRepo, setTajukRepo] = useState('');
+  const [pautanRepo, setPautanRepo] = useState('');
+
+  // State untuk Input Borang (Forum)
+  const [tajukForum, setTajukForum] = useState('');
+  const [soalanForum, setSoalanForum] = useState('');
+
   useEffect(() => {
-    async function checkUser() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) setIsLoggedIn(true);
-    }
-    checkUser();
-    
-    // (Di sini bosskur boleh masukkan fungsi fetch data dari Supabase untuk jadual 'rulaf_repo' dan 'rulaf_forum')
+    semakUser();
+    tarikDataRepo();
+    tarikDataForum();
   }, []);
+
+  // Semak jika pengguna sudah log masuk (dari Halaman Admin)
+  const semakUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      setIsLoggedIn(true);
+      setUserEmail(session.user.email || 'Admin RuLaF');
+    }
+  };
+
+  // Tarik data secara terbuka (Public Read)
+  const tarikDataRepo = async () => {
+    const { data } = await supabase.from('rulaf_repo').select('*').order('date', { ascending: false });
+    if (data) setBahanRepo(data);
+  };
+
+  const tarikDataForum = async () => {
+    const { data } = await supabase.from('rulaf_forum').select('*').order('date', { ascending: false });
+    if (data) setForumTopik(data);
+  };
+
+  // Fungsi Muat Naik Repo
+  const pushRepo = async () => {
+    if (!tajukRepo || !pautanRepo) return alert('Sila isi semua maklumat!');
+    const { error } = await supabase.from('rulaf_repo').insert([{ tajuk: tajukRepo, pautan: pautanRepo, penyumbang: userEmail }]);
+    if (error) alert('Ralat: ' + error.message);
+    else { setTajukRepo(''); setPautanRepo(''); tarikDataRepo(); }
+  };
+
+  // Fungsi Buka Topik Forum
+  const postForum = async () => {
+    if (!tajukForum || !soalanForum) return alert('Sila isi semua maklumat!');
+    const { error } = await supabase.from('rulaf_forum').insert([{ tajuk: tajukForum, soalan: soalanForum, penulis: userEmail }]);
+    if (error) alert('Ralat: ' + error.message);
+    else { setTajukForum(''); setSoalanForum(''); tarikDataForum(); }
+  };
 
   return (
     <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
-      {/* Header Terminal */}
       <div className="max-w-5xl mx-auto bg-[#171A21] border border-[#1793D1] rounded-sm shadow-[0_0_15px_rgba(23,147,209,0.3)]">
         <div className="bg-[#1793D1] text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
           <span>rulaf-hub(1) - Open Repository & Forum</span>
-          <span>PAK21 COLLABORATION SPACE</span>
+          <span>{isLoggedIn ? `[ LOGGED IN : ${userEmail} ]` : '[ GUEST MODE ]'}</span>
         </div>
 
         <div className="p-8">
-          {/* Penerangan Direktori */}
           <div className="mb-8 border-b border-gray-700 pb-4">
             <h1 className="text-2xl font-black text-white mb-2">RuLaF<span className="text-[#1793D1]">Hub</span> Open Source</h1>
             <p className="text-gray-400 text-sm">
-              Sistem repositori awam dan forum perbincangan untuk perkongsian modul digital, inovasi Jawi, dan pedagogi PAK21. 
+              Sistem repositori awam dan forum perbincangan. 
               {isLoggedIn ? (
                 <span className="text-green-400 ml-2">[ Akses Muat Naik Dibenarkan ]</span>
               ) : (
-                <span className="text-red-400 ml-2">[ Sila log masuk untuk berkongsi bahan ]</span>
+                <span className="text-red-400 ml-2">[ Sila log masuk di halaman Admin untuk berkongsi bahan ]</span>
               )}
             </p>
           </div>
 
-          {/* Sistem Tab Ala Terminal */}
           <div className="flex gap-4 mb-6">
-            <button 
-              onClick={() => setActiveTab('repository')}
-              className={`px-4 py-2 font-bold transition-colors border ${activeTab === 'repository' ? 'bg-[#1793D1] text-[#0F1419] border-[#1793D1]' : 'bg-transparent text-[#1793D1] border-gray-700 hover:border-[#1793D1]'}`}
-            >
+            <button onClick={() => setActiveTab('repository')} className={`px-4 py-2 font-bold transition-colors border ${activeTab === 'repository' ? 'bg-[#1793D1] text-[#0F1419] border-[#1793D1]' : 'bg-transparent text-[#1793D1] border-gray-700 hover:border-[#1793D1]'}`}>
               [ BROWSE REPOSITORY ]
             </button>
-            <button 
-              onClick={() => setActiveTab('forum')}
-              className={`px-4 py-2 font-bold transition-colors border ${activeTab === 'forum' ? 'bg-[#1793D1] text-[#0F1419] border-[#1793D1]' : 'bg-transparent text-[#1793D1] border-gray-700 hover:border-[#1793D1]'}`}
-            >
+            <button onClick={() => setActiveTab('forum')} className={`px-4 py-2 font-bold transition-colors border ${activeTab === 'forum' ? 'bg-[#1793D1] text-[#0F1419] border-[#1793D1]' : 'bg-transparent text-[#1793D1] border-gray-700 hover:border-[#1793D1]'}`}>
               [ COMMUNITY FORUM ]
             </button>
           </div>
 
-          {/* KANDUNGAN REPOSITORI */}
+          {/* BAHAGIAN REPOSITORI */}
           {activeTab === 'repository' && (
             <div>
+              {/* Hanya papar borang jika Log Masuk */}
               {isLoggedIn && (
-                <div className="mb-6 p-4 bg-black border border-gray-700 border-l-4 border-l-[#1793D1]">
-                  <h3 className="text-white font-bold mb-2">++ PUSH BAHAN BAHARU</h3>
-                  <input type="text" placeholder="Tajuk Modul / Inovasi..." className="w-full mb-2 p-2 bg-gray-900 border border-gray-700 text-white outline-none" />
-                  <input type="text" placeholder="Pautan (Link) Muat Turun (Google Drive / Supabase)..." className="w-full mb-2 p-2 bg-gray-900 border border-gray-700 text-white outline-none" />
-                  <button className="bg-[#1793D1] text-black px-4 py-2 font-bold hover:bg-blue-400">Push to Branch</button>
+                <div className="mb-8 p-4 bg-black border border-gray-700 border-l-4 border-l-[#1793D1]">
+                  <h3 className="text-white font-bold mb-3">++ PUSH BAHAN BAHARU</h3>
+                  <input type="text" value={tajukRepo} onChange={(e)=>setTajukRepo(e.target.value)} placeholder="Tajuk Modul / Inovasi..." className="w-full mb-3 p-2 bg-gray-900 border border-gray-700 text-white outline-none" />
+                  <input type="text" value={pautanRepo} onChange={(e)=>setPautanRepo(e.target.value)} placeholder="Pautan (Link) Muat Turun (Google Drive / Supabase)..." className="w-full mb-3 p-2 bg-gray-900 border border-gray-700 text-white outline-none" />
+                  <button onClick={pushRepo} className="bg-[#1793D1] text-black px-4 py-2 font-bold hover:bg-blue-400">Push to Branch</button>
                 </div>
               )}
               
-              {/* Senarai Bahan Dummy */}
               <div className="space-y-4">
-                <div className="p-4 border border-gray-800 hover:bg-gray-900 transition-colors">
-                  <h4 className="text-lg font-bold text-white flex justify-between">
-                    <span>Modul Jawi Tahap 3 (PAK21)</span>
-                    <span className="text-xs text-green-400 font-normal">v1.0.0</span>
-                  </h4>
-                  <p className="text-sm text-gray-400 mt-1">Sumbangan: Cikgu Mail | Kategori: Lembaran Kerja</p>
-                  <a href="#" className="text-[#1793D1] text-sm mt-3 inline-block hover:underline">[ wget / muat turun ]</a>
-                </div>
+                {bahanRepo.length > 0 ? bahanRepo.map((repo) => (
+                  <div key={repo.id} className="p-4 border border-gray-800 hover:bg-gray-900 transition-colors">
+                    <h4 className="text-lg font-bold text-white flex justify-between">
+                      <span>{repo.tajuk}</span>
+                      <span className="text-xs text-gray-500 font-mono">{new Date(repo.date).toLocaleDateString('ms-MY')}</span>
+                    </h4>
+                    <p className="text-sm text-gray-400 mt-1">Sumbangan: {repo.penyumbang}</p>
+                    <a href={repo.pautan} target="_blank" rel="noopener noreferrer" className="text-[#1793D1] text-sm mt-3 inline-block hover:underline font-bold">[ wget / muat turun bahan ]</a>
+                  </div>
+                )) : <p className="text-gray-500">Tiada bahan repositori setakat ini.</p>}
               </div>
             </div>
           )}
 
-          {/* KANDUNGAN FORUM */}
+          {/* BAHAGIAN FORUM */}
           {activeTab === 'forum' && (
             <div>
+              {/* Hanya papar borang jika Log Masuk */}
               {isLoggedIn && (
-                <div className="mb-6 p-4 bg-black border border-gray-700 border-l-4 border-l-purple-500">
-                  <h3 className="text-white font-bold mb-2">++ BUKA TOPIK PERBINCANGAN</h3>
-                  <input type="text" placeholder="Tajuk Perbincangan..." className="w-full mb-2 p-2 bg-gray-900 border border-gray-700 text-white outline-none" />
-                  <textarea placeholder="Huraian / Soalan..." className="w-full mb-2 p-2 bg-gray-900 border border-gray-700 text-white outline-none h-24"></textarea>
-                  <button className="bg-purple-600 text-white px-4 py-2 font-bold hover:bg-purple-500">Post Thread</button>
+                <div className="mb-8 p-4 bg-black border border-gray-700 border-l-4 border-l-purple-500">
+                  <h3 className="text-white font-bold mb-3">++ BUKA TOPIK PERBINCANGAN</h3>
+                  <input type="text" value={tajukForum} onChange={(e)=>setTajukForum(e.target.value)} placeholder="Tajuk Perbincangan..." className="w-full mb-3 p-2 bg-gray-900 border border-gray-700 text-white outline-none" />
+                  <textarea value={soalanForum} onChange={(e)=>setSoalanForum(e.target.value)} placeholder="Huraian / Soalan..." className="w-full mb-3 p-2 bg-gray-900 border border-gray-700 text-white outline-none h-24"></textarea>
+                  <button onClick={postForum} className="bg-purple-600 text-white px-4 py-2 font-bold hover:bg-purple-500">Post Thread</button>
                 </div>
               )}
               
-              {/* Senarai Topik Dummy */}
               <div className="space-y-4">
-                <div className="p-4 border border-gray-800 hover:bg-gray-900 transition-colors">
-                  <h4 className="text-lg font-bold text-purple-400">Cara berkesan ajar huruf bersambung?</h4>
-                  <p className="text-sm text-gray-400 mt-1">Topik oleh: Ustazah Salmah | Balasan: 5</p>
-                  <p className="text-sm text-gray-300 mt-3 border-t border-gray-800 pt-2">Ada sesiapa boleh kongsikan teknik gamifikasi untuk tajuk ini?</p>
-                  <a href="#" className="text-purple-400 text-sm mt-3 inline-block hover:underline">[ sudo reply ]</a>
-                </div>
+                {forumTopik.length > 0 ? forumTopik.map((forum) => (
+                  <div key={forum.id} className="p-4 border border-gray-800 hover:bg-gray-900 transition-colors">
+                    <h4 className="text-lg font-bold text-purple-400 flex justify-between">
+                      <span>{forum.tajuk}</span>
+                      <span className="text-xs text-gray-500 font-mono">{new Date(forum.date).toLocaleDateString('ms-MY')}</span>
+                    </h4>
+                    <p className="text-sm text-gray-400 mt-1">Topik oleh: <span className="text-gray-300">{forum.penulis}</span></p>
+                    <p className="text-sm text-gray-300 mt-3 border-t border-gray-800 pt-3 whitespace-pre-wrap">{forum.soalan}</p>
+                  </div>
+                )) : <p className="text-gray-500">Tiada topik perbincangan setakat ini.</p>}
               </div>
             </div>
           )}
