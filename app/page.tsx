@@ -1,64 +1,72 @@
-'use client'; // Arahan wajib ditambah untuk membaiki ralat deployment
-import Image from "next/image";
+'use client';
 import { useEffect, useState } from 'react';
-// import { supabase } from '../lib/supabaseClient'; // Buka komen ini setelah Supabase diintegrasikan
+import { supabase } from './lib/supabaseClient'; 
 
 export default function HomePage() { 
-  // State untuk menyimpan data blog dari Supabase
-  const [blogs, setBlogs] = useState([]);
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Contoh fungsi untuk menarik data blog dari Supabase (Boleh digunakan nanti)
-  /*
+  // Menarik data artikel sebenar dari Supabase
   useEffect(() => {
     async function fetchBlogs() {
-      const { data, error } = await supabase.from('blog_rulaf').select('*');
+      const { data, error } = await supabase
+        .from('blog_rulaf')
+        .select('*')
+        .order('tarikh', { ascending: false }); // Susun berita terkini di atas
+      
       if (data) setBlogs(data);
+      setIsLoading(false);
     }
     fetchBlogs();
   }, []);
-  */
 
   return ( 
-    <div className="min-h-screen bg-black text-white font-sans"> 
-      {/* Navbar / Header */} 
-      <nav className="p-6 border-b border-gray-800 flex justify-between items-center max-w-6xl mx-auto"> 
+    <div className="min-h-screen bg-[#171A21] text-[#A5B2D9] font-sans selection:bg-[#1793D1] selection:text-white"> 
+      {/* Navbar Ala Arch Linux (Biru Laut & Kelabu Gelap) */} 
+      <nav className="p-4 bg-[#282C34] border-b border-[#1793D1] shadow-md flex justify-between items-center max-w-5xl mx-auto mt-4 rounded-t-lg"> 
         <div className="flex items-center gap-3"> 
-          <img src="/rulafhub.png" alt="Logo" className="w-10 h-10 object-contain" /> 
-          <span className="text-2xl font-black tracking-tighter">RuLaF<span className="text-blue-500">Hub</span></span> 
+          <span className="text-xl font-bold text-white tracking-wide">
+            RuLaF<span className="text-[#1793D1]">Hub</span>
+          </span> 
         </div> 
-        <div className="flex gap-6 text-sm font-medium text-gray-400"> 
-          <a href="/blog" className="hover:text-white">Blog & Jurnal</a>
-          {/* Pautan Admin telah dipadam dari paparan awam untuk tujuan keselamatan */}
-          <a href="/semakan" className="hover:text-white">Semakan</a> 
+        <div className="flex gap-6 text-sm font-semibold"> 
+          <a href="/semakan" className="text-[#1793D1] hover:underline">Semakan Markah</a> 
         </div> 
       </nav>
 
-      {/* Bahagian Utama / Senarai Blog */}
-      <main className="max-w-6xl mx-auto p-6 mt-10">
-        <div className="flex justify-between items-end mb-8">
-            <div>
-                <h1 className="text-4xl font-bold mb-2">Jurnal Inovasi & Blog RuLaF</h1>
-                <p className="text-gray-400">Perkongsian bahan pengajaran, analisis prestasi, dan trend teknologi Pendidikan Jawi.</p>
-            </div>
+      {/* Bahagian Utama (Latest News / Jurnal Inovasi) */}
+      <main className="max-w-5xl mx-auto bg-[#282C34] p-8 mt-2 rounded-b-lg shadow-lg border border-gray-800">
+        <div className="border-b border-gray-700 pb-4 mb-6">
+            <h1 className="text-3xl font-bold text-white">Jurnal Inovasi & Berita Terkini</h1>
+            <p className="text-sm mt-2 font-mono text-gray-400">Arch-style documentation for Pendidikan Jawi</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition-colors cursor-pointer">
-                <h2 className="text-xl font-bold mb-2 text-white">Trend AI Dalam Pendidikan Jawi</h2>
-                <p className="text-xs text-blue-400 mb-4">Diterbitkan pada: 19 Julai 2026</p>
-                <p className="text-sm text-gray-400 line-clamp-3">
-                    Meneroka potensi kecerdasan buatan (AI) dalam memperkasakan tulisan Jawi melalui pendekatan digital dan inovasi terkini.
-                </p>
-            </div>
-
-            <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition-colors cursor-pointer">
-                <h2 className="text-xl font-bold mb-2 text-white">Latihan Amali Hadas & Tauhid</h2>
-                <p className="text-xs text-blue-400 mb-4">Diterbitkan pada: 15 Julai 2026</p>
-                <p className="text-sm text-gray-400 line-clamp-3">
-                    Muat turun lembaran kerja terbaru untuk kelas 3 Murshid yang merangkumi topik asas penyucian dan kefahaman Rasul Ulul Azmi.
-                </p>
-            </div>
-        </div>
+        {isLoading ? (
+          <p className="font-mono text-[#1793D1]">Loading database...</p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {blogs.length > 0 ? (
+              blogs.map((blog) => (
+                <div key={blog.id} className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-6 border-b border-gray-700 pb-4 hover:bg-gray-800 p-2 transition-colors">
+                  {/* Tarikh berformat Monospace */}
+                  <div className="font-mono text-xs text-gray-500 min-w-[100px]">
+                    {new Date(blog.tarikh).toLocaleDateString('ms-MY')}
+                  </div>
+                  
+                  {/* Tajuk dan Kandungan */}
+                  <div className="flex-1">
+                    <h2 className="text-lg font-bold text-[#1793D1] hover:underline cursor-pointer">
+                      {blog.tajuk}
+                    </h2>
+                    <p className="text-sm mt-1 line-clamp-2">{blog.kandungan}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400">Tiada artikel diterbitkan setakat ini.</p>
+            )}
+          </div>
+        )}
       </main>
     </div> 
   ); 
