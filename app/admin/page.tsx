@@ -5,28 +5,42 @@ import RuLaFCard from '../../components/RuLaFCard';
 import senaraiMurid from '../../data/murid.json';
 
 export default function AdminPage() { 
+  // --- BAHAGIAN KUNCI KESELAMATAN (SUPABASE AUTH) --- 
   const [isLocked, setIsLocked] = useState(true); 
+  const [email, setEmail] = useState(''); // Tambahan state untuk emel
   const [password, setPassword] = useState(''); 
   const [errorMsg, setErrorMsg] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const [carian, setCarian] = useState(''); 
-  const [tapisTahap, setTapisTahap] = useState('Semua');
-
+  // ... (Kekalkan state lain seperti carian, tapisan dan borang blog) ...
   const [tajukBlog, setTajukBlog] = useState('');
   const [kandunganBlog, setKandunganBlog] = useState('');
   const [statusBlog, setStatusBlog] = useState('');
 
-  const klikLogin = () => { 
-    if (password === 'rulaf2026') setIsLocked(false); 
-    else setErrorMsg('Kata laluan salah!'); 
+  // Fungsi Log Masuk Rasmi Supabase
+  const klikLogin = async (e: React.FormEvent) => { 
+    e.preventDefault();
+    setIsLoggingIn(true);
+    setErrorMsg('');
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+
+    if (error) { 
+      setErrorMsg('Akses Ditolak: E-mel atau kata laluan tidak tepat.'); 
+    } else { 
+      setIsLocked(false); // Berjaya log masuk, buka kunci panel!
+    } 
+    setIsLoggingIn(false);
   };
 
-  // 2. Fungsi sambungan terus ke Supabase
+  // Fungsi muat naik blog (Kekal sama, kerana Supabase sudah kenal sesi log masuk ini)
   const muatNaikBlog = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatusBlog('Sedang memuat naik...');
 
-    // Memasukkan data ke dalam jadual blog_rulaf
     const { data, error } = await supabase
       .from('blog_rulaf')
       .insert([
@@ -40,33 +54,45 @@ export default function AdminPage() {
     if (error) {
       setStatusBlog('Ralat: ' + error.message);
     } else {
-      setStatusBlog('Artikel Jurnal & Trend Kajian berjaya dimuat naik!');
+      setStatusBlog('Artikel Jurnal berjaya dimuat naik!');
       setTajukBlog('');
       setKandunganBlog('');
     }
   };
 
-
-  // 1. PAPARAN PINTU PAGAR (Jika belum letak password)
+  // 1. PAPARAN PINTU PAGAR (Kemas kini tambah medan E-mel)
   if (isLocked) { 
     return ( 
       <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-10"> 
         <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl max-w-sm w-full border border-gray-700"> 
           <h1 className="text-3xl font-black text-white mb-2 text-center">Admin RuLaF</h1> 
-          <p className="text-gray-400 text-sm mb-8 text-center">Sila masukkan kata laluan untuk akses panel guru.</p>
-          <input 
-            type="rulaf2026" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            className="w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:border-blue-500 mb-4" 
-            placeholder="Kata laluan..." 
-          />
-          <button 
-            onClick={klikLogin} 
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition-colors"
-          >
-            Log Masuk
-          </button>
+          <p className="text-gray-400 text-sm mb-8 text-center">Log masuk akaun pentadbir rasmi.</p>
+          
+          <form onSubmit={klikLogin} className="flex flex-col gap-4">
+            <input 
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              className="w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:border-blue-500" 
+              placeholder="E-mel admin..." 
+              required
+            />
+            <input 
+              type="password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              className="w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:border-blue-500" 
+              placeholder="Kata laluan..." 
+              required
+            />
+            <button 
+              type="submit" 
+              disabled={isLoggingIn}
+              className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-bold py-3 rounded-lg transition-colors"
+            >
+              {isLoggingIn ? 'Mengesahkan...' : 'Log Masuk'}
+            </button>
+          </form>
           {errorMsg && <p className="text-red-400 text-sm mt-4 text-center">{errorMsg}</p>}
         </div>
       </div>
