@@ -1,3 +1,4 @@
+'use client'; // Arahan wajib ditambah untuk membaiki ralat deployment
 import Image from "next/image";
 import { useEffect, useState } from 'react';
 // import { supabase } from '../lib/supabaseClient'; // Buka komen ini setelah Supabase diintegrasikan
@@ -26,9 +27,8 @@ export default function HomePage() {
           <span className="text-2xl font-black tracking-tighter">RuLaF<span className="text-blue-500">Hub</span></span> 
         </div> 
         <div className="flex gap-6 text-sm font-medium text-gray-400"> 
-          {/* Penambahan pautan Blog di Navigasi */}
           <a href="/blog" className="hover:text-white">Blog & Jurnal</a>
-          <a href="/admin" className="hover:text-white">Admin</a> 
+          {/* Pautan Admin telah dipadam dari paparan awam untuk tujuan keselamatan */}
           <a href="/semakan" className="hover:text-white">Semakan</a> 
         </div> 
       </nav>
@@ -42,10 +42,7 @@ export default function HomePage() {
             </div>
         </div>
 
-        {/* Grid untuk kad-kad artikel blog (Akan digantikan dengan data dinamik Supabase) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            {/* Contoh Kad Blog 1 */}
             <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition-colors cursor-pointer">
                 <h2 className="text-xl font-bold mb-2 text-white">Trend AI Dalam Pendidikan Jawi</h2>
                 <p className="text-xs text-blue-400 mb-4">Diterbitkan pada: 19 Julai 2026</p>
@@ -54,7 +51,6 @@ export default function HomePage() {
                 </p>
             </div>
 
-            {/* Contoh Kad Blog 2 */}
             <div className="bg-gray-900 p-6 rounded-xl border border-gray-800 hover:border-blue-500 transition-colors cursor-pointer">
                 <h2 className="text-xl font-bold mb-2 text-white">Latihan Amali Hadas & Tauhid</h2>
                 <p className="text-xs text-blue-400 mb-4">Diterbitkan pada: 15 Julai 2026</p>
@@ -62,7 +58,6 @@ export default function HomePage() {
                     Muat turun lembaran kerja terbaru untuk kelas 3 Murshid yang merangkumi topik asas penyucian dan kefahaman Rasul Ulul Azmi.
                 </p>
             </div>
-
         </div>
       </main>
     </div> 
