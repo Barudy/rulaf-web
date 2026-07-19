@@ -1,40 +1,32 @@
 'use client';
 import { useState } from 'react'; 
-// Pastikan anda telah mencipta fail tetapan supabaseClient.js dan import di sini
-// import { supabase } from '../../lib/supabaseClient'; 
-
+import { supabase } from '../lib/supabaseClient'; // 1. Buka komen ini
 import RuLaFCard from '../../components/RuLaFCard'; 
 import senaraiMurid from '../../data/murid.json';
 
-export default function Home() { 
-  // --- BAHAGIAN KUNCI KESELAMATAN --- 
+export default function AdminPage() { 
   const [isLocked, setIsLocked] = useState(true); 
   const [password, setPassword] = useState(''); 
   const [errorMsg, setErrorMsg] = useState('');
 
-  // --- BAHAGIAN CARIAN & TAPISAN MURID --- 
   const [carian, setCarian] = useState(''); 
   const [tapisTahap, setTapisTahap] = useState('Semua');
 
-  // --- BAHAGIAN TAMBAH BLOG (SUPABASE) ---
   const [tajukBlog, setTajukBlog] = useState('');
   const [kandunganBlog, setKandunganBlog] = useState('');
   const [statusBlog, setStatusBlog] = useState('');
 
   const klikLogin = () => { 
-    if (password === 'rulaf2026') { 
-      setIsLocked(false); 
-    } else { 
-      setErrorMsg('Kata laluan salah! Misi menghendap digagalkan.'); 
-    } 
+    if (password === 'rulaf2026') setIsLocked(false); 
+    else setErrorMsg('Kata laluan salah!'); 
   };
 
-  // Fungsi untuk menghantar data ke Supabase
+  // 2. Fungsi sambungan terus ke Supabase
   const muatNaikBlog = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setStatusBlog('Sedang memuat naik...');
+    e.preventDefault();
+    setStatusBlog('Sedang memuat naik...');
 
-    /* BUKA KOMEN INI SELEPAS SUPABASECLIENT DISAMBUNGKAN
+    // Memasukkan data ke dalam jadual blog_rulaf
     const { data, error } = await supabase
       .from('blog_rulaf')
       .insert([
@@ -48,13 +40,12 @@ export default function Home() {
     if (error) {
       setStatusBlog('Ralat: ' + error.message);
     } else {
-      setStatusBlog('Artikel Jurnal berjaya dimuat naik ke Supabase!');
+      setStatusBlog('Artikel Jurnal & Trend Kajian berjaya dimuat naik!');
       setTajukBlog('');
       setKandunganBlog('');
     }
-    */
-    setStatusBlog('Sistem sedia untuk disambungkan ke Supabase!');
   };
+
 
   // 1. PAPARAN PINTU PAGAR (Jika belum letak password)
   if (isLocked) { 
