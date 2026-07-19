@@ -24,9 +24,10 @@ export default function SemakanIbuBapa() {
     if (error) {
       setMesejRalat('Ralat sistem: ' + error.message);
     } else if (data && data.length === 0) {
-      setMesejRalat('Rekod murid tidak ditemui. Sila semak ejaan nama anak anda.');
+      setMesejRalat('Rekod murid tidak ditemui. Sila semak ejaan nama atau MyKid anak anda.');
     } else if (data && data.length > 0) {
-      setMuridDitemui(data); // Paparkan rekod teratas
+      // TAMBAHKAN  PADA KOD DI BAWAH INI
+      setMuridDitemui(data[0]); 
     }
     setSedangMencari(false);
   };
