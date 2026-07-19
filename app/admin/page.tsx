@@ -55,7 +55,7 @@ export default function AdminPage() {
           <h1 className="text-3xl font-black text-white mb-2 text-center">Admin RuLaF</h1> 
           <p className="text-gray-400 text-sm mb-8 text-center">Sila masukkan kata laluan untuk akses panel guru.</p>
           <input 
-            type="password" 
+            type="rulaf2026" 
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
             className="w-full p-3 rounded-lg bg-gray-900 text-white border border-gray-600 focus:outline-none focus:border-blue-500 mb-4" 
