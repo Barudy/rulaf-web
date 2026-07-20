@@ -19,7 +19,7 @@ export default function HomePage() {
       }
     }
 
-    // Fungsi 2: Tarik artikel blog dari database
+    // Fungsi 2: Tarik artikel blog dari database supaya mudah dibaca
     async function fetchBlogs() {
       const { data, error } = await supabase
         .from('blog_rulaf')
