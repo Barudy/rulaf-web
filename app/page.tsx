@@ -65,6 +65,7 @@ export default function HomePage() {
           <a href="/semakan" className="text-[#1793D1] hover:underline">Semakan Markah</a> 
           <a href="/docs" className="text-[#1793D1] hover:underline">Dokumentasi</a>
           <a href="/repo" className="text-[#1793D1] hover:underline">Repositori & Forum</a>
+          <a href="/login" className="text-[#1793D1] border border-[#1793D1] px-3 py-1 rounded hover:bg-[#1793D1] hover:text-[#0F1419] transition-colors">Log Masuk</a> 
         </div> 
       </nav>
 
