@@ -44,7 +44,7 @@ export default function SemakanIbuBapa() {
             type="text" 
             value={carian} 
             onChange={(e) => setCarian(e.target.value)} 
-            placeholder="Masukkan Nama Penuh Anak..." 
+            placeholder="Masukkan Nombor Mykid Anak Anda..." 
             className="w-full p-3 bg-gray-900 text-white border border-gray-600 focus:border-[#1793D1] outline-none rounded font-mono"
           />
           <button 
