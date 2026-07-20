@@ -55,7 +55,7 @@ Projek RuLaFHub adalah sebuah inisiatif sumber terbuka (open-source). Kami amat 
 
 MIT License
 
-Copyright (c) 2026 [NAMA BRO / RULAF HUB]
+Copyright (c) 2026 [MOHAMAD ISMAIL BIN MOHD NOOR / RULAF HUB]
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
