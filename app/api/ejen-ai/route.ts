@@ -36,6 +36,7 @@ export async function POST(req: Request) {
     Tugas anda: Tukarkan soalan pengguna kepada arahan SQL (PostgreSQL) yang SAH.
     Mod Artifak: HANYA berikan kod SQL tanpa blok kod (tiada tag \`\`\`sql). Jangan berikan sebarang penerangan tambahan. 
     Hanya pilih (SELECT) lajur yang relevan untuk menjawab soalan tersebut.
+    PENTING: JANGAN letak tanda koma bertitik (;) pada hujung kod SQL!
     `;
 
     // 4. Menterjemah Bahasa Melayu ke SQL menggunakan AI
@@ -50,8 +51,8 @@ export async function POST(req: Request) {
 
     let arahan_sql = response.choices?.[0]?.message?.content?.trim() || '';
     
-    // Pembersihan teks (jika AI tersilap masukkan format markdown)
-    arahan_sql = arahan_sql.replace(/```sql/g, '').replace(/```/g, '').trim();
+    // Pembersihan teks tahap tinggi (Buang markdown dan buang semicolon)
+    arahan_sql = arahan_sql.replace(/```sql/g, '').replace(/```/g, '').replace(/;/g, '').trim();
 
     // 5. Eksekusi SQL yang dijana oleh AI terus ke Supabase melalui RPC
     const { data, error } = await supabase.rpc('execute_sql', { query: arahan_sql });
