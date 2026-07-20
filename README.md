@@ -1,30 +1,54 @@
-🛠️ LAPORAN KEMAS KINI SISTEM RULAFHUB (v1.0)
-Tarikh/Masa: 19 Julai 2026, 11:40 PM Status Pelayan: Beroperasi Penuh (Vercel & Supabase)
-BAHAGIAN 1: LOG PENYELESAIAN RALAT (BUG FIXES)
-Berikut adalah ralat-ralat kritikal yang telah berjaya kita tewaskan malam ini:
-Ralat Pra-Penjanaan Vercel (Prerender Error) [SELESAI]
-Isu: Kegagalan deployment pada jam 21:47 dan 21:58 dengan kod ralat pekerja binaan Vercel: 1 berserta mesej Error: supabaseUrl is required.
-.
-Punca: Pelayan Vercel gagal membaca pemboleh ubah persekitaran .env.local ketika membina sambungan pangkalan data
-.
-Penyelesaian: Kunci NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY telah dimasukkan secara manual ke dalam tetapan Environment Variables di Vercel dan proses Redeploy berjaya.
-Ralat Komponen Pelayan React (Server Component) [SELESAI]
-Isu: Kegagalan Turbopack dengan ralat You're importing a module that depends on useEffect/useState into a React Server Component module.
-.
-Punca: Penggunaan Hooks secara lalai (default) tanpa pengisytiharan komponen klien
-.
-Penyelesaian: Meletakkan arahan 'use client'; pada baris paling atas bagi semua fail page.tsx yang menggunakan useState dan useEffect.
-Ralat Keselamatan Baris (Row-Level Security - RLS) [SELESAI]
-Isu: Maklumat Halaman Admin ditolak oleh pangkalan data dengan ralat new row violates row-level security policy for table "blog_rulaf".
-Punca: Pengguna tanpa nama (anonymous) cuba memasukkan data.
-Penyelesaian: Membina sistem log masuk Supabase Auth, menukar borang admin untuk menyokong E-mel/Kata Laluan, dan menetapkan Polisi RLS INSERT (WITH CHECK true) untuk authenticated dan SELECT untuk anon.
-Ralat Logik Data Halaman Semakan [SELESAI]
-Isu: Teks "REKOD DIJUMPAI" terpapar tetapi kotak markah murid kosong.
-Penyelesaian: Membetulkan pepijat array mapping dengan meletakkan indeks pertama (data) pada tetapan state setMuridDitemui agar sistem dapat membaca objek rekod murid yang spesifik.
-BAHAGIAN 2: KEMAS KINI KOD SUMBER TERAKHIR (SOURCE CODE)
-Sila pastikan struktur dan fail-fail di bawah telah dikemas kini dan di-save dalam VS Code anda sebelum melakukan Push terakhir ke GitHub malam ini:
-[x] lib/supabaseClient.ts – Fail sambungan rasmi (telah ditukar dari .js kepada .ts).
-[x] app/admin/page.tsx – Mempunyai borang log masuk (Auth) dan borang muat naik artikel yang dihubungkan ke jadual blog_rulaf.
-[x] app/semakan/page.tsx – Menggunakan carian pangkalan data .eq('mykid', carian) atau nama untuk menyemak markah dari jadual markah_murid secara masa nyata (real-time).
-[x] app/page.tsx (Home) – Dinaik taraf kepada antara muka (UI) Arch Linux / Terminal berserta fungsi Regex yang menukarkan teks panjang pautan (link) Google Drive Latihan Jawi / Quizizz secara automatik kepada pautan biru yang boleh diklik.
-[x] app/docs/page.tsx – Halaman Dokumentasi Khas memaparkan "Laporan Mail" (inspirasi Resident Evil) menceritakan kronologi sejarah pemansuhan Jawi dan tiga resolusi protokol pendidikan (Gamifikasi, Flipped Classroom, dan AI).
+# 💻 RuLaFHub (v1.4-stable)
+**Pangkalan Data Inovasi Pendidikan Islam & Pemerkasaan Jawi**
+
+RuLaFHub adalah sebuah sistem repositori sumber terbuka (*open-source*) dan portal pengurusan pendidikan masa nyata (*real-time*) yang dibina khusus untuk mengintegrasikan pendekatan **Pembelajaran Teradun (*Blended Learning*)**, **Gamifikasi**, dan **Kecerdasan Buatan (AI)** dalam bilik darjah. Sistem ini direka dengan antara muka (*UI*) berkonsepkan terminal minimalis ala Arch Linux bagi mencerminkan anjakan paradigma pendidikan ke arah pendigitalan era Revolusi Industri 4.0.
+
+---
+
+## 📜 Latar Belakang & Falsafah (Laporan Mail)
+Sistem ini diinspirasikan daripada **Laporan Mail (Mail's Report)** sebagai satu protokol intervensi digital bagi menangani krisis kemerosotan penguasaan tulisan Jawi. Berdasarkan sejarah, peminggiran Jawi mula meruncing pasca Laporan Razak 1956 dan mencapai titik kritikal melalui arahan pemansuhan Jawi sebagai medium pengantar utama pada tahun 1966. Kegagalan generasi baharu menguasai Jawi turut menjejaskan keupayaan membaca Al-Quran dengan baik.
+
+Bagi merungkai masalah ini, RuLaFHub dibangunkan berteraskan empat elemen utama Falsafah Pendidikan Bersepadu:
+1. **Kreativiti (Creativity):** Menggunakan aplikasi didik hibur (gamifikasi) secara meluas untuk mencungkil Kemahiran Berfikir Aras Tinggi (KBAT). Kajian empirikal merekodkan peningkatan skor formatif yang sangat signifikan (Z = -6.300, p < .001) melalui integrasi aplikasi interaktif Jawi.
+2. **Refleksi (Reflectivity):** Menyediakan sistem semakan markah *real-time* untuk murid dan guru menilai pencapaian kendiri secara pantas.
+3. **Kerjasama (Reciprocity):** Membangunkan forum komuniti pendidik untuk perbincangan pedagogi PAK21 tanpa batasan lokasi (seperti model *Massive Open Online Courses - MOOC*).
+4. **Tanggungjawab (Responsibility):** Mempraktikkan *Flipped Classroom* di mana bahan dan modul diletakkan di repositori untuk diakses murid di rumah, menjadikan waktu fizikal di kelas khusus untuk kolaborasi.
+
+---
+
+## 🚀 Ciri-Ciri Utama (Key Features)
+
+- **[+] UI/UX Terminal (Arch Linux Style):** Reka bentuk minimalis, pantas, dan bebas gangguan menggunakan Tailwind CSS.
+- **[+] Open Repository (Repositori Terbuka):** Akses percuma untuk memuat turun Modul Jawi, lembaran kerja amali, dan pautan *Quizizz/Kahoot!*. Dilengkapi dengan fungsi pengimbas teks (*Regex*) yang menukar URL secara automatik kepada pautan yang boleh diklik.
+- **[+] Forum Komuniti PAK21:** Ruang diskusi interaktif untuk guru dan ibu bapa membalas bebenang (*thread*) perbincangan.
+- **[+] Sudo Login (Supabase Auth):** Mod capaian selamat. Hanya pengunjung (guru/admin) yang berdaftar mempunyai autoriti (*Authenticated Write*) untuk memuat naik modul dan membalas forum, manakala orang awam kekal sebagai pemerhati (*Public Read*).
+- **[+] Semakan Prestasi Masa Nyata:** Sistem carian data pintar menggunakan nombor MyKid untuk menyemak markah (Jawi, Hafazan, Kehadiran) secara langsung dari pangkalan data.
+- **[+] CMS Blog Jurnal:** Papan pemuka (*dashboard*) khas untuk pentadbir memuat naik laporan dan buletin inovasi tanpa perlu mengubah kod sumber.
+
+---
+
+## 🛠️ Timunan Teknologi (Tech Stack)
+
+Sistem ini dibina menggunakan susun atur teknologi moden untuk kelajuan dan penskalaan:
+* **Kerangka Hadapan (Frontend):** Next.js 16 (React), TypeScript, Tailwind CSS
+* **Pangkalan Data & Pengesahan (Backend/Auth):** Supabase (PostgreSQL, Row-Level Security Policies)
+* **Pelayan & Pengaturcaraan (Deployment):** Vercel (Edge Network)
+
+---
+
+## ⚙️ Pemasangan & Persediaan (Local Setup)
+
+Untuk menjalankan RuLaFHub di dalam mesin tempatan anda:
+
+1. Klon repositori ini:
+   ```bash
+   git clone https://github.com/Barudy/rulaf-web.git
+   cd rulaf-web
+Pasang kebergantungan (dependencies):
+Tetapkan pemboleh ubah persekitaran (Environment Variables). Cipta fail .env.local di direktori utama dan masukkan kunci API Supabase anda:
+Jalankan pelayan pembangunan (development server):
+Buka http://localhost:3000 pada pelayar web anda untuk melihat sistem beroperasi.
+🤝 Sumbangan (Contributing)
+Projek RuLaFHub adalah sebuah inisiatif sumber terbuka (open-source). Kami amat mengalu-alukan sumbangan daripada para pembangun perisian, guru, dan pengkaji pendidikan untuk menambah baik pedagogi digital dan memartabatkan tulisan Jawi
+. Anda boleh menekan Fork, mencipta Branch baharu, dan menghantar Pull Request.
+"Membetulkan yang biasa dan membiasakan yang betul." - Memacu Pendidikan Jawi ke Era Digital.
