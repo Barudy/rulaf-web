@@ -148,7 +148,7 @@ export default function RepositoryPage() {
                   <div className="space-y-4 mb-8">
                     {senaraiKomen.length > 0 ? senaraiKomen.map((k) => (
                       <div key={k.id} className="p-4 border border-gray-800 bg-[#14181F]">
-                        <p className="text-xs text-green-400 mb-2 font-bold">> {k.penulis}</p>
+                        <p className="text-xs text-green-400 mb-2 font-bold"> {k.penulis}</p>
                         <p className="text-sm text-gray-300">{k.komen}</p>
                       </div>
                     )) : <p className="text-gray-500 text-sm">Tiada balasan lagi. Jadilah yang pertama!</p>}
