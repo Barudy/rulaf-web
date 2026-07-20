@@ -25,11 +25,11 @@ export async function POST(req: Request) {
     Anda mempunyai akses kepada jadual PostgreSQL bernama 'markah_murid'.
     Lajur yang ada: 
     - mykid (text)
-    - nama (text)
-    - kelas (text) - Contoh: '3 Murshid', '5 Murshid'
+    - nama_murid (text)
+    - kelas_id (text) - Contoh: '3 Murshid', '5 Murshid'
     - kehadiran (int)
-    - jawi (int)
-    - quran (text)
+    - markah_jawi (int)
+    - bacaan_quran (text)
     - hafazan (text)
     - bulan_tahun (text) - Contoh: 'April 2026'
     
