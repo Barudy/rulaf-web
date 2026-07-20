@@ -1,92 +1,166 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 
 export default function DocsPage() {
+  const [activeProtokol, setActiveProtokol] = useState<string | null>('pengenalan');
+
+  const toggleProtokol = (id: string) => {
+    setActiveProtokol(activeProtokol === id ? null : id);
+  };
+
   return (
     <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
-      {/* Container ala Terminal */}
-      <div className="max-w-4xl mx-auto bg-[#171A21] border border-[#1793D1] rounded-sm shadow-[0_0_15px_rgba(23,147,209,0.3)]">
+      <div className="max-w-5xl mx-auto bg-[#171A21] border border-[#1793D1] rounded-sm shadow-[0_0_15px_rgba(23,147,209,0.3)]">
         
         {/* Header Terminal */}
         <div className="bg-[#1793D1] text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
-          <span>rulaf-docs(1) - Dokumentasi Rasmi</span>
-          <span>MANUAL KOMUNITI & FALSAFAH</span>
+          <span>rulaf-docs(1) - DOKUMENTASI RASMI SISTEM</span>
+          <a href="/" className="hover:text-white transition-colors">[ cd ~ / Laman Utama ]</a>
         </div>
 
         <div className="p-8">
-          {/* SINOPSIS */}
-          <section className="mb-10">
-            <h2 className="text-white font-black text-xl mb-3 border-b border-gray-700 pb-2 flex items-center gap-2">
-              <span className="text-[#1793D1]">[3]</span> SINOPSIS RuLaFHub
-            </h2>
-            <p className="pl-6 text-gray-300 leading-relaxed text-sm">
-              <strong className="text-[#1793D1]">RuLaFHub</strong> adalah sebuah pusat data bersepadu dan platform komuniti digital untuk Pendidikan Islam dan pemerkasaan tulisan Jawi. Ia dibina untuk menyatukan murid, ibu bapa, dan pendidik dalam satu ekosistem interaktif yang menyediakan akses kepada pengurusan markah, modul pengajaran, forum perbincangan, dan pelaporan pendidikan secara masa nyata (*real-time*).
+          <div className="border-b border-gray-700 pb-6 mb-8">
+            <h1 className="text-3xl font-black text-white flex items-center gap-3 mb-2">
+              <span className="text-[#1793D1]">{'>'}</span> DOKUMENTASI RASMI RULAF HUB
+            </h1>
+            <p className="text-gray-400 text-sm font-bold italic">
+              "Mentransformasikan kaedah perkilangan kepada pendidikan hibrid yang manusiawi."
             </p>
-          </section>
-
-          {/* FALSAFAH */}
-          <section className="mb-10">
-            <h2 className="text-white font-black text-xl mb-3 border-b border-gray-700 pb-2 flex items-center gap-2">
-              <span className="text-[#1793D1]">[4]</span> FALSAFAH PENDIDIKAN
-            </h2>
-            <div className="pl-6 text-sm text-gray-300 leading-relaxed space-y-4">
-              <p>
-                Platform ini didorong oleh visi mendepani Revolusi Industri 4.0 dengan mengintegrasikan nilai kerohanian dan teknologi digital. Ia berteraskan empat elemen utama Falsafah Pendidikan Bersepadu:
-              </p>
-              <ul className="list-disc list-inside ml-4 space-y-2 text-gray-400">
-                <li><strong className="text-white">Kreativiti (Creativity):</strong> Menjana pemikiran luar kotak melalui aplikasi didik hibur (gamifikasi).</li>
-                <li><strong className="text-white">Refleksi (Reflectivity):</strong> Menyediakan data pantas untuk penilaian kendiri murid dan tindakan susulan guru.</li>
-                <li><strong className="text-white">Kerjasama (Reciprocity):</strong> Memupuk kolaborasi aktif melalui forum perbincangan.</li>
-                <li><strong className="text-white">Tanggungjawab (Responsibility):</strong> Melahirkan kebertanggungjawaban dalam pembelajaran kendiri (Flipped Classroom).</li>
-              </ul>
-              <p className="mt-4">
-                Selain itu, RuLaFHub memikul tanggungjawab besar untuk memulihara identiti bangsa Melayu dengan memperkasakan semula tulisan Jawi yang kian terpinggir, menukarkannya daripada sekadar warisan sejarah kepada medium ilmu yang dinamik selari dengan arus kemodenan.
-              </p>
-            </div>
-          </section>
-
-          {/* UNDANG-UNDANG KOMUNITI & FORUM */}
-          <section className="mb-10">
-            <h2 className="text-white font-black text-xl mb-3 border-b border-gray-700 pb-2 flex items-center gap-2">
-              <span className="text-green-400">[5]</span> UNDANG-UNDANG KOMUNITI & FORUM
-            </h2>
-            <div className="pl-6 text-sm">
-              <p className="text-gray-400 mb-4">
-                Bagi memastikan ekosistem forum RuLaFHub kekal harmoni dan berilmiah, semua pengguna (murid, waris, pendidik) tertakluk kepada protokol berikut:
-              </p>
-              <div className="bg-black p-4 border-l-4 border-green-500 rounded text-gray-300 space-y-3">
-                <p><strong>01. Hormati Rakan Komuniti:</strong> Jaga adab komunikasi. Dilarang menggunakan bahasa kesat, menghina, atau merendahkan pengguna lain.</p>
-                <p><strong>02. Tiada Isu Sensitif:</strong> Forum ini adalah medan ilmu. Perbincangan berbaur politik, perkauman, atau menyentuh sensitiviti agama (3R) adalah dilarang keras.</p>
-                <p><strong>03. Integriti Akademik:</strong> Kongsikan maklumat, panduan, atau jawapan yang sahih. Elakkan penipuan (plagiat) semasa perbincangan modul.</p>
-                <p><strong>04. Tanggungjawab Privasi:</strong> Dilarang berkongsi maklumat peribadi (seperti kata laluan atau nombor MyKid) secara terbuka di dalam forum.</p>
-              </div>
-            </div>
-          </section>
-
-          {/* LAPORAN MAIL (Pengasingan) */}
-          <section className="mb-6">
-            <h2 className="text-white font-black text-xl mb-3 border-b border-gray-700 pb-2 flex items-center gap-2">
-              <span className="text-purple-400">[6]</span> LAPORAN MAIL (MAIL'S REPORT)
-            </h2>
-            <div className="pl-6 text-sm text-gray-300 leading-relaxed">
-              <p className="mb-4">
-                Laporan Mail adalah arkib eksklusif yang mendokumentasikan refleksi, pemerhatian lapangan, dan laporan semasa berdasarkan pengalaman mengajar pengasas (Admin Mail) di dalam dan di luar bilik darjah.
-              </p>
-              <div className="flex items-center justify-between bg-[#1A202C] border border-purple-500/50 p-4 rounded">
-                <span className="font-mono text-purple-300">Status: Diuruskan secara dinamik oleh Admin.</span>
-                <a href="/" className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded text-xs font-bold transition-colors">
-                  Akses Laporan di Laman Utama
-                </a>
-              </div>
-            </div>
-          </section>
-
-          {/* Back Button */}
-          <div className="mt-12 pt-4 border-t border-gray-700 text-center">
-            <a href="/" className="text-gray-500 hover:text-[#1793D1] text-sm font-bold tracking-widest">
-              [ KEMBALI KE DIREKTORI UTAMA ]
-            </a>
           </div>
+
+          {/* BAB 1: PENGENALAN & FALSAFAH */}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleProtokol('pengenalan')}
+              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-[#1793D1] hover:border-[#1793D1] transition-colors flex justify-between"
+            >
+              <span>[+] BAB 1: PENGENALAN & FALSAFAH KOMUNITI RULAF</span>
+              <span>{activeProtokol === 'pengenalan' ? '[-]' : '[+]'}</span>
+            </button>
+            
+            {activeProtokol === 'pengenalan' && (
+              <div className="bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-4">
+                <p>
+                  <strong className="text-white">RuLaF (Rangka Kerja Pembelajaran Terbeza dan Pentaksiran Pelbagai Tahap)</strong> dilahirkan daripada satu niat yang ringkas: membantu murid dan mengembalikan minat mereka terhadap pembelajaran, khususnya dalam penguasaan asas 3M (Membaca, Menulis, Mengira) dan literasi Jawi.
+                </p>
+                <p>
+                  RuLaF Hub bertindak sebagai infrastruktur digital (seakan <strong>GitHub untuk pendidik</strong>). Ia adalah pusat pangkalan data komprehensif dan repositori kolaboratif yang membolehkan para pendidik memuat naik, berkongsi kod kuiz interaktif, menyelaraskan Bahan Bantu Mengajar (BBM), dan menjejak demografi murid.
+                </p>
+                <ul className="list-disc ml-6 space-y-2 mt-2">
+                  <li><strong className="text-white">Komuniti Berpusatkan Murid:</strong> Setiap modul dan baris kod bermatlamat menyelesaikan masalah keciciran murid.</li>
+                  <li><strong className="text-white">Dipacu Komuniti (Open Source):</strong> Inovasi ini dilepaskan di bawah <strong>Lesen MIT</strong>, memberi kebebasan kepada pendidik menambah baik sistem tanpa kekangan birokrasi.</li>
+                  <li><strong className="text-white">Kesinambungan Data:</strong> Direka untuk menyelaraskan akademik dari pendidikan awal sehinggalah ke peringkat pengajian tinggi.</li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* BAB 2: KESELAMATAN & SUMBANGAN */}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleProtokol('keselamatan')}
+              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-red-400 hover:border-red-500 transition-colors flex justify-between"
+            >
+              <span>[+] BAB 2: GARIS PANDUAN KESELAMATAN & CARA MENYUMBANG</span>
+              <span>{activeProtokol === 'keselamatan' ? '[-]' : '[+]'}</span>
+            </button>
+            
+            {activeProtokol === 'keselamatan' && (
+              <div className="bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-4">
+                <p>
+                  RuLaF Hub komited mewujudkan ruang digital yang 100% selamat, berautoriti, dan bebas daripada ancaman scammer. Setiap sumbangan (melalui <em>Pull Request</em>) akan melalui proses penapisan ketat.
+                </p>
+                <div className="border-l-4 border-red-500 pl-4 bg-gray-900 py-3">
+                  <span className="text-red-400 font-bold uppercase">Polisi Toleransi Sifar (Zero Tolerance Policy)</span>
+                  <p className="mt-2">Sistem ini <strong>TIDAK AKAN TERAGAK-AGAK</strong> mengambil tindakan keras sekiranya pengguna memuat naik:</p>
+                  <ul className="list-disc ml-6 mt-1 text-red-300">
+                    <li>Kandungan yang meragukan (suspicious uploads).</li>
+                    <li>Perisian berniat jahat (malware/spyware).</li>
+                    <li>Pautan phishing atau sebarang elemen penipuan (scam).</li>
+                    <li>Bahan yang melanggar sensitiviti atau tidak beretika.</li>
+                  </ul>
+                  <p className="mt-3 font-bold text-white uppercase">Tindakan: BAN (Sekatan) Kekal serta-merta! Tiada kompromi untuk keselamatan data pendidikan.</p>
+                </div>
+
+                <div className="mt-4">
+                  <strong className="text-[#1793D1]"> CARA MENYUMBANG (CONTRIBUTING) KOD & MODUL:</strong>
+                  <ol className="list-decimal ml-6 mt-2 space-y-1">
+                    <li><strong>Fork:</strong> Salin (fork) repositori utama ke persekitaran kerja anda.</li>
+                    <li><strong>Branch:</strong> Cipta branch baharu bagi tujuan pengasingan kemaskini.</li>
+                    <li><strong>Ubah Suai & Uji:</strong> Masukkan modul BBM / algoritma kuiz dan uji kefungsiannya.</li>
+                    <li><strong>Pull Request:</strong> Hantar permohonan untuk semakan kami.</li>
+                  </ol>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* BAB 3: KRONOLOGI SEJARAH */}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleProtokol('sejarah')}
+              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-white hover:border-gray-400 transition-colors flex justify-between"
+            >
+              <span>[+] BAB 3: KRONOLOGI KEMEROSOTAN JAWI (LAPORAN MAIL)</span>
+              <span>{activeProtokol === 'sejarah' ? '[-]' : '[+]'}</span>
+            </button>
+            
+            {activeProtokol === 'sejarah' && (
+              <div className="bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-4">
+                <p>
+                  Sebelum kedatangan kuasa kolonial Barat, tulisan Jawi merupakan skrip utama di Alam Melayu. Namun, titik tolak kemerosotan ketara berlaku pada tahun <span className="text-red-400 font-bold">1966</span> apabila Menteri Pelajaran ketika itu memansuhkan penggunaan tulisan Jawi sebagai medium pengantar utama di sekolah.
+                </p>
+                <p>
+                  <strong>Kesan Kritikal:</strong> Generasi pasca 1960-an mula mengalami masalah buta huruf Jawi mendadak, menjejaskan keupayaan membaca Al-Quran. Malah, akhbar Utusan Melayu berhuruf Jawi terpaksa dihentikan pada tahun 2003. Atas kesedaran ini, RuLaFHub dibangunkan bagi menghidupkan semula tulisan Jawi menggunakan ekosistem digital.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* BAB 4: 3 PROTOKOL INTERVENSI */}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleProtokol('intervensi')}
+              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-purple-400 hover:border-purple-500 transition-colors flex justify-between"
+            >
+              <span>[+] BAB 4: TIGA (3) PROTOKOL INTERVENSI PENDIDIKAN RULAF</span>
+              <span>{activeProtokol === 'intervensi' ? '[-]' : '[+]'}</span>
+            </button>
+            {activeProtokol === 'intervensi' && (
+              <div className="bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-6">
+                
+                {/* Gamifikasi */}
+                <div>
+                  <h3 className="font-bold text-green-400">1. Pembelajaran Gamifikasi</h3>
+                  <p className="mt-1">
+                    Menggunakan aplikasi interaktif (Quizizz/Kahoot/App Khas) untuk mewujudkan pembelajaran tanpa tekanan. Kajian empirikal menunjukkan aplikasi "Belajar Mengeja Jawi" merekodkan peningkatan skor formatif yang sangat signifikan (Z = -6.300, p {'<'} .001).
+                  </p>
+                </div>
+
+                {/* Flipped Classroom */}
+                <div>
+                  <h3 className="font-bold text-yellow-400">2. Strategi Flipped Classroom</h3>
+                  <p className="mt-1">
+                    Pembelajaran teori dianjakkan ke rumah (melalui modul/video di RuLaF Hub), manakala masa di dalam kelas dikhususkan untuk kolaborasi dan penyelesaian masalah tahap tinggi (KBAT).
+                  </p>
+                </div>
+
+                {/* AI */}
+                <div>
+                  <h3 className="font-bold text-purple-400">3. Integrasi Kecerdasan Buatan (AI)</h3>
+                  <p className="mt-1">
+                    Selaras dengan Transformasi Digital Institusi Pendidikan Islam oleh Perdana Menteri (Mac 2026), Ejen AI digunakan dalam RuLaF Hub untuk menganalisis data permarkahan (Supabase) secara masa nyata dan menjana laporan preskriptif, bukan untuk menggantikan manhaj tarbiah guru.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-10 border-t border-gray-700 pt-6 text-center text-xs text-gray-500 font-bold">
+            <p>"Membetulkan yang biasa dan membiasakan yang betul — Memacu Pendidikan Jawi ke Era Digital."</p>
+            <p className="mt-2 font-normal">Hak Cipta © Komuniti RuLaF Hub (Lesen MIT).</p>
+          </div>
+
         </div>
       </div>
     </div>
