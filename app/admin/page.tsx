@@ -1,28 +1,32 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient'; 
-import { useRouter } from 'next/navigation'; // <-- Digunakan untuk fungsi jembatan
+import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
   const router = useRouter();
 
-  // --- BAHAGIAN KUNCI KESELAMATAN (SUPABASE AUTH) ---
+  // --- KUNCI KESELAMATAN (SUPABASE AUTH) ---
   const [isLocked, setIsLocked] = useState(true);
   const [email, setEmail] = useState(''); 
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // --- BAHAGIAN CMS BLOG / JURNAL ---
+  // --- CMS BLOG / JURNAL ---
   const [tajukBlog, setTajukBlog] = useState('');
   const [kandunganBlog, setKandunganBlog] = useState('');
   const [statusBlog, setStatusBlog] = useState('');
+
+  // --- EJEN AI RULAF (NL2SQL) ---
+  const [soalanAI, setSoalanAI] = useState('');
+  const [hasilAI, setHasilAI] = useState<any>(null);
+  const [isThinking, setIsThinking] = useState(false);
 
   useEffect(() => {
     semakSesi();
   }, []);
 
-  // Semak jika admin sudah log masuk sebelum ini
   const semakSesi = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
@@ -31,7 +35,6 @@ export default function AdminPage() {
     }
   };
 
-  // Fungsi Log Masuk Rasmi Supabase
   const klikLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoggingIn(true);
@@ -57,7 +60,6 @@ export default function AdminPage() {
     setPassword('');
   };
 
-  // Fungsi muat naik blog 
   const muatNaikBlog = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!tajukBlog || !kandunganBlog) return alert("Sila isi semua maklumat artikel!");
@@ -77,7 +79,32 @@ export default function AdminPage() {
     }
   };
 
-  // 1. PAPARAN PINTU PAGAR (Log Masuk)
+  // Fungsi Bertanya Kepada "Otak" AI
+  const tanyaAI = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if(!soalanAI) return;
+    setIsThinking(true);
+    setHasilAI(null);
+
+    try {
+      const res = await fetch('/api/ejen-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ soalan_guru: soalanAI })
+      });
+      const data = await res.json();
+      
+      if(data.error) {
+        setHasilAI({ ralat: data.error });
+      } else {
+        setHasilAI(data); // Menerima JSON dari AI
+      }
+    } catch (err: any) {
+      setHasilAI({ ralat: err.message });
+    }
+    setIsThinking(false);
+  };
+
   if (isLocked) {
     return (
       <div className="min-h-screen bg-[#0F1419] font-mono flex flex-col items-center justify-center p-10 text-[#A5B2D9] selection:bg-[#1793D1] selection:text-white">
@@ -104,12 +131,10 @@ export default function AdminPage() {
     );
   }
 
-  // 2. PAPARAN DASHBOARD ADMIN
   return (
     <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
       <div className="max-w-4xl mx-auto bg-[#171A21] border border-[#1793D1] rounded-sm shadow-[0_0_15px_rgba(23,147,209,0.3)]">
         
-        {/* Header Admin */}
         <div className="bg-[#1793D1] text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
           <span>rulaf-admin(1) - PUSAT KAWALAN UTAMA</span>
           <button onClick={logKeluar} className="hover:text-white transition-colors">[ sudo logout ]</button>
@@ -118,7 +143,56 @@ export default function AdminPage() {
         <div className="p-8">
           <h1 className="text-3xl font-black text-white mb-8 border-b border-gray-700 pb-4">Papan Pemuka RuLaFHub</h1>
 
-          {/* JEMBATAN KE PENGURUSAN SEKOLAH (Fungsi Baharu) */}
+          {/* EJEN AI (FUNGSI BARU!) */}
+          <div className="mb-10 bg-black p-6 border border-green-500 border-l-4 shadow-md">
+            <h2 className="text-xl font-bold text-green-400 mb-2">++ EJEN AI ANALISIS PRESTASI (NL2SQL)</h2>
+            <p className="text-gray-400 text-sm mb-4">Tanya soalan dalam bahasa biasa. AI akan menjana kod SQL dan menarik analisis markah Jawi terus dari pangkalan data.</p>
+            <form onSubmit={tanyaAI} className="flex flex-col sm:flex-row gap-2 mb-4">
+              <input
+                type="text"
+                value={soalanAI}
+                onChange={(e) => setSoalanAI(e.target.value)}
+                className="w-full p-3 bg-gray-900 border border-green-500/50 text-white outline-none focus:border-green-400 font-mono text-sm"
+                placeholder="Cth: Senaraikan nama murid kelas 5 Murshid yang gagal Jawi..."
+              />
+              <button type="submit" disabled={isThinking} className="bg-green-600 text-black px-6 py-2 font-bold hover:bg-green-500 transition-colors disabled:bg-gray-600 whitespace-nowrap">
+                {isThinking ? 'PROCESSING...' : '[ TANYA AI ]'}
+              </button>
+            </form>
+
+            {/* PAPARAN HASIL AI */}
+            {hasilAI && (
+              <div className="bg-gray-900 border border-gray-700 p-4 mt-4 font-mono text-sm overflow-x-auto">
+                {hasilAI.sql && (
+                  <div className="text-[#1793D1] mb-4 border-b border-gray-800 pb-2">
+                    <span className="font-bold">~% SQL_GENERATED:</span> <br/>
+                    <span className="text-gray-500 text-xs">{hasilAI.sql}</span>
+                  </div>
+                )}
+                
+                {hasilAI.ralat ? (
+                  <div className="text-red-500 font-bold animate-pulse">[!] RALAT: {hasilAI.ralat}</div>
+                ) : (
+                  <div className="text-green-300">
+                    <div className="mb-2 font-bold">[+] REKOD DITEMUI ({hasilAI.hasil?.length || 0}):</div>
+                    <ul className="list-decimal ml-4 space-y-2 text-gray-300">
+                      {hasilAI.hasil?.map((item: any, i: number) => (
+                        <li key={i} className="bg-black p-2 border border-gray-800 rounded-sm">
+                          {Object.entries(item).map(([key, val]) => (
+                            <span key={key} className="mr-4">
+                              <span className="text-purple-400">{key}:</span> <span className="text-white font-bold">{String(val)}</span>
+                            </span>
+                          ))}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* JEMBATAN KE PENGURUSAN SEKOLAH */}
           <div className="mb-10 bg-black p-6 border border-purple-500 border-l-4 shadow-md">
             <h2 className="text-xl font-bold text-purple-400 mb-2">++ MODUL PENGURUSAN & PENGGREDAN</h2>
             <p className="text-gray-400 text-sm mb-4">Akses pangkalan data sekolah, pendaftaran murid, dan kemas kini markah formatif Jawi secara masa nyata (Real-time).</p>
