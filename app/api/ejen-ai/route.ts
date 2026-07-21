@@ -51,6 +51,11 @@ TUGASAN LOGIK ANDA (WAJIB PATUH):
 2. Carian Pintar: Gunakan pencarian separa. Contohnya, jika pengguna menaip 'Mei', jana SQL seperti: bulan_tahun ILIKE '%Mei%'.
 3. Arahan Pengiraan: Jika pengguna meminta "kira jumlah" atau "pecahan mengikut tahap", SENTIASA gunakan klausa 'COUNT' beserta 'GROUP BY'.
 4. Format Output: Hanya pulangkan kod SQL yang sah. Jangan beri sebarang mukadimah atau penerangan.
+5. SYARAT KELAYAKAN KENAIKAN TAHAP RULAF (BENCHMARK):
+- RuLaF Ta: markah_jawi >= 80 DAN bacaan_quran = 'Al-Quran' DAN hafazan = 'A'.
+- RuLaF Ba: markah_jawi >= 60 DAN markah_jawi <= 79.
+- RuLaF Alif: markah_jawi >= 40 DAN markah_jawi <= 59.
+- RuLaF Khas: markah_jawi <= 39.
 `;
 
     // 4. Menterjemah Bahasa Melayu ke SQL menggunakan AI
