@@ -124,50 +124,117 @@ const [carianForum, setCarianForum] = useState('');
             </button>
           </div>
 
-          {/* CONTOH UI BAR CARIAN UNTUK REPO */}
-<div className="mb-4">
-  <input 
-    type="text" 
-    placeholder="Cari BBM... (Cth: Jawi, Hadas, Darjah 3)" 
-    value={carianRepo}
-    onChange={(e) => setCarianRepo(e.target.value)}
-    className="w-full p-2 bg-gray-800 text-white border border-gray-600 rounded"
-  />
-</div>
-
-{/* Masa papar senarai, gunakan array yang ditapis */}
-{repoDitapis.map((repo, index) => (
-   <div key={index} className="p-4 border-b border-gray-700">
-      <h3 className="font-bold text-blue-400">[{repo.subjek} - {repo.darjah}] {repo.tajuk}</h3>
-      <p className="text-sm text-gray-400">Topik: {repo.topik}</p>
-      {/* ... kod butang muat turun sedia ada ... */}
-   </div>
-))}
-
-          {/* BAHAGIAN REPOSITORI */}
+          {/* ========================================== */}
+          {/* TAB 1: PAPARAN REPOSITORY (BBM)              */}
+          {/* ========================================== */}
           {activeTab === 'repository' && (
-            <div>
+            <div className="mt-6 flex flex-col gap-6">
+
+              {/* --- BAHAGIAN 1: BORANG MUAT NAIK BBM --- */}
               {isLoggedIn && (
-                <div className="mb-8 p-4 bg-black border border-gray-700 border-l-4 border-l-[#1793D1]">
-                  <h3 className="text-white font-bold mb-3">++ PUSH BAHAN BAHARU</h3>
-                  <input type="text" value={tajukRepo} onChange={(e)=>setTajukRepo(e.target.value)} placeholder="Tajuk Modul..." className="w-full mb-3 p-2 bg-gray-900 border border-gray-700 text-white outline-none" />
-                  <input type="text" value={pautanRepo} onChange={(e)=>setPautanRepo(e.target.value)} placeholder="Link Muat Turun..." className="w-full mb-3 p-2 bg-gray-900 border border-gray-700 text-white outline-none" />
-                  <button onClick={pushRepo} className="bg-[#1793D1] text-black px-4 py-2 font-bold hover:bg-blue-400">Push to Branch</button>
+                <div className="bg-gray-800 p-5 border border-gray-700 rounded shadow-lg">
+                  <h2 className="text-[#1793D1] font-bold mb-4">~/ Muat Naik BBM Baharu</h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    {/* Pilihan Subjek */}
+                    <select 
+                      value={subjekRepo} 
+                      onChange={(e) => setSubjekRepo(e.target.value)} 
+                      className="p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-[#1793D1] outline-none"
+                    >
+                      <option value="Jawi">Jawi</option>
+                      <option value="Tauhid">Tauhid</option>
+                      <option value="Sirah">Sirah</option>
+                      <option value="Al-Quran">Al-Quran</option>
+                    </select>
+
+                    {/* Pilihan Darjah */}
+                    <select 
+                      value={darjahRepo} 
+                      onChange={(e) => setDarjahRepo(e.target.value)} 
+                      className="p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-[#1793D1] outline-none"
+                    >
+                      <option value="Darjah 1">Darjah 1</option>
+                      <option value="Darjah 2">Darjah 2</option>
+                      <option value="Darjah 3">Darjah 3</option>
+                      <option value="Darjah 4">Darjah 4</option>
+                      <option value="Darjah 5">Darjah 5</option>
+                      <option value="Darjah 6">Darjah 6</option>
+                    </select>
+
+                    {/* Input Topik */}
+                    <input 
+                      type="text" 
+                      placeholder="Topik (Cth: Hadas)" 
+                      value={topikRepo} 
+                      onChange={(e) => setTopikRepo(e.target.value)} 
+                      className="p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-[#1793D1] outline-none" 
+                    />
+                  </div>
+
+                  <div className="flex flex-col md:flex-row gap-4 mb-4">
+                    <input 
+                      type="text" 
+                      placeholder="Tajuk Bahan / Modul" 
+                      value={tajukRepo} 
+                      onChange={(e) => setTajukRepo(e.target.value)} 
+                      className="w-full md:w-1/2 p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-[#1793D1] outline-none" 
+                    />
+                    <input 
+                      type="text" 
+                      placeholder="Pautan (Link Google Drive/BBM)" 
+                      value={pautanRepo} 
+                      onChange={(e) => setPautanRepo(e.target.value)} 
+                      className="w-full md:w-1/2 p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-[#1793D1] outline-none" 
+                    />
+                  </div>
+
+                  <button 
+                    onClick={pushRepo} 
+                    className="bg-[#1793D1] text-[#0F1419] px-6 py-2 font-bold rounded hover:bg-blue-400 transition-colors"
+                  >
+                    [ HANTAR BBM ]
+                  </button>
                 </div>
               )}
 
-              <div className="space-y-4">
-                {bahanRepo.map((repo) => (
-                  <div key={repo.id} className="p-4 border border-gray-800 hover:bg-gray-900 transition-colors">
-                    <h4 className="text-lg font-bold text-white flex justify-between">
-                      <span>{repo.tajuk}</span>
-                      <span className="text-xs text-gray-500">{new Date(repo.created_at).toLocaleDateString('ms-MY')}</span>
-                    </h4>
-                    <p className="text-sm text-gray-400 mt-1">Sumbangan: {repo.penyumbang}</p>
-                    <a href={repo.pautan} target="_blank" rel="noopener noreferrer" className="text-[#1793D1] text-sm mt-3 inline-block font-bold hover:underline">[ wget / muat turun ]</a>
-                  </div>
-                ))}
+              {/* --- BAHAGIAN 2: BAR CARIAN (SEARCH) --- */}
+              <div className="relative z-10 mt-2">
+                <input 
+                  type="text" 
+                  placeholder="Cari BBM... (Cth: Jawi, Hadas, Darjah 3)" 
+                  value={carianRepo}
+                  onChange={(e) => setCarianRepo(e.target.value)}
+                  className="w-full p-3 bg-gray-900 text-white border border-[#1793D1] rounded focus:outline-none focus:ring-2 focus:ring-[#1793D1]"
+                />
               </div>
+
+              {/* --- BAHAGIAN 3: SENARAI REPO YANG DITAPIS --- */}
+              <div className="flex flex-col gap-3">
+                {repoDitapis.length > 0 ? (
+                  repoDitapis.map((repo, index) => (
+                    <div key={index} className="p-4 bg-gray-800 border-l-4 border-[#1793D1] rounded shadow">
+                      <h3 className="font-bold text-[#A5B2D9]">
+                        <span className="text-[#1793D1]">[{repo.subjek} - {repo.darjah}]</span> {repo.tajuk}
+                      </h3>
+                      <p className="text-sm text-gray-400 mt-1">Topik: {repo.topik}</p>
+                      <p className="text-xs text-gray-500 mt-2">Penyumbang: {repo.penyumbang}</p>
+                      
+                      <a 
+                        href={repo.pautan} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-block mt-3 text-sm bg-gray-700 hover:bg-gray-600 px-4 py-1.5 rounded border border-gray-600 text-white"
+                      >
+                        Muat Turun
+                      </a>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 italic mt-4 text-center">Tiada BBM dijumpai untuk carian ini.</p>
+                )}
+              </div>
+
             </div>
           )}
 
