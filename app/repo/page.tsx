@@ -13,13 +13,22 @@ export default function RepositoryPage() {
   // State untuk Forum & Komen
   const [tajukRepo, setTajukRepo] = useState('');
   const [pautanRepo, setPautanRepo] = useState('');
+  const [subjekRepo, setSubjekRepo] = useState('Jawi');
+  const [darjahRepo, setDarjahRepo] = useState('Darjah 3');
+  const [topikRepo, setTopikRepo] = useState('');
+
   const [tajukForum, setTajukForum] = useState('');
   const [soalanForum, setSoalanForum] = useState('');
+  const [subjekForum, setSubjekForum] = useState('Jawi');
+  const [darjahForum, setDarjahForum] = useState('Darjah 3');
+  const [kategoriForum, setKategoriForum] = useState('QNA');
   
   // State BARU untuk paparan Komen
   const [topikPilihan, setTopikPilihan] = useState<any>(null);
-  const [senaraiKomen, setSenaraiKomen] = useState<any[]>([]);
-  const [teksKomen, setTeksKomen] = useState('');
+const [senaraiKomen, setSenaraiKomen] = useState<any[]>([]);
+const [teksKomen, setTeksKomen] = useState('');
+const [carianRepo, setCarianRepo] = useState('');
+const [carianForum, setCarianForum] = useState('');
 
   useEffect(() => {
     semakUser();
@@ -47,17 +56,30 @@ export default function RepositoryPage() {
 
   const pushRepo = async () => {
     if (!tajukRepo || !pautanRepo) return alert('Sila isi semua maklumat!');
-    const { error } = await supabase.from('rulaf_repo').insert([{ tajuk: tajukRepo, pautan: pautanRepo, penyumbang: userEmail }]);
+    const { error } = await supabase.from('rulaf_repo').insert([{ tajuk: tajukRepo, pautan: pautanRepo, penyumbang: userEmail, subjek: subjekRepo, darjah: darjahRepo, topik: topikRepo }]);
     if (error) alert('Ralat: ' + error.message);
     else { setTajukRepo(''); setPautanRepo(''); tarikDataRepo(); }
   };
 
   const postForum = async () => {
     if (!tajukForum || !soalanForum) return alert('Sila isi semua maklumat!');
-    const { error } = await supabase.from('rulaf_forum').insert([{ tajuk: tajukForum, soalan: soalanForum, penulis: userEmail }]);
+    const { error } = await supabase.from('rulaf_forum').insert([{ tajuk: tajukForum, soalan: soalanForum, penulis: userEmail, subjek: subjekForum, darjah: darjahForum, kategori: kategoriForum }]);
     if (error) alert('Ralat: ' + error.message);
     else { setTajukForum(''); setSoalanForum(''); tarikDataForum(); }
   };
+
+  // [+] FUNGSI TAPISAN (FILTER) UNTUK BAR CARIAN
+  const repoDitapis = bahanRepo.filter(repo => 
+    repo.tajuk.toLowerCase().includes(carianRepo.toLowerCase()) ||
+    repo.subjek?.toLowerCase().includes(carianRepo.toLowerCase()) ||
+    repo.topik?.toLowerCase().includes(carianRepo.toLowerCase())
+  );
+
+  const forumDitapis = forumTopik.filter(forum => 
+    forum.tajuk.toLowerCase().includes(carianForum.toLowerCase()) ||
+    forum.kategori?.toLowerCase().includes(carianForum.toLowerCase())
+  );
+
 
   // Fungsi BARU: Buka Topik dan Tarik Komen
   const bukaTopik = async (forum: any) => {
@@ -101,6 +123,26 @@ export default function RepositoryPage() {
               [ COMMUNITY FORUM ]
             </button>
           </div>
+
+          {/* CONTOH UI BAR CARIAN UNTUK REPO */}
+<div className="mb-4">
+  <input 
+    type="text" 
+    placeholder="Cari BBM... (Cth: Jawi, Hadas, Darjah 3)" 
+    value={carianRepo}
+    onChange={(e) => setCarianRepo(e.target.value)}
+    className="w-full p-2 bg-gray-800 text-white border border-gray-600 rounded"
+  />
+</div>
+
+{/* Masa papar senarai, gunakan array yang ditapis */}
+{repoDitapis.map((repo, index) => (
+   <div key={index} className="p-4 border-b border-gray-700">
+      <h3 className="font-bold text-blue-400">[{repo.subjek} - {repo.darjah}] {repo.tajuk}</h3>
+      <p className="text-sm text-gray-400">Topik: {repo.topik}</p>
+      {/* ... kod butang muat turun sedia ada ... */}
+   </div>
+))}
 
           {/* BAHAGIAN REPOSITORI */}
           {activeTab === 'repository' && (
@@ -181,6 +223,7 @@ export default function RepositoryPage() {
                       <button onClick={postForum} className="bg-purple-600 text-white px-4 py-2 font-bold hover:bg-purple-500">Post Thread</button>
                     </div>
                   )}
+                  
                   <div className="space-y-4">
                     {forumTopik.map((forum) => (
                       <div key={forum.id} className="p-4 border border-gray-800 hover:bg-gray-900 transition-colors">
