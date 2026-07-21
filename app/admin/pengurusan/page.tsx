@@ -121,7 +121,8 @@ export default function PengurusanSekolah() {
       kehadiran: borangMarkah[murid.mykid].kehadiran,
       markah_jawi: borangMarkah[murid.mykid].markah_jawi,
       bacaan_quran: borangMarkah[murid.mykid].bacaan_quran,
-      hafazan: borangMarkah[murid.mykid].hafazan
+      hafazan: borangMarkah[murid.mykid].hafazan,
+      tahap_rulaf: borangMarkah[murid.mykid]?.tahap_rulaf || murid.tahap_rulaf
     }));
 
     const { error } = await supabase.from('markah_murid').insert(payload);
@@ -231,6 +232,19 @@ export default function PengurusanSekolah() {
                         <td className="p-2">
                           <input type="text" value={borangMarkah[murid.mykid]?.hafazan} onChange={(e) => handleInput(murid.mykid, 'hafazan', e.target.value)} className="w-full p-1.5 bg-black border border-gray-600 text-center text-white outline-none focus:border-green-500 rounded-sm" placeholder="Gred" />
                         </td>
+  <td className="p-2 border border-gray-700">
+    <select
+      className="w-full bg-black border border-gray-600 p-1 text-xs text-white focus:border-[#1793D1]"
+      defaultValue={murid.tahap_rulaf || ''}
+      onChange={(e) => handleInput(murid.mykid, 'tahap_rulaf', e.target.value)}
+    >
+      <option value="">- Pilih Tahap -</option>
+      <option value="RuLaF Ta">[*] RuLaF Ta (Mentor)</option>
+      <option value="RuLaF Ba">[~] RuLaF Ba (Sederhana)</option>
+      <option value="RuLaF Alif">[!] RuLaF Alif (Lemah)</option>
+      <option value="RuLaF Khas">[!!] RuLaF Khas (Pemulihan)</option>
+    </select>
+  </td>
                       </tr>
                     ))}
                   </tbody>
