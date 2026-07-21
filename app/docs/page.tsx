@@ -191,7 +191,7 @@ export default function DocsPage() {
                   <strong className="text-[#1793D1] uppercase">Dinamik Kumpulan & Falsafah Terbeza:</strong>
                   <ul className="list-disc ml-6 mt-2 space-y-2 text-xs">
                     <li><strong>Guru Sebagai Fasilitator:</strong> Bertindak mengemudi pergerakan dan memberikan intervensi klinikal hanya apabila diperlukan, bukan lagi penyampai maklumat sehala.</li>
-                    <li><strong>Pembantu Fasilitator (RuLaF Ba):</strong> Meminimumkan beban guru daripada terpaksa menjawab persoalan asas yang sama secara berulang kali.</li>
+                    <li><strong>Pembantu Fasilitator (RuLaF Ta):</strong> Meminimumkan beban guru daripada terpaksa menjawab persoalan asas yang sama secara berulang kali.</li>
                     <li><strong>Keyakinan Interpersonal:</strong> Meruntuhkan tembok rasa segan murid lemah (Alif/Khas) untuk berinteraksi secara santai bersama rakan sebaya (Ta/Ba).</li>
                     <li><strong>Falsafah 'Portion' RuLaF:</strong> Memastikan semua pihak bergerak ke hadapan secara kolektif dengan mengurangkan jurang keciciran secara drastik.</li>
                   </ul>
