@@ -40,7 +40,15 @@ export default function PengurusanSekolah() {
     }
 
     if (data && data.length > 0) {
-      setSenaraiMurid(data); // Masukkan data ke dalam borang markah secara maya
+      // Formatkan semula data dari Supabase supaya serasi dengan kod antaramuka (UI) web
+      const dataFormatBaru = data.map((item, index) => ({
+        bil: index + 1,             // Penomboran automatik bermula dari 1, 2, 3...
+        mykid: item.mykid,
+        nama: item.nama_murid,      // Petakan 'nama_murid' (Supabase) kepada 'nama' (UI)
+        jantina: item.jantina
+      }));
+      
+      setSenaraiMurid(dataFormatBaru); 
     } else {
       alert('Tiada murid dijumpai untuk kelas ini.');
       setSenaraiMurid([]);
