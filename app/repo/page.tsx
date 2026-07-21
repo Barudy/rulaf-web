@@ -151,7 +151,7 @@ const [carianForum, setCarianForum] = useState('');
             <div className="mt-6 flex flex-col gap-6">
 
               {/* --- BAHAGIAN 1: BORANG MUAT NAIK BBM --- */}
-              {isLoggedIn && (
+              {isAdmin && (
                 <div className="bg-gray-800 p-5 border border-gray-700 rounded shadow-lg">
                   <h2 className="text-[#1793D1] font-bold mb-4">~/ Muat Naik BBM Baharu</h2>
                   
@@ -278,7 +278,7 @@ const [carianForum, setCarianForum] = useState('');
             <div className="mt-6 flex flex-col gap-6">
 
               {/* --- BAHAGIAN 1: BORANG BUKA TOPIK FORUM --- */}
-              {isLoggedIn && (
+              {isAdmin && (
                 <div className="bg-gray-800 p-5 border border-gray-700 rounded shadow-lg">
                   <h2 className="text-green-400 font-bold mb-4">~/ Buka Topik / Soalan Baharu</h2>
                   
