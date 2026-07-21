@@ -142,10 +142,22 @@ const [carianForum, setCarianForum] = useState('');
                       onChange={(e) => setSubjekRepo(e.target.value)} 
                       className="p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-[#1793D1] outline-none"
                     >
-                      <option value="Jawi">Jawi</option>
-                      <option value="Tauhid">Tauhid</option>
-                      <option value="Sirah">Sirah</option>
                       <option value="Al-Quran">Al-Quran</option>
+                      <option value="Hafazan">Hafazan</option>
+                      <option value="Tajwid">Tajwid</option>
+                      <option value="Tauhid">Tauhid</option>
+                      <option value="Ibadat">Ibadat</option>
+                      <option value="Tafsir Al-Quran & Hadis">Tafsir Al-Quran & Hadis</option>
+                      <option value="Muamalat">Muamalat</option>
+                      <option value="Munakahat">Munakahat</option>
+                      <option value="Jenayat">Jenayat</option>
+                      <option value="Faraid">Faraid</option>
+                      <option value="Amalan Lazim">Amalan Lazim</option>
+                      <option value="Bahasa Arab">Bahasa Arab</option>
+                      <option value="Akhlak">Akhlak</option>
+                      <option value="Sirah">Sirah</option>
+                      <option value="Jawi">Jawi</option>
+                      <option value="KIJ">KIJ</option>
                     </select>
 
                     {/* Pilihan Darjah */}
@@ -257,7 +269,6 @@ const [carianForum, setCarianForum] = useState('');
                       onChange={(e) => setSubjekForum(e.target.value)} 
                       className="p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-green-500 outline-none"
                     >
-                      <option value="Jawi">Jawi</option>
                       <option value="Al-Quran">Al-Quran</option>
                       <option value="Hafazan">Hafazan</option>
                       <option value="Tajwid">Tajwid</option>
@@ -272,6 +283,7 @@ const [carianForum, setCarianForum] = useState('');
                       <option value="Bahasa Arab">Bahasa Arab</option>
                       <option value="Akhlak">Akhlak</option>
                       <option value="Sirah">Sirah</option>
+                      <option value="Jawi">Jawi</option>
                       <option value="KIJ">KIJ</option>
                     </select>
 
