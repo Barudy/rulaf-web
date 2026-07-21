@@ -83,7 +83,9 @@ export default function RepositoryPage() {
         <div className="bg-[#1793D1] text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
           <span>rulaf-hub(1) - Open Repository & Forum</span>
           <span>{isLoggedIn ? `[ LOGGED IN : ${userEmail} ]` : '[ GUEST MODE ]'}</span>
-          <span> href="/" className="hover:text-white transition-colors"[ cd ~ / Laman Utama ]</span>
+          <a href="/" className="text-gray-500 hover:text-[#1793D1] text-sm font-bold transition-colors">
+              [ cd ~ / Kembali ke Laman Utama ]
+            </a>
         </div>
 
         <div className="p-8">

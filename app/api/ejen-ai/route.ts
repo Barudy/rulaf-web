@@ -56,6 +56,7 @@ TUGASAN LOGIK ANDA (WAJIB PATUH):
 - RuLaF Ba: markah_jawi >= 60 DAN markah_jawi <= 79.
 - RuLaF Alif: markah_jawi >= 40 DAN markah_jawi <= 59.
 - RuLaF Khas: markah_jawi <= 39.
+- PERINGATAN: JANGAN ambil kira faktor kehadiran dalam penentuan tahap kerana ia boleh menyebabkan ralat.
 `;
 
     // 4. Menterjemah Bahasa Melayu ke SQL menggunakan AI
