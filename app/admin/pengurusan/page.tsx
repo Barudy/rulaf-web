@@ -230,7 +230,14 @@ export default function PengurusanSekolah() {
                           </select>
                         </td>
                         <td className="p-2">
-                          <input type="text" value={borangMarkah[murid.mykid]?.hafazan} onChange={(e) => handleInput(murid.mykid, 'hafazan', e.target.value)} className="w-full p-1.5 bg-black border border-gray-600 text-center text-white outline-none focus:border-green-500 rounded-sm" placeholder="Gred" />
+                          <select value={borangMarkah[murid.mykid]?.hafazan} onChange={(e) => handleInput(murid.mykid, 'hafazan', e.target.value)} className="w-full p-1.5 bg-black border border-gray-600 text-xs text-center text-white outline-none focus:border-green-500 rounded-sm">
+                            <option value="">- Gred -</option>
+                            <option value="A">Gred A</option>
+                            <option value="B">Gred B</option>
+                            <option value="C">Gred C</option>
+                            <option value="D">Gred D</option>
+                            <option value="E">Gred E</option>
+    </select>
                         </td>
   <td className="p-2 border border-gray-700">
     <select
