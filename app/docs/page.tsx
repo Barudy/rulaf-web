@@ -156,6 +156,54 @@ export default function DocsPage() {
             )}
           </div>
 
+          {/* BAB 5: STRUKTUR KUMPULAN DINAMIK */}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleProtokol('kumpulan')}
+              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-[#1793D1] hover:border-[#1793D1] transition-colors flex justify-between"
+            >
+              <span>[+] BAB 5: PROTOKOL KUMPULAN DINAMIK (HIBRID)</span>
+              <span>{activeProtokol === 'kumpulan' ? '[-]' : '[+]'}</span>
+            </button>
+            
+            {activeProtokol === 'kumpulan' && (
+              <div className="bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-4">
+                <p>
+                  <strong className="text-white">Sistem RuLaF</strong> menolak pengasingan murid mengikut kepandaian. Murid dikelompokkan dalam formasi hibrid seramai 5 orang setiap kumpulan dengan nisbah strategik <strong>1 Ta : 2 Ba : 2 Alif</strong> untuk meruntuhkan jurang keciciran melalui sokongan rakan sebaya (Peer-to-Peer).
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                  <div className="bg-gray-900 p-4 border border-gray-800">
+                    <h3 className="text-red-400 font-bold mb-1">[!] RuLaF Khas & Alif</h3>
+                    <p className="text-xs text-gray-400">Murid lemah / pemulihan khas. Fokus bimbingan dengan latihan asas visual dan psikomotor.</p>
+                  </div>
+                  <div className="bg-gray-900 p-4 border border-gray-800">
+                    <h3 className="text-yellow-400 font-bold mb-1">[~] RuLaF Ba (Nisbah: 2)</h3>
+                    <p className="text-xs text-gray-400">Murid sederhana. Menggalas peranan pembantu fasilitator. Latihan pemahaman konteks.</p>
+                  </div>
+                  <div className="bg-gray-900 p-4 border border-gray-800 sm:col-span-2">
+                    <h3 className="text-blue-400 font-bold mb-1">[*] RuLaF Ta (Nisbah: 1)</h3>
+                    <p className="text-xs text-gray-400">Murid cemerlang. Bertindak sebagai mentor utama dalam kumpulan. Menerima latihan beraras kognitif tinggi (KBAT).</p>
+                  </div>
+                </div>
+
+                {/* SEKSYEN DINAMIK KUMPULAN YANG DITAMBAH */}
+                <div className="mt-6 border-l-4 border-[#1793D1] pl-4 bg-gray-900 py-3">
+                  <strong className="text-[#1793D1] uppercase">Dinamik Kumpulan & Falsafah Terbeza:</strong>
+                  <ul className="list-disc ml-6 mt-2 space-y-2 text-xs">
+                    <li><strong>Guru Sebagai Fasilitator:</strong> Bertindak mengemudi pergerakan dan memberikan intervensi klinikal hanya apabila diperlukan, bukan lagi penyampai maklumat sehala.</li>
+                    <li><strong>Pembantu Fasilitator (RuLaF Ba):</strong> Meminimumkan beban guru daripada terpaksa menjawab persoalan asas yang sama secara berulang kali.</li>
+                    <li><strong>Keyakinan Interpersonal:</strong> Meruntuhkan tembok rasa segan murid lemah (Alif/Khas) untuk berinteraksi secara santai bersama rakan sebaya (Ta/Ba).</li>
+                    <li><strong>Falsafah 'Portion' RuLaF:</strong> Memastikan semua pihak bergerak ke hadapan secara kolektif dengan mengurangkan jurang keciciran secara drastik.</li>
+                  </ul>
+                </div>
+                <div className="mt-4 border-l-4 border-green-500 pl-4 bg-gray-900 py-3">
+                  <strong className="text-green-400 uppercase">Kitaran Rombakan AI (Regrouping):</strong>
+                  <p className="mt-2 text-xs">Setiap kumpulan hanya bertahan selama 2 bulan. Ejen AI akan menganalisis corak pembelajaran murid (prestasi 3M dan Jawi) lalu mengesyorkan rombakan automatik bagi menyingkirkan elemen bias (pilih kasih).</p>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="mt-10 border-t border-gray-700 pt-6 text-center text-xs text-gray-500 font-bold">
             <p>"Membetulkan yang biasa dan membiasakan yang betul — Memacu Pendidikan Jawi ke Era Digital."</p>
             <p className="mt-2 font-normal">Hak Cipta © Komuniti RuLaF Hub (Lesen MIT).</p>
