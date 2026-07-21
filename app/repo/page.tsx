@@ -239,74 +239,187 @@ const [carianForum, setCarianForum] = useState('');
           )}
 
           {/* BAHAGIAN FORUM */}
-          {activeTab === 'forum' && (
-            <div>
-              {/* JIKA TOPIK DIPILIH (PILIHAN DALAM) */}
-              {topikPilihan ? (
-                <div>
-                  <button onClick={() => setTopikPilihan(null)} className="text-gray-400 hover:text-white mb-4 text-sm font-bold flex items-center gap-2">
-                    [ cd .. / kembali ke senarai topik ]
+           {/* ========================================== */}
+          {/* TAB 2: PAPARAN COMMUNITY FORUM (SENARAI)     */}
+          {/* ========================================== */}
+          {activeTab === 'forum' && !topikPilihan && (
+            <div className="mt-6 flex flex-col gap-6">
+
+              {/* --- BAHAGIAN 1: BORANG BUKA TOPIK FORUM --- */}
+              {isLoggedIn && (
+                <div className="bg-gray-800 p-5 border border-gray-700 rounded shadow-lg">
+                  <h2 className="text-green-400 font-bold mb-4">~/ Buka Topik / Soalan Baharu</h2>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    {/* Pilihan Subjek */}
+                    <select 
+                      value={subjekForum} 
+                      onChange={(e) => setSubjekForum(e.target.value)} 
+                      className="p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-green-500 outline-none"
+                    >
+                      <option value="Jawi">Jawi</option>
+                      <option value="Tauhid">Tauhid</option>
+                      <option value="Sirah">Sirah</option>
+                      <option value="Al-Quran">Al-Quran</option>
+                    </select>
+
+                    {/* Pilihan Darjah */}
+                    <select 
+                      value={darjahForum} 
+                      onChange={(e) => setDarjahForum(e.target.value)} 
+                      className="p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-green-500 outline-none"
+                    >
+                      <option value="Darjah 1">Darjah 1</option>
+                      <option value="Darjah 2">Darjah 2</option>
+                      <option value="Darjah 3">Darjah 3</option>
+                      <option value="Darjah 4">Darjah 4</option>
+                      <option value="Darjah 5">Darjah 5</option>
+                      <option value="Darjah 6">Darjah 6</option>
+                    </select>
+
+                    {/* Pilihan Kategori */}
+                    <select 
+                      value={kategoriForum} 
+                      onChange={(e) => setKategoriForum(e.target.value)} 
+                      className="p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-green-500 outline-none"
+                    >
+                      <option value="QNA">QNA (Soal Jawab)</option>
+                      <option value="Perbincangan Umum">Perbincangan Umum</option>
+                      <option value="Isu Teknikal">Isu Teknikal Modul</option>
+                    </select>
+                  </div>
+
+                  <div className="flex flex-col gap-4 mb-4">
+                    <input 
+                      type="text" 
+                      placeholder="Tajuk Topik..." 
+                      value={tajukForum} 
+                      onChange={(e) => setTajukForum(e.target.value)} 
+                      className="p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-green-500 outline-none" 
+                    />
+                    <textarea 
+                      placeholder="Penerangan / Soalan anda..." 
+                      value={soalanForum} 
+                      onChange={(e) => setSoalanForum(e.target.value)} 
+                      className="p-2 bg-gray-900 border border-gray-600 text-white rounded focus:border-green-500 outline-none"
+                      rows={3}
+                    />
+                  </div>
+
+                  <button 
+                    onClick={postForum} 
+                    className="bg-green-500 text-[#0F1419] px-6 py-2 font-bold rounded hover:bg-green-400 transition-colors"
+                  >
+                    [ HANTAR TOPIK ]
                   </button>
-                  
-                  {/* Topik Utama */}
-                  <div className="p-6 bg-black border border-purple-500 mb-6 rounded-sm">
-                    <h2 className="text-xl font-bold text-purple-400 mb-2">{topikPilihan.tajuk}</h2>
-                    <p className="text-xs text-gray-500 font-mono mb-4">Oleh: {topikPilihan.penulis} | {new Date(topikPilihan.created_at).toLocaleDateString('ms-MY')}</p>
-                    <p className="text-gray-200 whitespace-pre-wrap">{topikPilihan.soalan}</p>
-                  </div>
-
-                  {/* Senarai Komen */}
-                  <h3 className="text-[#1793D1] font-bold mb-4 border-b border-gray-800 pb-2">THREAD BALASAN:</h3>
-                  <div className="space-y-4 mb-8">
-                    {senaraiKomen.length > 0 ? senaraiKomen.map((k) => (
-                      <div key={k.id} className="p-4 border border-gray-800 bg-[#14181F]">
-                        <p className="text-xs text-green-400 mb-2 font-bold"> {k.penulis}</p>
-                        <p className="text-sm text-gray-300">{k.komen}</p>
-                      </div>
-                    )) : <p className="text-gray-500 text-sm">Tiada balasan lagi. Jadilah yang pertama!</p>}
-                  </div>
-
-                  {/* Ruang Balas (Hanya jika login) */}
-                  {isLoggedIn ? (
-                    <div className="p-4 bg-gray-900 border border-gray-700">
-                      <textarea value={teksKomen} onChange={(e)=>setTeksKomen(e.target.value)} placeholder="Tulis balasan anda..." className="w-full mb-3 p-3 bg-black border border-gray-700 text-white outline-none h-20 text-sm"></textarea>
-                      <button onClick={hantarKomen} className="bg-purple-600 text-white px-4 py-2 font-bold text-sm hover:bg-purple-500">Submit Reply</button>
-                    </div>
-                  ) : (
-                    <div className="p-4 border border-red-900/50 bg-red-900/10 text-red-400 text-sm text-center">
-                      [ Akses Ditolak: Sila log masuk untuk membalas topik ini ]
-                    </div>
-                  )}
-                </div>
-
-              ) : (
-                /* JIKA SENARAI TOPIK (PILIHAN LUAR) */
-                <div>
-                  {isLoggedIn && (
-                    <div className="mb-8 p-4 bg-black border border-gray-700 border-l-4 border-l-purple-500">
-                      <h3 className="text-white font-bold mb-3">++ BUKA TOPIK PERBINCANGAN</h3>
-                      <input type="text" value={tajukForum} onChange={(e)=>setTajukForum(e.target.value)} placeholder="Tajuk Perbincangan..." className="w-full mb-3 p-2 bg-gray-900 border border-gray-700 text-white outline-none" />
-                      <textarea value={soalanForum} onChange={(e)=>setSoalanForum(e.target.value)} placeholder="Huraian / Soalan..." className="w-full mb-3 p-2 bg-gray-900 border border-gray-700 text-white outline-none h-24"></textarea>
-                      <button onClick={postForum} className="bg-purple-600 text-white px-4 py-2 font-bold hover:bg-purple-500">Post Thread</button>
-                    </div>
-                  )}
-                  
-                  <div className="space-y-4">
-                    {forumTopik.map((forum) => (
-                      <div key={forum.id} className="p-4 border border-gray-800 hover:bg-gray-900 transition-colors">
-                        <h4 className="text-lg font-bold text-purple-400 flex justify-between">
-                          <span>{forum.tajuk}</span>
-                          <span className="text-xs text-gray-500">{new Date(forum.created_at).toLocaleDateString('ms-MY')}</span>
-                        </h4>
-                        <p className="text-sm text-gray-400 mt-1">Oleh: {forum.penulis}</p>
-                        <button onClick={() => bukaTopik(forum)} className="text-purple-400 text-sm mt-3 font-bold hover:underline">
-                          [ sudo reply / baca topik ]
-                        </button>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
+
+              {/* --- BAHAGIAN 2: BAR CARIAN FORUM --- */}
+              <div className="relative z-10 mt-2">
+                <input 
+                  type="text" 
+                  placeholder="Cari Topik... (Cth: QNA, Hadas, Isu Teknikal)" 
+                  value={carianForum}
+                  onChange={(e) => setCarianForum(e.target.value)}
+                  className="w-full p-3 bg-gray-900 text-white border border-green-500 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              {/* --- BAHAGIAN 3: SENARAI TOPIK FORUM --- */}
+              <div className="flex flex-col gap-3">
+                {forumDitapis.length > 0 ? (
+                  forumDitapis.map((forum, index) => (
+                    <div key={index} className="p-4 bg-gray-800 border-l-4 border-green-500 rounded shadow">
+                      <h3 className="font-bold text-[#A5B2D9]">
+                        <span className="text-green-400">[{forum.kategori}]</span> {forum.tajuk}
+                      </h3>
+                      <div className="text-sm text-gray-400 mt-2 flex gap-4">
+                        <span>🏷️ {forum.subjek}</span>
+                        <span>📚 {forum.darjah}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-3 flex items-center justify-between">
+                        <span>Oleh: {forum.penulis}</span>
+                        <button 
+                          onClick={() => bukaTopik(forum)} 
+                          className="bg-gray-700 hover:bg-gray-600 px-4 py-1.5 rounded border border-gray-600 text-white font-bold transition-colors"
+                        >
+                          [ Buka & Komen ]
+                        </button>
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 italic mt-4 text-center">Tiada topik dijumpai untuk carian ini.</p>
+                )}
+              </div>
+
+            </div>
+          )}
+
+          {/* ========================================== */}
+          {/* TAB 2.1: PAPARAN RUANGAN KOMEN (SUB-TAB)     */}
+          {/* ========================================== */}
+          {activeTab === 'forum' && topikPilihan && (
+            <div className="mt-6 flex flex-col gap-4">
+              
+              {/* Butang Kembali */}
+              <button 
+                onClick={() => setTopikPilihan(null)} 
+                className="self-start text-sm text-gray-400 hover:text-white transition-colors mb-2"
+              >
+                &lt;-- Kembali ke Senarai Topik
+              </button>
+
+              {/* Topik Utama */}
+              <div className="p-5 bg-gray-800 border border-green-500 rounded shadow-lg">
+                <div className="mb-4 pb-4 border-b border-gray-700">
+                  <h2 className="text-xl font-bold text-green-400 mb-1">[{topikPilihan.kategori}] {topikPilihan.tajuk}</h2>
+                  <p className="text-xs text-gray-500">Oleh: {topikPilihan.penulis} | {topikPilihan.subjek} - {topikPilihan.darjah}</p>
+                </div>
+                <p className="text-white whitespace-pre-wrap">{topikPilihan.soalan}</p>
+              </div>
+
+              {/* Senarai Komen */}
+              <div className="mt-4">
+                <h3 className="font-bold text-[#A5B2D9] mb-3">~/ Ruangan Komen ({senaraiKomen.length})</h3>
+                <div className="flex flex-col gap-3">
+                  {senaraiKomen.length > 0 ? (
+                    senaraiKomen.map((komen, index) => (
+                      <div key={index} className="p-3 bg-gray-900 border border-gray-700 rounded">
+                        <p className="text-xs text-green-400 font-bold mb-1">{komen.penulis}</p>
+                        <p className="text-sm text-gray-300 whitespace-pre-wrap">{komen.komen}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">Belum ada jawapan. Jadilah yang pertama membalas!</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Borang Hantar Komen */}
+              {isLoggedIn ? (
+                <div className="mt-4 flex flex-col gap-2">
+                  <textarea 
+                    placeholder="Taip jawapan / komen anda di sini..." 
+                    value={teksKomen} 
+                    onChange={(e) => setTeksKomen(e.target.value)} 
+                    className="w-full p-3 bg-gray-900 text-white border border-gray-600 rounded focus:border-green-500 outline-none"
+                    rows={3}
+                  />
+                  <button 
+                    onClick={hantarKomen} 
+                    className="self-end bg-green-500 text-[#0F1419] px-6 py-2 font-bold rounded hover:bg-green-400 transition-colors"
+                  >
+                    [ BALAS TOPIK ]
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-4 p-4 bg-gray-800 border border-gray-700 rounded text-center">
+                  <p className="text-sm text-gray-400">Sila <span className="text-green-400">Log Masuk</span> untuk membalas topik ini.</p>
+                </div>
+              )}
+
             </div>
           )}
         </div>
