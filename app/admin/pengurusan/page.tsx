@@ -18,90 +18,33 @@ export default function PengurusanSekolah() {
   const [borangMarkah, setBorangMarkah] = useState<any>({});
   const [isPushing, setIsPushing] = useState(false);
 
-  // Fungsi Tarik Data Murid berdasarkan Kelas (Diambil dari CSV anda)
+  // Fungsi Tarik Data Murid dari Supabase berdasarkan kelas dan sesi yang dipilih
   const paparSenaraiPelajar = async () => {
     if (!kelas) return alert('[!] Ralat: Sila pilih kelas.');
-    if (!bulanTahun) return alert('[!] Ralat: Sila masukkan Bulan & Tahun penggredan (Contoh: April 2026).');
+    if (!bulanTahun) return alert('[!] Ralat: Sila masukkan Bulan & Tahun penggredan.');
 
-    let dataPelajar: any[] = [];
-    
-    // Membaca data dari 3 Murshid.csv
-    if (kelas === '3 Murshid') {
-      dataPelajar = [
-        { bil: 1, mykid: '170807010333', nama: 'ADI ISKANDAR ALHAQ NORHASHIM BIN ABDUL FATTAH', jantina: 'LELAKI' },
-        { bil: 2, mykid: '170401010368', nama: 'AINIYAH SHABIRA BINTI MUTAKIN', jantina: 'PEREMPUAN' },
-        { bil: 3, mykid: '170726010980', nama: 'AISYAH SUMAYYAH BINTI MOHD AMINURRASYID', jantina: 'PEREMPUAN' },
-        { bil: 4, mykid: '170913011188', nama: 'AQILAH DARWISYAH BINTI YUSRIZAL', jantina: 'PEREMPUAN' },
-        { bil: 5, mykid: '170306011282', nama: 'ARIYANA MIKAYLA BINTI MOHD RAZIB', jantina: 'PEREMPUAN' },
-        { bil: 6, mykid: '170222010143', nama: 'HARRAZ IQBAL BIN MUHAMAD HAFIZUDDIN', jantina: 'LELAKI' },
-        { bil: 7, mykid: '171211010564', nama: 'HAURA AMEERA BINTI ABU AMIR', jantina: 'PEREMPUAN' },
-        { bil: 8, mykid: '170119011236', nama: 'HAURA AMEENA BINTI ABU AMIR', jantina: 'PEREMPUAN' },
-        { bil: 9, mykid: '170906010398', nama: 'INSYIRAH DHARIYAH BINTI MOHD NASARUDDIN', jantina: 'PEREMPUAN' },
-        { bil: 10, mykid: '171220011737', nama: 'MUHAMMAD ARIFFUDDIN AZHAR BIN NAZRIEFAIZAN', jantina: 'LELAKI' },
-        { bil: 11, mykid: '170717020271', nama: 'MUHAMMAD HAFIZZUDIN JALIL BIN ABDUL RAHMAN', jantina: 'LELAKI' },
-        { bil: 12, mykid: '170415010887', nama: 'MUHAMMAD IZDIYAD NAUFAL BIN MOHD IRWAN', jantina: 'LELAKI' },
-        { bil: 13, mykid: '171119011425', nama: 'MUHAMMAD NASRUL HAQ BIN MOHD AZHAR', jantina: 'LELAKI' },
-        { bil: 14, mykid: '171101011590', nama: 'NUR ADRA IRDINA BINTI MOHAMMAD HAIRULNIZAM', jantina: 'PEREMPUAN' },
-        { bil: 15, mykid: '171008010630', nama: 'NUR AISYAH BINTI AZREEN', jantina: 'PEREMPUAN' },
-        { bil: 16, mykid: '171118010156', nama: 'NUR AISYAH HUMAIRA BINTI MOHD NORAZIZI', jantina: 'PEREMPUAN' },
-        { bil: 17, mykid: '171031010110', nama: 'NUR AISYAH HUMAIRA BINTI ZULHELMI', jantina: 'PEREMPUAN' },
-        { bil: 18, mykid: '170203010236', nama: 'NUR AMIRAH SOPHEA BINTI MOHD RIDZUAN', jantina: 'PEREMPUAN' },
-        { bil: 19, mykid: '171126010172', nama: 'NUR AYRA BINTI IBRAHIM', jantina: 'PEREMPUAN' },
-        { bil: 20, mykid: '170219010222', nama: 'NUR MAISARAH BINTI MUHAMMAD NAJIB', jantina: 'PEREMPUAN' },
-        { bil: 21, mykid: '170506010962', nama: 'NUR QAMARINA NURAIN BINTI MOHD SANI', jantina: 'PEREMPUAN' },
-        { bil: 22, mykid: '170117011056', nama: 'NUR QUDWATUN HASANAH BINTI MUHAMMAD AZIZUL', jantina: 'PEREMPUAN' },
-        { bil: 23, mykid: '170322010714', nama: 'NUR RAISHA FAIHA BINTI MOHD FIRDAUS', jantina: 'PEREMPUAN' },
-        { bil: 24, mykid: '171008010278', nama: 'NUR SYAZWIN BINTI MOHD SALLEH', jantina: 'PEREMPUAN' },
-        { bil: 25, mykid: '170329010960', nama: 'PUTERI CAHAYA DANIELLA BINTI HERLMAN', jantina: 'PEREMPUAN' },
-        { bil: 26, mykid: '170821012568', nama: 'PUTERI NUR HAWA BINTI ABDUL HAKIM', jantina: 'PEREMPUAN' },
-        { bil: 27, mykid: '170519010435', nama: 'QALISH QAYYUM BIN MOHD KHAIRUL FAUZI NADZAM', jantina: 'LELAKI' },
-        { bil: 28, mykid: '170504010336', nama: 'QASEH NUR AIN BINTI ABD RAZAK', jantina: 'PEREMPUAN' },
-        { bil: 29, mykid: '170819010824', nama: 'QASEH NUR DAMIA BINTI ABDUL SHUKOR', jantina: 'PEREMPUAN' },
-        { bil: 30, mykid: '170515011326', nama: 'SITI NUR BATRISYIA BINTI RAHMAT', jantina: 'PEREMPUAN' },
-      ];
-    } 
-    // Membaca data dari 5 Murshid.csv
-    else if (kelas === '5 Murshid') {
-      dataPelajar = [
-        { bil: 1, mykid: '150915010885', nama: 'ABYAN DARWISY BIN YUSRIZAL', jantina: 'LELAKI' },
-        { bil: 2, mykid: '150524011098', nama: 'INSYIRAH DHUHA BINTI MOHD NASARUDDIN', jantina: 'PEREMPUAN' },
-        { bil: 3, mykid: '150829010619', nama: 'KAARIZ MUHAMMAD DILFY BIN KHAIRUL AMARI', jantina: 'LELAKI' },
-        { bil: 4, mykid: '150616010551', nama: 'MALIK BIN AZRY', jantina: 'LELAKI' },
-        { bil: 5, mykid: '150104010793', nama: 'MOHAMAD ANIQ QAYYUM BIN MOHAMAD AZIZULQURNAIN', jantina: 'LELAKI' },
-        { bil: 6, mykid: '150608011853', nama: 'MUHAMMAD ANAS BIN MD SAMSUL QAMAR', jantina: 'LELAKI' },
-        { bil: 7, mykid: '150905010443', nama: 'MUHAMMAD ASYRAAF BIN MOHD AIZAT', jantina: 'LELAKI' },
-        { bil: 8, mykid: '151229010177', nama: 'MUHAMMAD IMAN RIFQI BIN MOHD ROZI', jantina: 'LELAKI' },
-        { bil: 9, mykid: '150707011859', nama: 'MUHAMMAD ISYRAF TAHQIF BIN ZAINAL', jantina: 'LELAKI' },
-        { bil: 10, mykid: '150811010215', nama: 'MUHAMMAD NIYAZ AMSYAR BIN MOHD NASIR', jantina: 'LELAKI' },
-        { bil: 11, mykid: '150930010365', nama: 'MUHAMMAD NUR ARYAN HARITH BIN NORHASWAD', jantina: 'LELAKI' },
-        { bil: 12, mykid: '141030010525', nama: 'MUHAMMAD QAYYIUM MIKHAIL BIN MUHAMMAD AZIZUL', jantina: 'LELAKI' },
-        { bil: 13, mykid: '151129011041', nama: 'NOOR HAFIY IKHWAAN BIN NOOR HALIM', jantina: 'LELAKI' },
-        { bil: 14, mykid: '150314011145', nama: 'NORFIRAS ARSYAD BIN MOHD NORHARIDZUAN', jantina: 'LELAKI' },
-        { bil: 15, mykid: '151015140910', nama: 'NUR ALESHA ZAHRA BINTI MOHD SAFRI', jantina: 'PEREMPUAN' },
-        { bil: 16, mykid: '150814010640', nama: 'NUR ALYA HANNAN BINTI MUHAMAD ARIDZUAN', jantina: 'PEREMPUAN' },
-        { bil: 17, mykid: '150708011658', nama: 'NUR ANNISA FAIHA BINTI MUSMULIADI', jantina: 'PEREMPUAN' },
-        { bil: 18, mykid: '140908010802', nama: 'NUR AUNI ALEESYA BINTI MOHAMMAD HAIRULNIZAM', jantina: 'PEREMPUAN' },
-        { bil: 19, mykid: '140731011542', nama: 'NUR DAHLIA DALISHA BINTI SULAIMAN', jantina: 'PEREMPUAN' },
-        { bil: 20, mykid: '151121010116', nama: 'NUR DAMIA ALISHA BINTI MOHD ASRUL', jantina: 'PEREMPUAN' },
-        { bil: 21, mykid: '150703010568', nama: 'NUR HIDAYAH INSYIRAH BINTI NOOR HAKEM', jantina: 'PEREMPUAN' },
-        { bil: 22, mykid: '151104010974', nama: 'NUR KHALISAH BINTI ZULKIFLI', jantina: 'PEREMPUAN' },
-        { bil: 23, mykid: '150204010088', nama: 'NUR MAISARAH BINTI MOHAMMED GHOWS', jantina: 'PEREMPUAN' },
-        { bil: 24, mykid: '140922011764', nama: 'NUR MUAZZAH BINTI MUHIZAN', jantina: 'PEREMPUAN' },
-        { bil: 25, mykid: '150702010638', nama: 'NUR NAJWA QALISAH BINTI NORDIN', jantina: 'PEREMPUAN' },
-        { bil: 26, mykid: '130808010670', nama: 'NUR SYIFFA QALEESYA BINTI MUHAMMAD AZIZUL', jantina: 'PEREMPUAN' },
-        { bil: 27, mykid: '140904010338', nama: 'NUR ZAKIRAH NURAIN BINTI MOHD ZAINI', jantina: 'PEREMPUAN' },
-        { bil: 28, mykid: '150322010636', nama: 'UMMI UMAIRAH BINTI ABD RAZAK', jantina: 'PEREMPUAN' },
-      ];
+    setIsPushing(true); // Guna state loading jika ada
+
+    // Sistem hanya meminta Supabase serahkan data tanpa mendedahkannya dalam kod sumber
+    const { data, error } = await supabase
+      .from('data_murid')
+      .select('mykid, nama_murid, kelas_id, jantina')
+      .eq('kelas_id', kelas)
+      .order('nama_murid', { ascending: true }); // Susun ikut abjad
+
+    setIsPushing(false);
+
+    if (error) {
+      console.error("Ralat menarik data:", error.message);
+      return alert('[!] Gagal menarik data dari pangkalan data.');
     }
 
-    setSenaraiMurid(dataPelajar);
-
-    // Sediakan state 'borang kosong' bagi setiap MyKid untuk diisi secara manual
-    const stateAwal: any = {};
-    dataPelajar.forEach((murid) => {
-      stateAwal[murid.mykid] = { kehadiran: '', markah_jawi: '', bacaan_quran: '', hafazan: '' };
-    });
-    setBorangMarkah(stateAwal);
+    if (data && data.length > 0) {
+      setSenaraiMurid(data); // Masukkan data ke dalam borang markah secara maya
+    } else {
+      alert('Tiada murid dijumpai untuk kelas ini.');
+      setSenaraiMurid([]);
+    }
   };
 
   const handleInput = (mykid: string, field: string, value: string) => {
