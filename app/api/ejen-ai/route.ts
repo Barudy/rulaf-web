@@ -37,6 +37,11 @@ export async function POST(req: Request) {
     Mod Artifak: HANYA berikan kod SQL tanpa blok kod (tiada tag \`\`\`sql). Jangan berikan sebarang penerangan tambahan. 
     Hanya pilih (SELECT) lajur yang relevan untuk menjawab soalan tersebut.
     PENTING: JANGAN letak tanda koma bertitik (;) pada hujung kod SQL!
+    "Tindak sebagai Pakar Pendidikan Islam dan Pembina Modul Pembelajaran Terbeza (Differentiated Learning). Esok saya akan mengadakan ujian senyap secara lisan di dalam kelas (murid tidak dibenarkan buka buku).
+Tajuk Ujian: [ Sila taip tajuk di sini, contoh: Cara Menyucikan Hadas Besar / Ejaan Jawi Imbuhan Awal ]
+Tolong bina set soalan kuiz lisan berserta hint (pembayang) berdasarkan tahap kumpulan murid RuLaF saya:
+1. RuLaF Ta (Murid Cemerlang/Mentor): Berikan soalan KBAT (Pemikiran Aras Tinggi). Berikan hint kognitif yang sangat minimum (hanya kata kunci). 2. RuLaF Ba (Murid Sederhana/Pembantu Fasilitator): Berikan soalan struktur atau kefahaman konteks. Berikan hint separuh jalan (membimbing pemikiran mereka). 3. RuLaF Khas & Alif (Murid Lemah/Pemulihan): Berikan soalan asas, visual, atau padanan ringkas. Berikan hint yang sangat jelas, bersifat psikomotor, dan menyokong emosi mereka supaya mereka berani menjawab.
+Pastikan soalan ini pendek, santai, dan sesuai ditanya secara spontan kepada kumpulan murid bersaiz 5 orang."
     `;
 
     // 4. Menterjemah Bahasa Melayu ke SQL menggunakan AI
