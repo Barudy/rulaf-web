@@ -5,6 +5,7 @@ import { supabase } from './../lib/supabaseClient';
 export default function RepositoryPage() {
   const [activeTab, setActiveTab] = useState('repository');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   
   const [bahanRepo, setBahanRepo] = useState<any[]>([]);
@@ -38,11 +39,30 @@ const [carianForum, setCarianForum] = useState('');
 
   const semakUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
+    
     if (session) {
       setIsLoggedIn(true);
-      setUserEmail(session.user.email || 'Admin RuLaF');
+      const emailPengguna = session.user.email;
+      setUserEmail(emailPengguna || 'Pengguna RuLaF');
+
+      // [+] LOGIK RBAC DINAMIK (TARIK DARI SUPABASE)
+      // Sistem akan menyemak peranan pengguna dari jadual profil_pengguna
+      const { data, error } = await supabase
+        .from('profil_pengguna')
+        .select('peranan')
+        .eq('email', emailPengguna) // Memastikan ia memadankan e-mel yang sedang log masuk
+        .single(); // Ambil satu rekod sahaja
+
+      if (error) {
+        console.error("Gagal menyemak peranan:", error.message);
+      } else if (data && data.peranan === 'Guru') {
+        setIsAdmin(true); // Automatik dapat kuasa muat naik jika peranannya 'Guru'
+      } else {
+        setIsAdmin(false); // Murid atau pengguna biasa tidak dapat kuasa
+      }
     }
   };
+
 
   const tarikDataRepo = async () => {
     const { data } = await supabase.from('rulaf_repo').select('*').order('created_at', { ascending: false });
