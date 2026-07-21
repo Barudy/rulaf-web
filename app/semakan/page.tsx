@@ -32,7 +32,7 @@ export default function SemakanIbuBapa() {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        setMuridDitemui(data); // Rekod dijumpai!
+        setMuridDitemui(data[0]); // Rekod dijumpai!
       } else {
         setMesejRalat('[!] Rekod tidak dijumpai. Sila pastikan MyKid adalah tepat tanpa sengkang (-).');
       }
