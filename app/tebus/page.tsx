@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 export default function TebusKodPage() {
-  // State Pengurusan Fasa
   const [langkah, setLangkah] = useState(1);
   const [statusMesej, setStatusMesej] = useState('');
 
@@ -11,145 +10,196 @@ export default function TebusKodPage() {
   const [mykid, setMykid] = useState('');
   const [kodRahsia, setKodRahsia] = useState('');
   const [tahapKognitif, setTahapKognitif] = useState('');
-  const [jawapanMurid, setJawapanMurid] = useState('');
+  
+  // State Kuiz
+  const [soalanSemasa, setSoalanSemasa] = useState<any[]>([]);
+  const [jawapanMurid, setJawapanMurid] = useState<string[]>(['', '', '']);
+  const [keputusanAI, setKeputusanAI] = useState({ markah: 0, tahapBaru: '', status: '' });
 
-  // FASA 1: Semak Kod Rahsia & Tentukan Aras Soalan (AI Adaptive)
+  // [+] SENARAI MURID (Dropdown Mudah - Boleh dipanggil dari DB kelak)
+  const senaraiMurid = [
+    { nama: "ADI ISKANDAR ALHAQ", mykid: "170807010333", tahapLama: "RuLaF Ba" },
+    { nama: "AINIYAH SHABIRA", mykid: "170401010368", tahapLama: "RuLaF Alif" },
+    { nama: "NUR MAISARAH", mykid: "170219010222", tahapLama: "RuLaF Ta" }
+  ];
+
+  // [+] BANK SOALAN (3 Soalan Mengikut Tahap Kod)
+  const bankSoalan: any = {
+    'RULAF-A-99': [ // Kod Susah (Tahap Ta)
+      { q: "Pilih ejaan Jawi yang tepat bagi: Tanggungjawab", options: ["تڠݢوڠجواب", "تڠݢوڠجوب", "تڠݢونجواب"], a: "تڠݢوڠجواب" },
+      { q: "Ejaan 'Masyarakat' dalam Jawi ialah...", options: ["مشارکت", "مشراکت", "ماشراکت"], a: "مشارکت" },
+      { q: "Apakah huruf jawi bagi padanan 'Ny'?", options: ["ڽ", "ڠ", "ڤ"], a: "ڽ" }
+    ],
+    'RULAF-B-55': [ // Kod Sederhana (Tahap Ba)
+      { q: "Ejaan bagi perkataan 'Sekolah' ialah...", options: ["سکوله", "سكوله", "سيکوله"], a: "سکوله" },
+      { q: "Suku kata 'Bu' dieja sebagai...", options: ["بو", "با", "بي"], a: "بو" },
+      { q: "Perkataan 'Buku' mengandungi berapa huruf jawi?", options: ["4", "3", "5"], a: "4" }
+    ],
+    'RULAF-C-11': [ // Kod Mudah (Tahap Alif)
+      { q: "Manakah antara berikut adalah huruf Ba?", options: ["ب", "ت", "ث"], a: "ب" },
+      { q: "Huruf 'Alif' ditulis sebagai...", options: ["ا", "ل", "م"], a: "ا" },
+      { q: "Padanan huruf 'S' dalam Jawi ialah...", options: ["س", "ش", "ص"], a: "س" }
+    ]
+  };
+
   const sahkanKod = () => {
-    if (!mykid || !kodRahsia) return alert('Sila masukkan No. MyKid dan Kod Rahsia!');
+    if (!mykid || !kodRahsia) return alert('Sila pilih nama dan masukkan Kod Rahsia!');
     
     const kod = kodRahsia.toUpperCase();
-    if (kod.includes('-A-')) {
-      setTahapKognitif('Tinggi (RuLaF Ta)');
-    } else if (kod.includes('-B-')) {
-      setTahapKognitif('Sederhana (RuLaF Ba)');
-    } else if (kod.includes('-C-')) {
-      setTahapKognitif('Asas (RuLaF Alif)');
+    if (bankSoalan[kod]) {
+      if (kod.includes('-A-')) setTahapKognitif('RuLaF Ta');
+      else if (kod.includes('-B-')) setTahapKognitif('RuLaF Ba');
+      else if (kod.includes('-C-')) setTahapKognitif('RuLaF Alif');
+      
+      setSoalanSemasa(bankSoalan[kod]);
+      setLangkah(2); // Masuk skrin Kuiz
     } else {
       return alert('[!] Ralat: Kod Rahsia Tidak Sah atau Luput.');
     }
-    setLangkah(2); // Pergi ke skrin Kuiz
   };
 
-  // FASA 2: Hantar Jawapan & Automatik Masuk Supabase
+  const pilihJawapan = (index: number, nilai: string) => {
+    const jawapanBaru = [...jawapanMurid];
+    jawapanBaru[index] = nilai;
+    setJawapanMurid(jawapanBaru);
+  };
+
+  // [+] LOGIK AI: KIRA MARKAH & TENTUKAN TAHAP BAHARU
   const hantarJawapan = async () => {
-    setStatusMesej('Ejen AI sedang menyemak jawapan dan mengemas kini pangkalan data...');
-    let markahTerkumpul = 0;
+    setStatusMesej('Ejen AI sedang menganalisis prestasi dan menentukan tahap RuLaF...');
+    
+    // 1. Kira Markah
+    let betul = 0;
+    soalanSemasa.forEach((soalan, i) => {
+      if (jawapanMurid[i] === soalan.a) betul++;
+    });
+    const peratusMarkah = Math.round((betul / 3) * 100);
 
-    // Logik pemarkahan ringkas (Prototaip Pertandingan)
-    if (tahapKognitif === 'Tinggi (RuLaF Ta)' && jawapanMurid === 'تڠݢوڠجواب') markahTerkumpul = 95;
-    else if (tahapKognitif === 'Sederhana (RuLaF Ba)' && jawapanMurid === 'سکوله') markahTerkumpul = 75;
-    else if (tahapKognitif === 'Asas (RuLaF Alif)' && jawapanMurid === 'ب') markahTerkumpul = 50;
-    else markahTerkumpul = 20; // Jika salah jawab
+    // 2. Tentukan Kenaikan/Penurunan Tahap RuLaF
+    let tahapBaru = tahapKognitif;
+    let status = 'KEKAL TAHAP';
 
-    // Hantar terus ke Supabase (Automatik kemas kini markah Jawi)
+    if (tahapKognitif === 'RuLaF Alif') {
+      if (betul === 3) { tahapBaru = 'RuLaF Ba'; status = 'NAIK TAHAP 🚀'; }
+      else if (betul === 0) { tahapBaru = 'RuLaF Khas'; status = 'TURUN TAHAP 🔻'; }
+    } 
+    else if (tahapKognitif === 'RuLaF Ba') {
+      if (betul === 3) { tahapBaru = 'RuLaF Ta'; status = 'NAIK TAHAP 🚀'; }
+      else if (betul === 0) { tahapBaru = 'RuLaF Alif'; status = 'TURUN TAHAP 🔻'; }
+    }
+    else if (tahapKognitif === 'RuLaF Ta') {
+      if (betul <= 1) { tahapBaru = 'RuLaF Ba'; status = 'TURUN TAHAP 🔻'; }
+    }
+
+    setKeputusanAI({ markah: peratusMarkah, tahapBaru, status });
+
+    // 3. Simpan ke Supabase (Markah Jawi & Tahap Baru)
     const { error } = await supabase
       .from('markah_murid')
-      .update({ markah_jawi: markahTerkumpul })
+      .update({ markah_jawi: peratusMarkah, tahap_rulaf: tahapBaru }) // Pastikan ada lajur tahap_rulaf
       .eq('mykid', mykid);
 
     if (error) {
       alert('Ralat Pangkalan Data: ' + error.message);
       setStatusMesej('');
     } else {
-      setLangkah(3); // Pergi ke skrin Berjaya
+      setLangkah(3); // Skrin Keputusan
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-6 sm:p-10 flex flex-col items-center justify-center">
-      <div className="max-w-2xl w-full bg-[#171A21] border border-blue-500 rounded shadow-[0_0_20px_rgba(59,130,246,0.4)] overflow-hidden">
+      <div className="max-w-3xl w-full bg-[#171A21] border border-blue-500 rounded shadow-[0_0_20px_rgba(59,130,246,0.4)] overflow-hidden">
         
-        {/* Header */}
         <div className="bg-blue-600 text-white px-6 py-3 font-bold flex justify-between">
           <span>~/ RuLaFHub_Redeem_Portal</span>
-          <span>[ VERSI EKSKLUSIF ]</span>
+          <span>[ UJIAN PENGUKUHAN ]</span>
         </div>
 
         <div className="p-8">
-          {/* ================================================= */}
-          {/* LANGKAH 1: MASUKKAN KOD RAHSIA DARI KOTAK FIZIKAL */}
-          {/* ================================================= */}
+          {/* FASA 1: PILIH NAMA DAN KOD */}
           {langkah === 1 && (
             <div className="flex flex-col gap-5">
-              <h2 className="text-xl font-bold text-white text-center">Buka Kunci Latihan Pengukuhan</h2>
-              <p className="text-sm text-gray-400 text-center mb-4">Sila masukkan Nombor MyKid anda dan Kod Rahsia yang diperoleh daripada <b>The RuLaF Box</b>.</p>
+              <h2 className="text-xl font-bold text-white text-center">Tebus Kod The RuLaF Box</h2>
               
-              <input 
-                type="text" placeholder="No. MyKid (Cth: 170807010333)" 
+              {/* Dropdown Nama Murid */}
+              <select 
                 value={mykid} onChange={(e) => setMykid(e.target.value)}
                 className="p-3 bg-gray-900 border border-gray-600 rounded text-white focus:border-blue-400 outline-none"
-              />
+              >
+                <option value="">-- Sila Pilih Nama Anda --</option>
+                {senaraiMurid.map((murid, idx) => (
+                  <option key={idx} value={murid.mykid}>{murid.nama}</option>
+                ))}
+              </select>
+
               <input 
                 type="text" placeholder="Kod Rahsia (Cth: RULAF-A-99)" 
                 value={kodRahsia} onChange={(e) => setKodRahsia(e.target.value)}
-                className="p-3 bg-gray-900 border border-blue-500 rounded text-green-400 font-bold uppercase tracking-widest focus:ring-2 focus:ring-blue-500 outline-none"
+                className="p-3 bg-gray-900 border border-blue-500 rounded text-green-400 font-bold uppercase tracking-widest text-center outline-none"
               />
-              <button 
-                onClick={sahkanKod} 
-                className="mt-4 bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-500 transition-colors shadow-lg"
-              >
-                [ SAHKAN KOD RAHSIA ]
+              <button onClick={sahkanKod} className="mt-4 bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-500">
+                [ MULA UJIAN ]
               </button>
             </div>
           )}
 
-          {/* ================================================= */}
-          {/* LANGKAH 2: POP QUIZ ADAPTIF MENGIKUT TAHAP KOD    */}
-          {/* ================================================= */}
+          {/* FASA 2: JAWAB 3 SOALAN POP QUIZ */}
           {langkah === 2 && (
-            <div className="flex flex-col gap-5 animate-pulse-once">
-              <div className="p-4 bg-gray-800 border-l-4 border-yellow-500 mb-2">
-                <p className="text-xs text-yellow-400 font-bold">[*] KOD DITERIMA. TAHAP DIKESAN: {tahapKognitif}</p>
-                <p className="text-xs text-gray-400 mt-1">Ejen AI sedang menjana soalan khusus untuk tahap kognitif anda...</p>
+            <div className="flex flex-col gap-6">
+              <div className="p-4 bg-gray-800 border-l-4 border-yellow-500">
+                <p className="text-xs text-yellow-400 font-bold">[*] TAHAP DIKESAN: {tahapKognitif}</p>
+                <p className="text-xs text-gray-400">Jawab semua soalan untuk naik ke tahap seterusnya.</p>
               </div>
 
-              <h2 className="text-lg font-bold text-white mb-2">Misi Pengukuhan Digital</h2>
-              
-              {/* Soalan Berubah Mengikut Tahap */}
-              <div className="text-lg text-blue-300 bg-gray-900 p-4 rounded border border-gray-700">
-                {tahapKognitif === 'Tinggi (RuLaF Ta)' && <p>Pilih ejaan Jawi yang tepat bagi perkataan: <b>Tanggungjawab</b></p>}
-                {tahapKognitif === 'Sederhana (RuLaF Ba)' && <p>Pilih ejaan Jawi yang tepat bagi perkataan: <b>Sekolah</b></p>}
-                {tahapKognitif === 'Asas (RuLaF Alif)' && <p>Manakah antara berikut adalah huruf <b>Ba</b>?</p>}
-              </div>
+              {soalanSemasa.map((s, index) => (
+                <div key={index} className="bg-gray-900 p-4 rounded border border-gray-700">
+                  <p className="text-white mb-3 font-bold">{index + 1}. {s.q}</p>
+                  <div className="flex flex-col gap-2">
+                    {s.options.map((opt: string, i: number) => (
+                      <label key={i} className="flex items-center gap-3 text-sm text-gray-300">
+                        <input 
+                          type="radio" name={`soalan-${index}`} value={opt}
+                          onChange={(e) => pilihJawapan(index, e.target.value)}
+                        />
+                        {opt}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
 
-              {/* Pilihan Jawapan */}
-              <select 
-                value={jawapanMurid} onChange={(e) => setJawapanMurid(e.target.value)}
-                className="p-3 bg-gray-900 border border-gray-600 rounded text-white outline-none"
-              >
-                <option value="">-- Pilih Jawapan Anda --</option>
-                <option value="تڠݢوڠجواب">تڠݢوڠجواب</option>
-                <option value="سکوله">سکوله</option>
-                <option value="ب">ب</option>
-                <option value="ڤرايلاءن">ڤرايلاءن</option>
-              </select>
-
-              <button 
-                onClick={hantarJawapan} 
-                className="mt-4 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-500 transition-colors shadow-lg"
-              >
-                [ HANTAR JAWAPAN & KIRA MARKAH ]
+              <button onClick={hantarJawapan} className="mt-2 bg-green-600 text-white font-bold py-3 rounded hover:bg-green-500">
+                [ HANTAR & ANALISIS AI ]
               </button>
-
               {statusMesej && <p className="text-sm text-yellow-400 text-center animate-pulse">{statusMesej}</p>}
             </div>
           )}
 
-          {/* ================================================= */}
-          {/* LANGKAH 3: KEPUTUSAN & PENILAIAN AUTOMATIK AI     */}
-          {/* ================================================= */}
+          {/* FASA 3: KEPUTUSAN DAN KENAIKAN TAHAP */}
           {langkah === 3 && (
             <div className="flex flex-col items-center gap-4 text-center">
-              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-gray-900 font-black text-2xl mb-2 shadow-[0_0_15px_rgba(34,197,94,0.6)]">✓</div>
-              <h2 className="text-2xl font-bold text-white">Misi Selesai!</h2>
-              <p className="text-gray-300">Markah anda telah direkodkan ke dalam <b>Pangkalan Data Pusat RuLaFHub</b>.</p>
-              <p className="text-sm text-gray-400 mt-2">Ejen AI akan menganalisis prestasi anda untuk menyusun kumpulan pedagogi pada kitaran bulan hadapan.</p>
+              <h2 className="text-3xl font-black text-white mb-2">Misi Selesai!</h2>
+              
+              <div className="grid grid-cols-2 gap-4 w-full mt-4">
+                <div className="p-4 bg-gray-800 border border-blue-500 rounded">
+                  <p className="text-sm text-gray-400">Markah Jawi</p>
+                  <p className="text-3xl font-bold text-blue-400">{keputusanAI.markah}%</p>
+                </div>
+                <div className="p-4 bg-gray-800 border border-green-500 rounded">
+                  <p className="text-sm text-gray-400">Status Kedudukan</p>
+                  <p className="text-xl font-bold text-green-400 mt-2">{keputusanAI.status}</p>
+                  <p className="text-xs text-gray-300 mt-1">Tahap Terkini: {keputusanAI.tahapBaru}</p>
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-400 mt-4">Rekod anda telah dikemas kini secara automatik dalam Pangkalan Data RuLaF.</p>
               
               <button 
-                onClick={() => window.location.href = '/semakan'} 
-                className="mt-6 border border-blue-500 text-blue-400 font-bold py-2 px-6 rounded hover:bg-blue-900 transition-colors"
+                onClick={() => window.location.reload()} 
+                className="mt-6 border border-gray-500 text-gray-300 py-2 px-6 rounded hover:bg-gray-800"
               >
-                [ SEMAK KEDUDUKAN REKOD ANDA ]
+                [ KEMBALI KE MUKA DEPAN ]
               </button>
             </div>
           )}
