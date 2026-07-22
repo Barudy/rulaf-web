@@ -125,15 +125,26 @@ const [carianForum, setCarianForum] = useState('');
         <div className="bg-[#1793D1] text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
           <span>rulaf-hub(1) - Open Repository & Forum</span>
           <span>{isLoggedIn ? `[ LOGGED IN : ${userEmail} ]` : '[ GUEST MODE ]'}</span>
-          <a href="/" className="text-white transition-colors">
-              [ cd ~ / Kembali ke Laman Utama ]
+          {/* PERUBAHAN DINAMIK: Butang Log Masuk vs Profil */}
+          {isLoggedIn ? (
+            <a href="/profil" className="text-[#0F1419] bg-[#1793D1] border border-[#1793D1] px-3 py-1 rounded hover:bg-transparent hover:text-[#1793D1] transition-colors shadow-[0_0_8px_rgba(23,147,209,0.5)]">
+              [ Profil ]
             </a>
+          ) : (
+            <a href="/login" className="text-[#1793D1] border border-[#1793D1] px-3 py-1 rounded hover:bg-[#1793D1] hover:text-[#0F1419] transition-colors">
+              Log Masuk
+            </a>
+          )}
+          
         </div>
 
         <div className="p-8">
           <div className="mb-8 border-b border-gray-700 pb-4">
             <h1 className="text-2xl font-black text-white mb-2">RuLaF<span className="text-[#1793D1]">Hub</span> Open Source</h1>
           </div>
+          <a href="/" className="text-white transition-colors">
+              [ cd ~ / Kembali ke Laman Utama ]
+            </a>
 
           <div className="flex gap-4 mb-6">
             <button onClick={() => {setActiveTab('repository'); setTopikPilihan(null);}} className={`px-4 py-2 font-bold transition-colors border ${activeTab === 'repository' ? 'bg-[#1793D1] text-[#0F1419] border-[#1793D1]' : 'bg-transparent text-[#1793D1] border-gray-700 hover:border-[#1793D1]'}`}>
