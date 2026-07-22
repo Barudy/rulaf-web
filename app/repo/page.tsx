@@ -127,11 +127,11 @@ const [carianForum, setCarianForum] = useState('');
           <span>{isLoggedIn ? `[ LOGGED IN : ${userEmail} ]` : '[ GUEST MODE ]'}</span>
           {/* PERUBAHAN DINAMIK: Butang Log Masuk vs Profil */}
           {isLoggedIn ? (
-            <a href="/profil" className="text-gray-300 hover:text-[#1793D1] transition-colors">
+            <a href="/profil" className="text-white hover:text-black transition-colors">
               [ Profil ]
             </a>
           ) : (
-            <a href="/login" className="text-gray-300 hover:text-[#1793D1] transition-colors">
+            <a href="/login" className="text-white hover:text-black transition-colors">
               Log Masuk
             </a>
           )}
