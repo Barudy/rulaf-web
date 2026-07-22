@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 
 export default function TebusKodPage() {
@@ -7,6 +7,7 @@ export default function TebusKodPage() {
   const [statusMesej, setStatusMesej] = useState('');
 
   // State Data Murid & Kod
+  const [senaraiMurid, setSenaraiMurid] = useState<any[]>([]); // [+] STATE KOSONG (TIADA HARDCODE)
   const [mykid, setMykid] = useState('');
   const [kodRahsia, setKodRahsia] = useState('');
   const [tahapKognitif, setTahapKognitif] = useState('');
@@ -16,26 +17,37 @@ export default function TebusKodPage() {
   const [jawapanMurid, setJawapanMurid] = useState<string[]>(['', '', '']);
   const [keputusanAI, setKeputusanAI] = useState({ markah: 0, tahapBaru: '', status: '' });
 
-  // [+] SENARAI MURID (Dropdown Mudah - Boleh dipanggil dari DB kelak)
-  const senaraiMurid = [
-    { nama: "ADI ISKANDAR ALHAQ", mykid: "170807010333", tahapLama: "RuLaF Ba" },
-    { nama: "AINIYAH SHABIRA", mykid: "170401010368", tahapLama: "RuLaF Alif" },
-    { nama: "NUR MAISARAH", mykid: "170219010222", tahapLama: "RuLaF Ta" }
-  ];
+  // [+] SEDUT DATA NAMA DARI SUPABASE SECARA DINAMIK
+  useEffect(() => {
+    tarikSenaraiMurid();
+  }, []);
 
-  // [+] BANK SOALAN (3 Soalan Mengikut Tahap Kod)
+  const tarikSenaraiMurid = async () => {
+    const { data, error } = await supabase
+      .from('markah_murid')
+      .select('nama_murid, mykid, tahap_rulaf')
+      .order('nama_murid', { ascending: true }); // Susun ikut abjad
+      
+    if (data) {
+      setSenaraiMurid(data);
+    } else if (error) {
+      console.error("Ralat memuat turun senarai murid:", error.message);
+    }
+  };
+
+  // [+] BANK SOALAN (Bebas Data Peribadi)
   const bankSoalan: any = {
-    'RULAF-A-99': [ // Kod Susah (Tahap Ta)
+    'RULAF-A-99': [ 
       { q: "Pilih ejaan Jawi yang tepat bagi: Tanggungjawab", options: ["تڠݢوڠجواب", "تڠݢوڠجوب", "تڠݢونجواب"], a: "تڠݢوڠجواب" },
       { q: "Ejaan 'Masyarakat' dalam Jawi ialah...", options: ["مشارکت", "مشراکت", "ماشراکت"], a: "مشارکت" },
       { q: "Apakah huruf jawi bagi padanan 'Ny'?", options: ["ڽ", "ڠ", "ڤ"], a: "ڽ" }
     ],
-    'RULAF-B-55': [ // Kod Sederhana (Tahap Ba)
+    'RULAF-B-55': [ 
       { q: "Ejaan bagi perkataan 'Sekolah' ialah...", options: ["سکوله", "سكوله", "سيکوله"], a: "سکوله" },
       { q: "Suku kata 'Bu' dieja sebagai...", options: ["بو", "با", "بي"], a: "بو" },
       { q: "Perkataan 'Buku' mengandungi berapa huruf jawi?", options: ["4", "3", "5"], a: "4" }
     ],
-    'RULAF-C-11': [ // Kod Mudah (Tahap Alif)
+    'RULAF-C-11': [ 
       { q: "Manakah antara berikut adalah huruf Ba?", options: ["ب", "ت", "ث"], a: "ب" },
       { q: "Huruf 'Alif' ditulis sebagai...", options: ["ا", "ل", "م"], a: "ا" },
       { q: "Padanan huruf 'S' dalam Jawi ialah...", options: ["س", "ش", "ص"], a: "س" }
@@ -45,14 +57,16 @@ export default function TebusKodPage() {
   const sahkanKod = () => {
     if (!mykid || !kodRahsia) return alert('Sila pilih nama dan masukkan Kod Rahsia!');
     
+    // Tarik tahap lama dari senarai yang di-fetch
+    const muridDipilih = senaraiMurid.find(m => m.mykid === mykid);
+    const tahapLama = muridDipilih?.tahap_rulaf || 'RuLaF Alif'; // Default jika tiada
+
     const kod = kodRahsia.toUpperCase();
     if (bankSoalan[kod]) {
-      if (kod.includes('-A-')) setTahapKognitif('RuLaF Ta');
-      else if (kod.includes('-B-')) setTahapKognitif('RuLaF Ba');
-      else if (kod.includes('-C-')) setTahapKognitif('RuLaF Alif');
-      
+      // Tetapkan tahap kognitif untuk rujukan AI
+      setTahapKognitif(tahapLama);
       setSoalanSemasa(bankSoalan[kod]);
-      setLangkah(2); // Masuk skrin Kuiz
+      setLangkah(2); 
     } else {
       return alert('[!] Ralat: Kod Rahsia Tidak Sah atau Luput.');
     }
@@ -64,24 +78,20 @@ export default function TebusKodPage() {
     setJawapanMurid(jawapanBaru);
   };
 
-  // [+] LOGIK AI: KIRA MARKAH & TENTUKAN TAHAP BAHARU
   const hantarJawapan = async () => {
     setStatusMesej('Ejen AI sedang menganalisis prestasi dan menentukan tahap RuLaF...');
     
-    // 1. Kira Markah
     let betul = 0;
     soalanSemasa.forEach((soalan, i) => {
       if (jawapanMurid[i] === soalan.a) betul++;
     });
     const peratusMarkah = Math.round((betul / 3) * 100);
 
-    // 2. Tentukan Kenaikan/Penurunan Tahap RuLaF
     let tahapBaru = tahapKognitif;
     let status = 'KEKAL TAHAP';
 
-    if (tahapKognitif === 'RuLaF Alif') {
+    if (tahapKognitif === 'RuLaF Alif' || tahapKognitif === 'RuLaF Khas') {
       if (betul === 3) { tahapBaru = 'RuLaF Ba'; status = 'NAIK TAHAP 🚀'; }
-      else if (betul === 0) { tahapBaru = 'RuLaF Khas'; status = 'TURUN TAHAP 🔻'; }
     } 
     else if (tahapKognitif === 'RuLaF Ba') {
       if (betul === 3) { tahapBaru = 'RuLaF Ta'; status = 'NAIK TAHAP 🚀'; }
@@ -93,17 +103,16 @@ export default function TebusKodPage() {
 
     setKeputusanAI({ markah: peratusMarkah, tahapBaru, status });
 
-    // 3. Simpan ke Supabase (Markah Jawi & Tahap Baru)
     const { error } = await supabase
       .from('markah_murid')
-      .update({ markah_jawi: peratusMarkah, tahap_rulaf: tahapBaru }) // Pastikan ada lajur tahap_rulaf
+      .update({ markah_jawi: peratusMarkah, tahap_rulaf: tahapBaru }) 
       .eq('mykid', mykid);
 
     if (error) {
       alert('Ralat Pangkalan Data: ' + error.message);
       setStatusMesej('');
     } else {
-      setLangkah(3); // Skrin Keputusan
+      setLangkah(3); 
     }
   };
 
@@ -117,19 +126,18 @@ export default function TebusKodPage() {
         </div>
 
         <div className="p-8">
-          {/* FASA 1: PILIH NAMA DAN KOD */}
           {langkah === 1 && (
             <div className="flex flex-col gap-5">
               <h2 className="text-xl font-bold text-white text-center">Tebus Kod The RuLaF Box</h2>
               
-              {/* Dropdown Nama Murid */}
+              {/* Dropdown Nama Murid (Data ditarik dari DB) */}
               <select 
                 value={mykid} onChange={(e) => setMykid(e.target.value)}
                 className="p-3 bg-gray-900 border border-gray-600 rounded text-white focus:border-blue-400 outline-none"
               >
                 <option value="">-- Sila Pilih Nama Anda --</option>
                 {senaraiMurid.map((murid, idx) => (
-                  <option key={idx} value={murid.mykid}>{murid.nama}</option>
+                  <option key={idx} value={murid.mykid}>{murid.nama_murid}</option>
                 ))}
               </select>
 
@@ -144,7 +152,6 @@ export default function TebusKodPage() {
             </div>
           )}
 
-          {/* FASA 2: JAWAB 3 SOALAN POP QUIZ */}
           {langkah === 2 && (
             <div className="flex flex-col gap-6">
               <div className="p-4 bg-gray-800 border-l-4 border-yellow-500">
@@ -176,7 +183,6 @@ export default function TebusKodPage() {
             </div>
           )}
 
-          {/* FASA 3: KEPUTUSAN DAN KENAIKAN TAHAP */}
           {langkah === 3 && (
             <div className="flex flex-col items-center gap-4 text-center">
               <h2 className="text-3xl font-black text-white mb-2">Misi Selesai!</h2>
