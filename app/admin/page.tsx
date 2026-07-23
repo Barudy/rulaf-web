@@ -59,23 +59,44 @@ export default function AdminPage() {
         
   };
 
-  const klikLogin = async (e: React.FormEvent) => {
+const klikLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoggingIn(true);
     setErrorMsg('');
 
-    const { error } = await supabase.auth.signInWithPassword({
+    // 1. Log masuk ke Supabase Auth seperti biasa
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
 
-    if (error) {
-      setErrorMsg('[!] Akses Ditolak: E-mel atau kata laluan tidak tepat.');
-    } else {
-      setIsLocked(false);
+    if (authError) {
+      setErrorMsg('Log Masuk Gagal: E-mel atau Kata Laluan salah.');
+      setIsLoggingIn(false);
+      return;
     }
+
+    // 2. [+] LOGIK RBAC KETIKA LOG MASUK (Pengawal Keselamatan)
+    // TAHAN DULU! Jangan terus set isLocked(false). Semak peranan dia dahulu di pangkalan data.
+    const { data: profilData, error: profilError } = await supabase
+      .from('profil_pengguna')
+      .select('peranan')
+      .eq('email', email)
+      .single();
+
+    if (profilData && profilData.peranan === 'Guru') {
+      // Jika sah dia adalah 'Guru', barulah pintu kebal dibuka!
+      setIsLocked(false);
+    } else {
+      // Jika dia 'Murid', kita batalkan sesi dia (Log Keluar) dan halau dia serta-merta!
+      await supabase.auth.signOut(); 
+      setIsLocked(true);
+      setErrorMsg('Akses Ditolak: Halaman ini khas untuk Guru RuLaF sahaja.');
+    }
+
     setIsLoggingIn(false);
   };
+
 
   const logKeluar = async () => {
     await supabase.auth.signOut();
