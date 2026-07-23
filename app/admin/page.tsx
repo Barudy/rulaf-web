@@ -32,9 +32,9 @@ export default function AdminPage() {
     const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          setIsLocked(false);
+          setIsLocked(true); // Kunci akses pentadbir sehingga disahkan
           const emailPengguna = session.user.email;
-          setEmail(session.user.email || '');
+          setEmail(emailPengguna || 'Pengguna Rulaf');
     
           // [+] LOGIK RBAC DINAMIK (TARIK DARI SUPABASE)
           // Sistem akan menyemak peranan pengguna dari jadual profil_pengguna
