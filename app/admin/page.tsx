@@ -8,7 +8,6 @@ export default function AdminPage() {
 
   // --- KUNCI KESELAMATAN (SUPABASE AUTH) ---
   const [isLocked, setIsLocked] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [email, setEmail] = useState(''); 
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -32,9 +31,9 @@ export default function AdminPage() {
     const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          setIsAdmin(true); // Kunci akses pentadbir sehingga disahkan
+          setIsLocked(true); // Kunci akses pentadbir sehingga disahkan
           const emailPengguna = session.user.email;
-          setEmail(emailPengguna || 'Guru Rulaf');
+          setEmail(emailPengguna || '');
     
           // [+] LOGIK RBAC DINAMIK (TARIK DARI SUPABASE)
           // Sistem akan menyemak peranan pengguna dari jadual profil_pengguna
@@ -45,13 +44,19 @@ export default function AdminPage() {
             .single(); // Ambil satu rekod sahaja
     
           if (error) {
-            console.error("Gagal menyemak peranan:", error.message);
-          } else if (data && data.peranan === 'Guru') {
-            setIsAdmin(true); // Automatik dapat kuasa muat naik jika peranannya 'Guru'
+        console.error("Gagal menyemak peranan:", error.message);
+        setIsLocked(true); // Terus kunci jika ada ralat
+      } else if (data && data.peranan === 'Guru') {
+        setIsLocked(false); // [BUKA KUNCI] - Guru dibenarkan masuk ke Dashboard!
+      } else {
+        setIsLocked(true); // [KUNCI] - Murid atau pengguna biasa dihalang!
+        setErrorMsg('Akses Ditolak: Halaman ini khas untuk Guru RuLaF sahaja.'); // Mesej ralat untuk murid
+      }
+      
           } else {
-            setIsAdmin(false); // Murid atau pengguna biasa tidak dapat kuasa
+            setIsLocked(true); // Murid atau pengguna biasa tidak dapat kuasa
           }
-        }
+        
   };
 
   const klikLogin = async (e: React.FormEvent) => {
@@ -124,7 +129,7 @@ export default function AdminPage() {
     setIsThinking(false);
   };
 
-  if (isAdmin) {
+  if (isLocked) {
     return (
       <div className="min-h-screen bg-[#0F1419] font-mono flex flex-col items-center justify-center p-10 text-[#A5B2D9] selection:bg-[#1793D1] selection:text-white">
         <div className="bg-[#171A21] p-8 rounded-sm shadow-[0_0_15px_rgba(23,147,209,0.3)] max-w-sm w-full border border-[#1793D1]">
