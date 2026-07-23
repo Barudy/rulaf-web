@@ -8,6 +8,7 @@ export default function AdminPage() {
 
   // --- KUNCI KESELAMATAN (SUPABASE AUTH) ---
   const [isLocked, setIsLocked] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [email, setEmail] = useState(''); 
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
@@ -29,10 +30,28 @@ export default function AdminPage() {
 
   const semakSesi = async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      setIsLocked(false);
-      setEmail(session.user.email || '');
-    }
+        
+        if (session) {
+          setIsLocked(false);
+          const emailPengguna = session.user.email;
+          setEmail(session.user.email || '');
+    
+          // [+] LOGIK RBAC DINAMIK (TARIK DARI SUPABASE)
+          // Sistem akan menyemak peranan pengguna dari jadual profil_pengguna
+          const { data, error } = await supabase
+            .from('profil_pengguna')
+            .select('peranan')
+            .eq('email', emailPengguna) // Memastikan ia memadankan e-mel yang sedang log masuk
+            .single(); // Ambil satu rekod sahaja
+    
+          if (error) {
+            console.error("Gagal menyemak peranan:", error.message);
+          } else if (data && data.peranan === 'Guru') {
+            setIsAdmin(true); // Automatik dapat kuasa muat naik jika peranannya 'Guru'
+          } else {
+            setIsAdmin(false); // Murid atau pengguna biasa tidak dapat kuasa
+          }
+        }
   };
 
   const klikLogin = async (e: React.FormEvent) => {
