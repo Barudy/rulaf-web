@@ -124,7 +124,7 @@ export default function AdminPage() {
     setIsThinking(false);
   };
 
-  if (isLocked) {
+  if (isAdmin) {
     return (
       <div className="min-h-screen bg-[#0F1419] font-mono flex flex-col items-center justify-center p-10 text-[#A5B2D9] selection:bg-[#1793D1] selection:text-white">
         <div className="bg-[#171A21] p-8 rounded-sm shadow-[0_0_15px_rgba(23,147,209,0.3)] max-w-sm w-full border border-[#1793D1]">
