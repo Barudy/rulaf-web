@@ -122,8 +122,6 @@ const [carianForum, setCarianForum] = useState('');
 
   return (
     <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
-      <div id="my-banner"></div>
-          <Script src="https://keepandroidopen.org/banner.js?lang=en&size=mini&id=my-banner" />
       <div className="max-w-5xl mx-auto bg-[#171A21] border border-[#1793D1] rounded-sm shadow-[0_0_15px_rgba(23,147,209,0.3)]">
         <div className="bg-[#1793D1] text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
           

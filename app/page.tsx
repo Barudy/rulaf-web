@@ -65,8 +65,7 @@ export default function HomePage() {
 
   return ( 
     <div className="min-h-screen bg-[#171A21] text-[#A5B2D9] font-sans selection:bg-[#1793D1] selection:text-white"> 
-      <div id="my-banner"></div>
-          <Script src="https://keepandroidopen.org/banner.js?lang=en&size=mini&id=my-banner" />
+      
       {/* Navbar Ala Arch Linux */} 
       <nav className="p-4 bg-[#282C34] border-b border-[#1793D1] shadow-md flex justify-between items-center max-w-5xl mx-auto mt-4 rounded-t-lg"> 
         <div className="flex items-center gap-3"> 
