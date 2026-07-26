@@ -119,7 +119,7 @@ export default function TebusKodPage() {
   return (
     <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-6 sm:p-10 flex flex-col items-center justify-center">
       <div className="max-w-3xl w-full bg-[#171A21] border border-blue-500 rounded shadow-[0_0_20px_rgba(59,130,246,0.4)] overflow-hidden">
-        
+
         <div className="bg-blue-600 text-white px-6 py-3 font-bold flex justify-between">
           <span>~/ RuLaFHub_Redeem_Portal</span>
           <span>[ UJIAN PENGUKUHAN ]</span>
