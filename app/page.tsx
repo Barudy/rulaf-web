@@ -74,7 +74,7 @@ export default function HomePage() {
           </span> 
         </div> 
         <div className="flex gap-4 sm:gap-6 text-xs sm:text-sm font-semibold items-center"> 
-          <a href="/permainan" className="text-gray-300 hover:text-[#1793D1] transition-colors">Permainan</a>
+          <a href="/permainan" className="text-gray-300 hover:text-[#1793D1] transition-colors">Arked</a>
           <a href="/semakan" className="text-gray-300 hover:text-[#1793D1] transition-colors">Semakan</a> 
           <a href="/repo" className="text-gray-300 hover:text-[#1793D1] transition-colors">Repositori</a> 
           <a href="/docs" className="text-gray-300 hover:text-[#1793D1] transition-colors">Docs</a> 
