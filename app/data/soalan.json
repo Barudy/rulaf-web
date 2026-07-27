@@ -42,7 +42,39 @@
   "ibadah_solat_Jumaat2": {
     "subjek": "Ibadah",
     "tajuk": "Misi Solat Jumaat Bahagian 2",
-    "deskripsi": "Uji kefahaman anda tentang Rukun Khutbah, Syarat 2 Khutbah Solat Jumaat dan Perkara Sunat pada Hari Jumaat.",
+    "deskripsi": "Uji kefahaman anda tentang Rukun Khutbah dan Syarat 2 Khutbah Solat Jumaat",
+    "level1": [
+      {
+        "rumi": { "q": "Pilih Rukun Khutbah Jumaat:", "options": ["khutbah pada hari jumaat", "jemaah mestilah kanak-kanak", "Membaca Al-hamdulillah pada khutbah pertama dan kedua"], "a": "Membaca Al-hamdulillah pada khutbah pertama dan kedua" },
+        "jawi": { "q": "ڤيليه روکون خطبة جمعة:", "options": ["خطبة ڤد هاري جمعة", " جماعه مستيله کانق٢", "ممباچ الحمدلله ڤاداله/ڤدله خطبة ڤرتام دان کدوا"], "a": "ممباچ الحمدلله ڤاداله/ڤدله خطبة ڤرتام دان کدوا" }
+      },
+      {
+        "rumi": { "q": "Pilih Syarat Sah 2 Khutbah Solat Jumaat:", "options": ["Menutup aurat", "12 orang ahli jumaat", "Dibaca pada waktu Isyak"], "a": "Menutup aurat" },
+        "jawi": { "q": "ڤيليه شرط صح 2 خطبة صلاة جمعة:", "options": ["منوتوڤ عورة", "12 اورڠ اهلي جمعة", "دباچ ڤد وقتو عشاء"], "a": "منوتوڤ عورة" }
+      }
+
+    ],
+    "level2": [
+      {
+        "rumi": { "q": "برايکوت اداله روکون خطبة جمعة کچوالي:", "options": ["وصيت دان تقوى کڤد الله", "ممباچ صلوات کأتس نبي", "دباچ ڤد وقتو ظهر"], "a": "دباچ ڤد وقتو ظهر" },
+        "jawi": { "q": "برايکوت اداله روکون خطبة جمعة کچوالي:", "options": ["وصيت دان تقوى کڤد الله", "ممباچ صلوات کأتس نبي", "دباچ ڤد وقتو ظهر"], "a": "دباچ ڤد وقتو ظهر" }
+      },
+      {
+        "rumi": { "q": "سيلا ڤيليه شرط صح 2 خطبة صلاة جمعة:", "options": ["إسلام", "وصيت دان تقوى کڤد الله", "منوتوڤ عورة"], "a": "منوتوڤ عورة" },
+        "jawi": { "q": "سيلا ڤيليه شرط صح 2 خطبة صلاة جمعة:", "options": ["إسلام", "وصيت دان تقوى کڤد الله", "منوتوڤ عورة"], "a": "منوتوڤ عورة" }
+      }
+    ],
+    "level3": [
+      {
+        "rumi": { "q": "برايکوت اداله شرط صح 2 خطبة صلاة جمعة کچوالي:", "options": ["مماکاي ڤاکاين ڤوتيه", "سوچي درڤد نجيس دان حدث", "خطبة دالم بهاس عرب"], "a": "مماکاي ڤاکاين ڤوتيه" },
+        "jawi": { "q": "برايکوت اداله شرط صح 2 خطبة صلاة جمعة کچوالي:", "options": ["مماکاي ڤاکاين ڤوتيه", "سوچي درڤد نجيس دان حدث", "خطبة دالم بهاس عرب"], "a": "مماکاي ڤاکاين ڤوتيه" }
+      }
+    ]
+  },
+  "ibadah_solat_Jumaat3": {
+    "subjek": "Ibadah",
+    "tajuk": "Misi Solat Jumaat Bahagian 3",
+    "deskripsi": "Ulangkaji tentang rukun khutbah, Syarat Sah 2 Khutbah, Perkara Sunat pada Hari Jumaat dan Hukum Solat ketika Khutbah",
     "level1": [
       {
         "rumi": { "q": "Pilih Rukun Khutbah Jumaat:", "options": ["khutbah pada hari jumaat", "jemaah mestilah kanak-kanak", "Membaca Al-hamdulillah pada khutbah pertama dan kedua"], "a": "Membaca Al-hamdulillah pada khutbah pertama dan kedua" },
@@ -78,18 +110,5 @@
             "jawi": { "q": "اڤاکه حکوم باݢي سسأورڠ يڠ سوده دودوق ددالم مسجد سماس خطيب برخطبه؟", "options": ["حرام", "سنة", "مکروه"], "a": "حرام" }
       }
     ]
-  },
-  "jawi_imbuhan": {
-    "subjek": "Jawi",
-    "tajuk": "Imbuhan Awalan Jawi",
-    "deskripsi": "Mengeja dan menyambung imbuhan awalan dengan tepat.",
-    "level1": [
-      {
-        "rumi": { "q": "Apakah ejaan Jawi bagi 'Di atas'?", "options": ["دأتس", "داتس", "دياتس"], "a": "دأتس" },
-        "jawi": { "q": "اڤاکه ايجاءن جاوي باݢي 'Di atas'؟", "options": ["دأتس", "داتس", "دياتس"], "a": "دأتس" }
-      }
-    ],
-    "level2": [],
-    "level3": []
   }
 }
