@@ -41,10 +41,10 @@ export default function DocsPage() {
             {activeProtokol === 'pengenalan' && (
               <div className="bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-4">
                 <p>
-                  <strong className="text-white">RuLaF (Rangka Kerja Pembelajaran Terbeza dan Pentaksiran Pelbagai Tahap)</strong> dilahirkan daripada satu niat yang ringkas: membantu murid dan mengembalikan minat mereka terhadap pembelajaran, khususnya dalam penguasaan asas 3M (Membaca, Menulis, Mengira) dan literasi Jawi.
+                  <strong className="text-white">RuLaF (Rutin Latihan Fleksibel) iaitu satu Rangka Kerja Pembelajaran Terbeza dan Pentaksiran Pelbagai Tahap</strong> dilahirkan daripada satu niat yang ringkas: membantu murid dan mengembalikan minat mereka terhadap pembelajaran, khususnya dalam penguasaan asas 3M (Membaca, Menulis, Mengira) dan literasi Jawi.
                 </p>
                 <p>
-                  RuLaF Hub bertindak sebagai infrastruktur digital (seakan <strong>GitHub untuk pendidik</strong>). Ia adalah pusat pangkalan data komprehensif dan repositori kolaboratif yang membolehkan para pendidik memuat naik, berkongsi kod kuiz interaktif, menyelaraskan Bahan Bantu Mengajar (BBM), dan menjejak demografi murid.
+                  RuLaFHub bertindak sebagai infrastruktur digital (seakan <strong>GitHub untuk pendidik</strong>). Ia adalah pusat pangkalan data komprehensif dan repositori kolaboratif yang membolehkan para pendidik memuat naik, berkongsi kod kuiz interaktif, menyelaraskan Bahan Bantu Mengajar (BBM), dan menjejak demografi murid.
                 </p>
                 <ul className="list-disc ml-6 space-y-2 mt-2">
                   <li><strong className="text-white">Komuniti Berpusatkan Murid:</strong> Setiap modul dan baris kod bermatlamat menyelesaikan masalah keciciran murid.</li>
@@ -199,6 +199,68 @@ export default function DocsPage() {
                 <div className="mt-4 border-l-4 border-green-500 pl-4 bg-gray-900 py-3">
                   <strong className="text-green-400 uppercase">Kitaran Rombakan AI (Regrouping):</strong>
                   <p className="mt-2 text-xs">Setiap kumpulan hanya bertahan selama 2 bulan. Ejen AI akan menganalisis corak pembelajaran murid (prestasi 3M dan Jawi) lalu mengesyorkan rombakan automatik bagi menyingkirkan elemen bias (pilih kasih).</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* BAB 6: MANIFESTO: RuLaF Educational Development Framework (REDF) */}
+          <div className="mb-4">
+            <button 
+              onClick={() => toggleProtokol('manifesto')}
+              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-purple-400 hover:border-purple-500 transition-colors flex justify-between"
+            >
+              <span>[+] BAB 6: MANIFESTO: RuLaF Educational Development Framework (REDF)</span>
+              <span>{activeProtokol === 'manifesto' ? '[-]' : '[+]'}</span>
+            </button>
+            {activeProtokol === 'manifesto' && (
+              <div className="bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-6">
+                
+                {/* Mukadimah (Visi & Falsafah) */}
+                <div>
+                  <h3 className="font-bold text-green-400">1. Mukadimah (Visi & Falsafah)</h3>
+                  <p className="mt-1">
+                    Bahagian ini menyatakan pegangan asas REDF. Walaupun hipotesis atau teknologi mungkin berubah, falsafah ini tidak akan luntur:
+1. Pendidikan Perlu Adaptif: Sistem pendidikan mestilah mampu menyesuaikan diri dengan latar belakang murid yang pelbagai melalui kaedah Phygital (Fizikal + Digital).
+2. Guru Mengekalkan Kedaulatan: Kecerdasan Buatan (AI) dicipta untuk membantu meringankan beban analisis, bukan mengambil alih fungsi dan pertimbangan profesional seorang guru.
+3. Pemerkasaan Jawi melalui Inovasi: Mempertahankan warisan tulisan Jawi tidak bermaksud menolak kemodenan; ia diperkasakan melalui teknologi AI dan gamifikasi.
+                  </p>
+                </div>
+
+                {/* Enam (6) Prinsip Teras REDF */}
+                <div>
+                  <h3 className="font-bold text-yellow-400">2. Enam (6) Prinsip Teras REDF</h3>
+                  <p className="mt-1">
+                    Ini adalah "Jantung" kerangka REDF. Sesiapa sahaja yang mahu membina aplikasi atau modul menggunakan sistem REDF wajib mematuhi 6 rukun ini:
+1. Selaras dengan Falsafah Pendidikan Kebangsaan (FPK): Teknologi mesti membantu pembangunan insan secara menyeluruh (Jasmani, Emosi, Rohani, Intelek), bukan sekadar alat mengejar markah peperiksaan. FPK dijadikan teras, tetapi kerangka ini direka cukup fleksibel untuk disesuaikan dengan falsafah pendidikan negara jiran seperti Indonesia atau Brunei.
+2. Guru Kekal Sebagai Pembuat Keputusan (Human-in-the-Loop): AI hanya bertindak sebagai ejen pembantu yang menganalisis data kognitif dan memberi cadangan, manakala keputusan penentu sahsiah dan gred akhir terletak di tangan guru.
+3. Berasaskan Bukti (Evidence-Based): Sebarang ciri baharu (seperti Auto-Fading Jawi-Rumi atau sistem kumpulan hibrid 2:2:1) perlu disokong oleh kajian rintis, kutipan data empirikal, dan maklum balas pengguna bilik darjah.
+4. Aksesibiliti dan Inklusiviti: Reka bentuk sistem mesti mengambil kira murid pelbagai tahap (RuLaF Khas, Alif, Ba, Ta) serta menyokong Murid Berkeperluan Khas (MBK). Pendekatan scaffolding (ZPD) seperti sokongan dwi-tulisan digunakan apabila sesuai.
+5. Privasi dan Etika Data: Data murid (seperti markah dan profil) dilindungi sepenuhnya. Penggunaan AI adalah telus, boleh diaudit, dan pendaftaran akses ibu bapa (seperti carian berasaskan MyKid) tidak mengeksploitasi data sensitif peribadi.
+6. Ekosistem Sumber Terbuka (Open Educational Ecosystem): RuLaFHub bukanlah sekadar aplikasi tunggal, tetapi dibangunkan bersama komuniti. Guru, pengatur cara perisian, dan penyelidik bebas menyumbang kepada penambahbaikan repositori bahan dan kod sistem.
+                  </p>
+                </div>
+
+                {/* Hipotesis Pengoperasian (Operational Hypotheses) */}
+                <div>
+                  <h3 className="font-bold text-purple-400">3. Hipotesis Pengoperasian (Operational Hypotheses)</h3>
+                  <p className="mt-1">
+                    Bahagian ini menggariskan andaian saintifik yang sedang dan sentiasa boleh diuji keberkesanannya melalui data di lapangan secara langsung:
+1. Elemen gamifikasi dan ganjaran hibrid (Arked + Stickering) terbukti meningkatkan motivasi intrinsik murid.
+2. Penggunaan dwi-tulisan (Rumi + Jawi) berserta enjin Auto-Fading berkesan mempercepatkan proses pengecaman huruf bagi murid tahap lemah (Alif/Khas).
+3. Ejen AI pengautomasian markah dan kehadiran berpotensi mengurangkan beban tugas perkeranian guru secara signifikan.
+                  </p>
+                </div>
+
+                {/* Keterbatasan Semasa (Current Limitations) */}
+                <div>
+                  <h3 className="font-bold text-red-400">4. Keterbatasan Semasa (Current Limitations)</h3>
+                  <p className="mt-1">
+                    Dalam penyelidikan ini, ketelusan mengenai kelemahan projek akan meningkatkan kredibilitinya. Bahagian ini mengisytiharkan bahawa:
+1. Enjin AI analitik masih dalam fasa pembangunan dan memerlukan semakan silang oleh manusia.
+2. Kajian lapangan masih sedang giat dijalankan di sekolah praktikum (SA Seri Muafakat) bagi mengumpul sampel data.
+3. Model pedagogi hibrid RuLaF memerlukan lebih banyak pengesahan lanjutan daripada pakar rujuk dan komuniti.
+                  </p>
                 </div>
               </div>
             )}
