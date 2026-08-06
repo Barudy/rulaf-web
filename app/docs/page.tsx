@@ -224,9 +224,9 @@ export default function DocsPage() {
                     Bahagian ini menyatakan pegangan asas REDF. Walaupun hipotesis atau teknologi mungkin berubah, falsafah ini tidak akan luntur:
                   </p>
                   <ul className="list-disc list-inside mt-2">
-                    <li>Pendidikan Perlu Adaptif: Sistem pendidikan mestilah mampu menyesuaikan diri dengan latar belakang murid yang pelbagai melalui kaedah Phygital (Fizikal + Digital).</li>
-                    <li>Guru Mengekalkan Kedaulatan: Kecerdasan Buatan (AI) dicipta untuk membantu meringankan beban analisis, bukan mengambil alih fungsi dan pertimbangan profesional seorang guru.</li>
-                    <li>Pemerkasaan Jawi melalui Inovasi: Mempertahankan warisan tulisan Jawi tidak bermaksud menolak kemodenan; ia diperkasakan melalui teknologi AI dan gamifikasi.</li>
+                    <li><strong>Pendidikan Perlu Adaptif:</strong> Sistem pendidikan mestilah mampu menyesuaikan diri dengan latar belakang murid yang pelbagai melalui kaedah Phygital (Fizikal + Digital).</li>
+                    <li><strong>Guru Mengekalkan Kedaulatan:</strong> Kecerdasan Buatan (AI) dicipta untuk membantu meringankan beban analisis, bukan mengambil alih fungsi dan pertimbangan profesional seorang guru.</li>
+                    <li><strong>Pemerkasaan Jawi melalui Inovasi:</strong> Mempertahankan warisan tulisan Jawi tidak bermaksud menolak kemodenan; ia diperkasakan melalui teknologi AI dan gamifikasi.</li>
                   </ul>
                 </div>
 
@@ -237,12 +237,12 @@ export default function DocsPage() {
                     Ini adalah "Jantung" kerangka REDF. Sesiapa sahaja yang mahu membina aplikasi atau modul menggunakan sistem REDF wajib mematuhi 6 rukun ini:
                   </p>
                   <ul className="list-disc list-inside mt-2">
-                    <li>Selaras dengan Falsafah Pendidikan Kebangsaan (FPK): Teknologi mesti membantu pembangunan insan secara menyeluruh (Jasmani, Emosi, Rohani, Intelek), bukan sekadar alat mengejar markah peperiksaan. FPK dijadikan teras, tetapi kerangka ini direka cukup fleksibel untuk disesuaikan dengan falsafah pendidikan negara jiran seperti Indonesia atau Brunei.</li>
-                    <li>Guru Kekal Sebagai Pembuat Keputusan (Human-in-the-Loop): AI hanya bertindak sebagai ejen pembantu yang menganalisis data kognitif dan memberi cadangan, manakala keputusan penentu sahsiah dan gred akhir terletak di tangan guru.</li>
-                    <li>Berasaskan Bukti (Evidence-Based): Sebarang ciri baharu (seperti Auto-Fading Jawi-Rumi atau sistem kumpulan hibrid 2:2:1) perlu disokong oleh kajian rintis, kutipan data empirikal, dan maklum balas pengguna bilik darjah.</li>
-                    <li>Aksesibiliti dan Inklusiviti: Reka bentuk sistem mesti mengambil kira murid pelbagai tahap (RuLaF Khas, Alif, Ba, Ta) serta menyokong Murid Berkeperluan Khas (MBK). Pendekatan scaffolding (ZPD) seperti sokongan dwi-tulisan digunakan apabila sesuai.</li>
-                    <li>Privasi dan Etika Data: Data murid (seperti markah dan profil) dilindungi sepenuhnya. Penggunaan AI adalah telus, boleh diaudit, dan pendaftaran akses ibu bapa (seperti carian berasaskan MyKid) tidak mengeksploitasi data sensitif peribadi.</li>
-                    <li>Ekosistem Sumber Terbuka (Open Educational Ecosystem): RuLaFHub bukanlah sekadar aplikasi tunggal, tetapi dibangunkan bersama komuniti. Guru, pengatur cara perisian, dan penyelidik bebas menyumbang kepada penambahbaikan repositori bahan dan kod sistem.</li>
+                    <li><strong>Selaras dengan Falsafah Pendidikan Kebangsaan (FPK):</strong> Teknologi mesti membantu pembangunan insan secara menyeluruh (Jasmani, Emosi, Rohani, Intelek), bukan sekadar alat mengejar markah peperiksaan. FPK dijadikan teras, tetapi kerangka ini direka cukup fleksibel untuk disesuaikan dengan falsafah pendidikan negara jiran seperti Indonesia atau Brunei.</li>
+                    <li><strong>Guru Kekal Sebagai Pembuat Keputusan (Human-in-the-Loop):</strong> AI hanya bertindak sebagai ejen pembantu yang menganalisis data kognitif dan memberi cadangan, manakala keputusan penentu sahsiah dan gred akhir terletak di tangan guru.</li>
+                    <li><strong>Berasaskan Bukti (Evidence-Based):</strong> Sebarang ciri baharu (seperti Auto-Fading Jawi-Rumi atau sistem kumpulan hibrid 2:2:1) perlu disokong oleh kajian rintis, kutipan data empirikal, dan maklum balas pengguna bilik darjah.</li>
+                    <li><strong>Aksesibiliti dan Inklusiviti:</strong> Reka bentuk sistem mesti mengambil kira murid pelbagai tahap (RuLaF Khas, Alif, Ba, Ta) serta menyokong Murid Berkeperluan Khas (MBK). Pendekatan scaffolding (ZPD) seperti sokongan dwi-tulisan digunakan apabila sesuai.</li>
+                    <li><strong>Privasi dan Etika Data:</strong> Data murid (seperti markah dan profil) dilindungi sepenuhnya. Penggunaan AI adalah telus, boleh diaudit, dan pendaftaran akses ibu bapa (seperti carian berasaskan MyKid) tidak mengeksploitasi data sensitif peribadi.</li>
+                    <li><strong>Ekosistem Sumber Terbuka (Open Educational Ecosystem):</strong> RuLaFHub bukanlah sekadar aplikasi tunggal, tetapi dibangunkan bersama komuniti. Guru, pengatur cara perisian, dan penyelidik bebas menyumbang kepada penambahbaikan repositori bahan dan kod sistem.</li>
                   </ul>
                 </div>
 
@@ -253,9 +253,9 @@ export default function DocsPage() {
                     Bahagian ini menggariskan andaian saintifik yang sedang dan sentiasa boleh diuji keberkesanannya melalui data di lapangan secara langsung:
                   </p>
                   <ul className="list-disc list-inside mt-2">
-                    <li>Elemen gamifikasi dan ganjaran hibrid (Arked + Stickering) terbukti meningkatkan motivasi intrinsik murid.</li>
-                    <li>Penggunaan dwi-tulisan (Rumi + Jawi) berserta enjin Auto-Fading berkesan mempercepatkan proses pengecaman huruf bagi murid tahap lemah (Alif/Khas).</li>
-                    <li>Ejen AI pengautomasian markah dan kehadiran berpotensi mengurangkan beban tugas perkeranian guru secara signifikan.</li>
+                    <li><strong>Elemen gamifikasi dan ganjaran hibrid (Arked + Stickering):</strong> terbukti meningkatkan motivasi intrinsik murid.</li>
+                    <li><strong>Penggunaan dwi-tulisan (Rumi + Jawi) berserta enjin Auto-Fading:</strong> berkesan mempercepatkan proses pengecaman huruf bagi murid tahap lemah (Alif/Khas).</li>
+                    <li><strong>Ejen AI pengautomasian markah dan kehadiran:</strong> berpotensi mengurangkan beban tugas perkeranian guru secara signifikan.</li>
                   </ul>
                 </div>
 
@@ -266,9 +266,9 @@ export default function DocsPage() {
                     Dalam penyelidikan ini, ketelusan mengenai kelemahan projek akan meningkatkan kredibilitinya. Bahagian ini mengisytiharkan bahawa:
                   </p>
                   <ul className="list-disc list-inside mt-2">
-                    <li>Enjin AI analitik masih dalam fasa pembangunan dan memerlukan semakan silang oleh manusia.</li>
-                    <li>Kajian lapangan masih sedang giat dijalankan di sekolah praktikum (SA Seri Muafakat) bagi mengumpul sampel data.</li>
-                    <li>Model pedagogi hibrid RuLaF memerlukan lebih banyak pengesahan lanjutan daripada pakar rujuk dan komuniti.</li>
+                    <li><strong>Enjin AI analitik:</strong> masih dalam fasa pembangunan dan memerlukan semakan silang oleh manusia.</li>
+                    <li><strong>Kajian lapangan:</strong> masih sedang giat dijalankan di sekolah praktikum (SA Seri Muafakat) bagi mengumpul sampel data.</li>
+                    <li><strong>Model pedagogi hibrid RuLaF:</strong> memerlukan lebih banyak pengesahan lanjutan daripada pakar rujuk dan komuniti.</li>
                   </ul>
                 </div>
               </div>
