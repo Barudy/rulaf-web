@@ -60,7 +60,7 @@ export default function Navbar() {
                   : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
               }`}
             >
-              Halaman Utama
+              Blog
             </a>
             <a
               href="/permainan"
@@ -70,7 +70,7 @@ export default function Navbar() {
                   : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
               }`}
             >
-              Arked
+              Permainan
             </a>
             <a
               href="/semakan"
@@ -162,7 +162,7 @@ export default function Navbar() {
                 pathname === '/' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
               }`}
             >
-              Halaman Utama
+              Blog
             </a>
             <a
               href="/permainan"
@@ -171,7 +171,7 @@ export default function Navbar() {
                 pathname === '/permainan' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
               }`}
             >
-              Arked
+              Permainan
             </a>
             <a
               href="/semakan"
