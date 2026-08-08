@@ -15,7 +15,6 @@ export default function DocsPage() {
         {/* Header Terminal */}
         <div className="bg-[#1793D1] text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
           <span>rulaf-docs(1) - DOKUMENTASI RASMI SISTEM</span>
-          <a href="/" className="hover:text-white transition-colors">[ cd ~ / Laman Utama ]</a>
         </div>
 
         <div className="p-8">

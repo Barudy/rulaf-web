@@ -127,16 +127,6 @@ const [carianForum, setCarianForum] = useState('');
           
           <span>rulaf-hub(1) - Open Repository & Forum</span>
           <span>{isLoggedIn ? `[ LOGGED IN : ${userEmail} ]` : '[ GUEST MODE ]'}</span>
-          {/* PERUBAHAN DINAMIK: Butang Log Masuk vs Profil */}
-          {isLoggedIn ? (
-            <a href="/profil" className="text-white hover:text-black transition-colors">
-              [ Profil ]
-            </a>
-          ) : (
-            <a href="/login" className="text-white hover:text-black transition-colors">
-              Log Masuk
-            </a>
-          )}
           
         </div>
 

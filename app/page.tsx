@@ -1,8 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient'; 
-import Image from 'next/image';
-import Script from 'next/script';
 
 export default function HomePage() { 
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -41,6 +39,7 @@ export default function HomePage() {
     else setArtikelBuka(id); 
   };
 
+
   const jadikanLinkBolehDitekan = (teks: string) => {
     if (!teks) return teks;
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -63,47 +62,13 @@ export default function HomePage() {
       return bahagian;
     });
   };
-
+   
   return ( 
     <div className="min-h-screen bg-[#171A21] text-[#A5B2D9] font-sans selection:bg-[#1793D1] selection:text-white"> 
-      
-      {/* Navbar Ala Arch Linux */} 
-      <nav className="p-4 bg-[#282C34] border-b border-[#1793D1] shadow-md flex justify-between items-center max-w-5xl mx-auto mt-4 rounded-t-lg"> 
-        <div className="flex items-center gap-3"> 
-          <Image 
-          src="/rulafhub.png" 
-          alt="Logo RuLaFHub" 
-          width={50} 
-          height={50} 
-          priority 
-        />
-          <span className="text-xl font-bold text-white tracking-wide">
-            RuLaF<span className="text-[#1793D1]">Hub</span>
-          </span> 
-        </div> 
-        <div className="flex gap-4 sm:gap-6 text-xs sm:text-sm font-semibold items-center"> 
-          <a href="/permainan" className="text-gray-300 hover:text-[#1793D1] transition-colors">Arked</a>
-          <a href="/semakan" className="text-gray-300 hover:text-[#1793D1] transition-colors">Semakan</a> 
-          <a href="/repo" className="text-gray-300 hover:text-[#1793D1] transition-colors">Repositori</a> 
-          <a href="/docs" className="text-gray-300 hover:text-[#1793D1] transition-colors">Docs</a> 
-
-          {/* PERUBAHAN DINAMIK: Butang Log Masuk vs Profil */}
-          {isLoggedIn ? (
-            <a href="/profil" className="text-[#0F1419] bg-[#1793D1] border border-[#1793D1] px-3 py-1 rounded hover:bg-transparent hover:text-[#1793D1] transition-colors shadow-[0_0_8px_rgba(23,147,209,0.5)]">
-              [ Profil ]
-            </a>
-          ) : (
-            <a href="/login" className="text-[#1793D1] border border-[#1793D1] px-3 py-1 rounded hover:bg-[#1793D1] hover:text-[#0F1419] transition-colors">
-              Log Masuk
-            </a>
-          )}
-        </div> 
-      </nav>
-
       <main className="max-w-5xl mx-auto bg-[#282C34] p-8 mt-2 rounded-b-lg shadow-lg border border-gray-800">
         <div className="border-b border-gray-700 pb-4 mb-6">
             <h1 className="text-3xl font-bold text-white">Jurnal Inovasi & Berita Terkini</h1>
-            <p className="text-sm mt-2 font-mono text-gray-400">Arch-style documentation for Pendidikan Jawi</p>
+            <p className="text-sm mt-2 font-mono text-gray-400">Dokumentasi perjalanan RuLaF dan REDF</p>
         </div>
 
         {isLoading ? (
