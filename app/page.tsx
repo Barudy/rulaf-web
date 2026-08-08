@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient'; 
+import Image from 'next/image';
 import Script from 'next/script';
 
 export default function HomePage() { 
@@ -69,6 +70,13 @@ export default function HomePage() {
       {/* Navbar Ala Arch Linux */} 
       <nav className="p-4 bg-[#282C34] border-b border-[#1793D1] shadow-md flex justify-between items-center max-w-5xl mx-auto mt-4 rounded-t-lg"> 
         <div className="flex items-center gap-3"> 
+          <Image 
+          src="/rulafhub.png" 
+          alt="Logo RuLaFHub" 
+          width={50} 
+          height={50} 
+          priority 
+        />
           <span className="text-xl font-bold text-white tracking-wide">
             RuLaF<span className="text-[#1793D1]">Hub</span>
           </span> 
