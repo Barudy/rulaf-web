@@ -111,6 +111,46 @@
       }
     ]
   },
+  "ibadah_solat_istisqa1": {
+    "subjek": "Ibadah",
+    "tajuk": "Misi Solat Istisqa' Bahagian 1",
+    "deskripsi": "Pengertian Solat Istisqa', Dalilnya, Hikmahnya, Hukumnya dan Cara Memohon Hujan",
+    "level1": [
+      {
+        "rumi": { "q": "Asal perktaan istisqa' ialah:", "options": ["taqa", "saqa", "itqa"], "a": "saqa" },
+        "jawi": { "q": "اصل ڤرکاتاءن استسقاء استسقاء اياله:", "options": ["تقى", " سقى", "اتقى"], "a": "سقى" }
+      },
+      {
+        "rumi": { "q": "Istisqa' pada bahasa ialah:", "options": ["Meminta makanan", "Meminta sedekah", "Meminta Air"], "a": "Meminta Air" },
+        "jawi": { "q": "استسقاء ڤد بهاس اياله:", "options": ["ممينتا ماکن", "ممينتا صدقه", "ممينتا اءير"], "a": "ممينتا اءير" }
+      },
+      {
+        "rumi": { "q": "Erti solat Istisqa' pada bahasa ialah:", "options": ["Gerhana matahari", "Meminta hujan", "Gerhana bulan"], "a": "Meminta hujan" },
+        "jawi": { "q": "ارتي صلاة استسقاء ڤد بهاس اياله:", "options": ["ݢرهان ماتاهاري", "ممينتا هوجن", "ݢرهان بولن"], "a": "ممينتا هوجن" }
+      }
+
+    ],
+    "level2": [
+      {
+        "rumi": { "q": "حکمه صلاة استسقاء:", "options": ["منيبولکن راس انصاف", "ملاهيرکن راس ماره", "منراڤکن راس سايڠ"], "a": "منيبولکن راس انصاف" },
+        "jawi": { "q": "حکمه صلاة استسقاء:", "options": ["منيبولکن راس انصاف", "ملاهيرکن راس ماره", "منراڤکن راس سايڠ"], "a": "منيبولکن راس انصاف" }
+      },
+      {
+        "rumi": { "q": "اڤاکه حکوم صلاة استسقاء؟", "options": ["سنة غير مؤکدة", "سنة مؤکدة", "هاروس"], "a": "سنة مؤکدة" },
+        "jawi": { "q": "اڤاکه حکوم صلاة استسقاء؟", "options": ["سنة غير مؤکدة", "سنة مؤکدة", "هاروس"], "a": "سنة مؤکدة" }
+      }
+    ],
+    "level3": [
+      {
+        "rumi": { "q": "چارا مموهون هوجن اياله:", "options": ["دعاء کڤد الله", "بردعاء کڤد رسول", "بردعاء کڤد ملائکة"], "a": "دعاء کڤد الله" },
+        "jawi": { "q": "چارا مموهون هوجن اياله:", "options": ["دعاء کڤد الله", "بردعاء کڤد رسول", "بردعاء کڤد ملائکة"], "a": "دعاء کڤد الله" }
+      },
+      {
+            "rumi": { "q": "سياڤاکه اورڠ يڠ لايق صلاة استسقاء؟", "options": ["اورڠ فاسق برمقيم", "اورڠ کافر برمسافير", "اورڠ إسلام برمقيم"], "a": "اورڠ إسلام برمقيم" },
+            "jawi": { "q": "سياڤاکه اورڠ يڠ لايق صلاة استسقاء؟", "options": ["اورڠ فاسق برمقيم", "اورڠ کافر برمسافير", "اورڠ إسلام برمقيم"], "a": "اورڠ إسلام برمقيم" }
+      }
+    ]
+  },
   "ibadah_solat_Istisqa'2": {
     "subjek": "Ibadah",
     "tajuk": "Misi Solat Istisqa' Bahagian 2",
