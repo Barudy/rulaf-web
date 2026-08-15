@@ -117,9 +117,8 @@ export default function TebusKodPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-6 sm:p-10 flex flex-col items-center justify-center">
-      <div className="max-w-3xl w-full bg-[#171A21] border border-blue-500 rounded shadow-[0_0_20px_rgba(59,130,246,0.4)] overflow-hidden">
-
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-6 sm:p-10 flex flex-col items-center justify-center selection:bg-[#1793D1] selection:text-white">
+    <div className="max-w-3xl w-full bg-white dark:bg-[#171A21] border border-gray-200 dark:border-blue-500 rounded shadow-md dark:shadow-[0_0_20px_rgba(59,130,246,0.4)] overflow-hidden transition-all duration-300">
         <div className="bg-blue-600 text-white px-6 py-3 font-bold flex justify-between">
           <span>~/ RuLaFHub_Redeem_Portal</span>
           <span>[ UJIAN PENGUKUHAN ]</span>
@@ -127,13 +126,13 @@ export default function TebusKodPage() {
 
         <div className="p-8">
           {langkah === 1 && (
-            <div className="flex flex-col gap-5">
-              <h2 className="text-xl font-bold text-white text-center">Tebus Kod The RuLaF Box</h2>
+            <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex flex-col gap-4">
+              <h2 className="text-2xl font-black text-gray-900 dark:text-white">Tebus Kod The RuLaF Box</h2>
               
               {/* Dropdown Nama Murid (Data ditarik dari DB) */}
               <select 
                 value={mykid} onChange={(e) => setMykid(e.target.value)}
-                className="p-3 bg-gray-900 border border-gray-600 rounded text-white focus:border-blue-400 outline-none"
+                className="p-3 bg-gray-100 dark:bg-gray-900 border border-gray-600 rounded text-gray-900 dark:text-white focus:border-blue-400 outline-none"
               >
                 <option value="">-- Sila Pilih Nama Anda --</option>
                 {senaraiMurid.map((murid, idx) => (
@@ -144,7 +143,7 @@ export default function TebusKodPage() {
               <input 
                 type="text" placeholder="Kod Rahsia (Cth: RULAF-A-99)" 
                 value={kodRahsia} onChange={(e) => setKodRahsia(e.target.value)}
-                className="p-3 bg-gray-900 border border-blue-500 rounded text-green-400 font-bold uppercase tracking-widest text-center outline-none"
+                className="p-3 bg-gray-100 dark:bg-gray-900 border border-blue-500 rounded text-green-400 font-bold uppercase tracking-widest text-center outline-none"
               />
               <button onClick={sahkanKod} className="mt-4 bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-500">
                 [ MULA UJIAN ]
@@ -154,17 +153,17 @@ export default function TebusKodPage() {
 
           {langkah === 2 && (
             <div className="flex flex-col gap-6">
-              <div className="p-4 bg-gray-800 border-l-4 border-yellow-500">
-                <p className="text-xs text-yellow-400 font-bold">[*] TAHAP DIKESAN: {tahapKognitif}</p>
-                <p className="text-xs text-gray-400">Jawab semua soalan untuk naik ke tahap seterusnya.</p>
+              <div className="p-4 bg-gray-100 dark:bg-gray-800 border-l-4 border-yellow-500">
+                <p className="text-xs text-yellow-500 font-bold">[*] TAHAP DIKESAN: {tahapKognitif}</p>
+                <p className="text-xs text-black dark:text-gray-400">Jawab semua soalan untuk naik ke tahap seterusnya.</p>
               </div>
 
               {soalanSemasa.map((s, index) => (
-                <div key={index} className="bg-gray-900 p-4 rounded border border-gray-700">
-                  <p className="text-white mb-3 font-bold">{index + 1}. {s.q}</p>
+                <div key={index} className="bg-gray-100 dark:bg-gray-900 p-4 rounded border border-gray-700">
+                  <p className="text-black dark:text-white mb-3 font-bold">{index + 1}. {s.q}</p>
                   <div className="flex flex-col gap-2">
                     {s.options.map((opt: string, i: number) => (
-                      <label key={i} className="flex items-center gap-3 text-sm text-gray-300">
+                      <label key={i} className="flex items-center gap-3 text-sm text-black dark:text-gray-300">
                         <input 
                           type="radio" name={`soalan-${index}`} value={opt}
                           onChange={(e) => pilihJawapan(index, e.target.value)}
@@ -185,25 +184,25 @@ export default function TebusKodPage() {
 
           {langkah === 3 && (
             <div className="flex flex-col items-center gap-4 text-center">
-              <h2 className="text-3xl font-black text-white mb-2">Misi Selesai!</h2>
+              <h2 className="text-3xl font-black text-black dark:text-white mb-2">Misi Selesai!</h2>
               
               <div className="grid grid-cols-2 gap-4 w-full mt-4">
-                <div className="p-4 bg-gray-800 border border-blue-500 rounded">
-                  <p className="text-sm text-gray-400">Markah Jawi</p>
+                <div className="p-4 bg-gray-100 dark:bg-gray-800 border border-blue-500 rounded">
+                  <p className="text-sm text-black dark:text-gray-400">Markah Jawi</p>
                   <p className="text-3xl font-bold text-blue-400">{keputusanAI.markah}%</p>
                 </div>
-                <div className="p-4 bg-gray-800 border border-green-500 rounded">
-                  <p className="text-sm text-gray-400">Status Kedudukan</p>
+                <div className="p-4 bg-gray-100 dark:bg-gray-800 border border-green-500 rounded">
+                  <p className="text-sm text-black dark:text-gray-400">Status Kedudukan</p>
                   <p className="text-xl font-bold text-green-400 mt-2">{keputusanAI.status}</p>
-                  <p className="text-xs text-gray-300 mt-1">Tahap Terkini: {keputusanAI.tahapBaru}</p>
+                  <p className="text-xs text-black dark:text-gray-300 mt-1">Tahap Terkini: {keputusanAI.tahapBaru}</p>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-400 mt-4">Rekod anda telah dikemas kini secara automatik dalam Pangkalan Data RuLaF.</p>
+              <p className="text-sm text-black dark:text-gray-400 mt-4">Rekod anda telah dikemas kini secara automatik dalam Pangkalan Data RuLaF.</p>
               
               <button 
                 onClick={() => window.location.reload()} 
-                className="mt-6 border border-gray-500 text-gray-300 py-2 px-6 rounded hover:bg-gray-800"
+                className="mt-6 border border-gray-500 text-black dark:text-gray-300 py-2 px-6 rounded hover:bg-blue-500"
               >
                 [ KEMBALI KE MUKA DEPAN ]
               </button>

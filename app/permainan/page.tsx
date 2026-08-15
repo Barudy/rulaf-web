@@ -103,12 +103,12 @@ export default function GameEnginePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-6 sm:p-10 flex flex-col items-center justify-center">
-      <div className="max-w-3xl w-full bg-[#171A21] border border-blue-500 rounded shadow-[0_0_20px_rgba(59,130,246,0.4)] overflow-hidden">
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-6 sm:p-10 flex flex-col items-center justify-center selection:bg-[#1793D1] selection:text-white">
+    <div className="max-w-3xl w-full bg-white dark:bg-[#171A21] border border-gray-200 dark:border-blue-500 rounded shadow-md dark:shadow-[0_0_20px_rgba(59,130,246,0.4)] overflow-hidden transition-all duration-300">
         
         {/* Header */}
         <div className="bg-blue-600 text-white px-6 py-3 font-black flex justify-between uppercase tracking-wider">
-          <span>🎮 RuLaF Game Engine</span>
+          <span>🎮 RuLaF Game Engine 1.5</span>
           {fasa === 'bermain' && <span>Tahap: {level === 3 ? 'BOSS 🐉' : level}</span>}
         </div>
 
@@ -119,12 +119,12 @@ export default function GameEnginePage() {
             <div className="flex flex-col gap-6">
               <h1 className="text-3xl font-black text-center text-blue-400 mb-4">Pusat Latihan RuLaF</h1>
               
-              <div className="bg-gray-800 p-5 rounded border border-gray-600">
-                <label className="block text-sm font-bold text-gray-300 mb-2">1. PILIH MISI (TAJUK):</label>
+              <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 p-6 rounded mb-8 transition-colors duration-300">
+                <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mt-1">1. PILIH MISI (TAJUK):</label>
                 <select 
                   value={topikPilihan} 
                   onChange={(e) => setTopikPilihan(e.target.value)}
-                  className="w-full p-3 bg-gray-900 border border-gray-500 rounded text-white outline-none focus:border-blue-500"
+                  className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-gray-900 dark:text-white text-sm focus:border-[#1793D1] focus:outline-none"
                 >
                   {Object.keys(bankSoalan).map((key) => (
                     <option key={key} value={key}>
@@ -132,15 +132,15 @@ export default function GameEnginePage() {
                     </option>
                   ))}
                 </select>
-                <p className="text-xs text-amber-400 mt-2">{gameData.deskripsi}</p>
+                <p className="text-xs text-blue-400 mt-2">{gameData.deskripsi}</p>
               </div>
 
-              <div className="bg-gray-800 p-5 rounded border border-gray-600">
-                <label className="block text-sm font-bold text-gray-300 mb-2">2. PILIH MOD TULISAN:</label>
+              <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 p-6 rounded mb-8 transition-colors duration-300">
+                <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mt-1">2. PILIH MOD TULISAN:</label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <button onClick={() => setModTulisan('jawi')} className={`p-3 border rounded font-bold ${modTulisan === 'jawi' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-gray-900 border-gray-600 text-gray-400'}`}>JAWI SAHAJA</button>
-                  <button onClick={() => setModTulisan('rumi')} className={`p-3 border rounded font-bold ${modTulisan === 'rumi' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-gray-900 border-gray-600 text-gray-400'}`}>RUMI SAHAJA</button>
-                  <button onClick={() => setModTulisan('dwi')} className={`p-3 border rounded font-bold ${modTulisan === 'dwi' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-gray-900 border-gray-600 text-gray-400'}`}>DWI-TULISAN</button>
+                  <button onClick={() => setModTulisan('jawi')} className={`p-3 border rounded font-bold ${modTulisan === 'jawi' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white-300 border-gray-200 text-gray-400 dark:bg-gray-900 border-gray-600 text-gray-400'}`}>JAWI SAHAJA</button>
+                  <button onClick={() => setModTulisan('rumi')} className={`p-3 border rounded font-bold ${modTulisan === 'rumi' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white-300 border-gray-200 text-gray-400 dark:bg-gray-900 border-gray-600 text-gray-400'}`}>RUMI SAHAJA</button>
+                  <button onClick={() => setModTulisan('dwi')} className={`p-3 border rounded font-bold ${modTulisan === 'dwi' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white-300 border-gray-200 text-gray-400 dark:bg-gray-900 border-gray-600 text-gray-400'}`}>DWI-TULISAN</button>
                 </div>
               </div>
 
@@ -167,7 +167,7 @@ export default function GameEnginePage() {
                 </div>
               )}
 
-              <div className="bg-gray-800 p-6 rounded border-l-4 border-blue-500 relative">
+              <div className="bg-gray-200/50 dark:bg-gray-800/40 border-b border-gray-200 dark:border-gray-800 p-6 rounded border-l-4 border-blue-500 relative">
                 <p className="text-xs text-blue-400 font-bold mb-4">SOALAN {indeksSoalan + 1} / {soalanSemasaArray.length}</p>
                 {paparTeks(soalanSemasaArray[indeksSoalan], 'q')}
                 
@@ -187,7 +187,7 @@ export default function GameEnginePage() {
                   const isSelected = optRumi === jawapanDipilih;
 
                   // [+] LOGIK WARNA INTERAKTIF
-                  let btnColorClass = 'bg-gray-900 border-gray-600 text-white hover:border-blue-400 hover:bg-gray-800'; // Warna Asal
+                  let btnColorClass = 'bg-gray-200/50 dark:bg-gray-800/40 border-b border-gray-200 dark:border-gray-800'; // Warna Asal
 
                   if (sedangSemak) {
                     if (isCorrectAnswer) {
@@ -221,7 +221,7 @@ export default function GameEnginePage() {
               <h1 className="text-4xl font-black text-green-400">Misi Berjaya!</h1>
               <p className="text-gray-300">Tahniah! Anda telah menguasai topik <b>{gameData.tajuk}</b>.</p>
               <p className="text-2xl font-bold text-blue-400">Skor Akhir: {skor}</p>
-              <button onClick={() => setFasa('menu_utama')} className="mt-4 px-6 py-3 bg-gray-800 border border-gray-600 hover:bg-gray-700 text-white font-bold rounded">
+              <button onClick={() => setFasa('menu_utama')} className="bg-[#1793D1] text-[#0F1419] font-bold px-5 py-2 rounded text-sm hover:bg-[#1272ab] transition-colors">
                 [ KEMBALI KE MENU ]
               </button>
             </div>

@@ -27,13 +27,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}>
       <body className="min-h-full flex flex-col bg-[#0F1419]">
         {/* Navbar dipaparkan secara global di setiap halaman */}
         <Navbar />
         
         {/* Kandungan halaman page.tsx meluncur masuk di sini */}
-        <main className="flex-grow">
+        <main className="min-h-full flex flex-col bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] transition-colors duration-300">
           {children}
         </main>
       </body>

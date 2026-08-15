@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @source "../components/**/*.{js,ts,jsx,tsx}";
 
+/* 
+  ✅ UNTUK TAILWIND v4: Aktifkan Class-Based Dark Mode.
+  Ini memberitahu Tailwind untuk aktifkan kelas 'dark:...' 
+  apabila tag <html> mempunyai kelas '.dark'.
+*/
+@variant dark (.dark &);
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -25,3 +32,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ──────────────────────────────────────────────────────────
+   Tambahan CSS Optima: Membantu transisi warna yang lancar 
+   apabila pengguna menukar tema (tidak mengejutkan mata)
+   ────────────────────────────────────────────────────────── */
+html, body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
