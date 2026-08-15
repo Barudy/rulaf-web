@@ -68,7 +68,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen text-[#A5B2D9] font-sans p-4 sm:p-10 pt-6 selection:bg-[#1793D1] selection:text-white">
+    <div className="min-h-screen text-[#0F1419] font-sans p-4 sm:p-10 pt-6 selection:bg-[#1793D1] selection:text-white">
       <div className="max-w-5xl mx-auto bg-[#171A21] border border-[#1793D1] rounded-sm p-6 shadow-[0_0_15px_rgba(23,147,209,0.3)]">
         <div className="border-b border-gray-800 pb-4 mb-6">
           <h1 className="text-3xl font-bold text-white tracking-wide">
