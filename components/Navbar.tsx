@@ -3,14 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { supabase } from '../app/lib/supabaseClient'; // Path relatif yang tepat ke lib/supabaseClient di dalam folder app
+import { supabase } from '../app/lib/supabaseClient'; // Sesuaikan lokasi import supabaseClient anda
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isOpen, setIsOpen] = useState(false); // Mengawal status menu mobile (buka/tutup)
+  const [isOpen, setIsOpen] = useState(false); // Mengawal status hamburger menu (mobile)
 
-  // Memantau sesi pengguna secara masa nyata (real-time) menggunakan Supabase Auth
   useEffect(() => {
     const semakSesi = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -60,7 +59,7 @@ export default function Navbar() {
                   : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
               }`}
             >
-              Blog
+              Halaman Utama
             </a>
             <a
               href="/permainan"
@@ -70,7 +69,7 @@ export default function Navbar() {
                   : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
               }`}
             >
-              Permainan
+              Arked
             </a>
             <a
               href="/semakan"
@@ -82,16 +81,29 @@ export default function Navbar() {
             >
               Semakan
             </a>
+            
+            {/* [+] PEMISAHAN MENU REPO & FORUM DI NAVBAR */}
             <a
               href="/repo"
               className={`px-3 py-2 rounded-md text-sm font-semibold tracking-wide transition-all duration-300 ${
-                pathname === '/repo' 
+                pathname.startsWith('/repo') 
                   ? 'text-[#1793D1] bg-[#1793D1]/10' 
                   : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
               }`}
             >
               Repositori
             </a>
+            <a
+              href="/forum"
+              className={`px-3 py-2 rounded-md text-sm font-semibold tracking-wide transition-all duration-300 ${
+                pathname.startsWith('/forum') 
+                  ? 'text-[#1793D1] bg-[#1793D1]/10' 
+                  : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
+              }`}
+            >
+              Forum
+            </a>
+            
             <a
               href="/docs"
               className={`px-3 py-2 rounded-md text-sm font-semibold tracking-wide transition-all duration-300 ${
@@ -135,12 +147,10 @@ export default function Navbar() {
             >
               <span className="sr-only">Buka menu utama</span>
               {isOpen ? (
-                // Ikon Pangkah (X)
                 <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                // Ikon Hamburger (3 Baris)
                 <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                 </svg>
@@ -162,7 +172,7 @@ export default function Navbar() {
                 pathname === '/' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
               }`}
             >
-              Blog
+              Halaman Utama
             </a>
             <a
               href="/permainan"
@@ -171,7 +181,7 @@ export default function Navbar() {
                 pathname === '/permainan' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
               }`}
             >
-              Permainan
+              Arked
             </a>
             <a
               href="/semakan"
@@ -186,10 +196,19 @@ export default function Navbar() {
               href="/repo"
               onClick={() => setIsOpen(false)}
               className={`block px-3 py-2.5 rounded-md text-base font-semibold transition-colors ${
-                pathname === '/repo' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
+                pathname.startsWith('/repo') ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
               }`}
             >
               Repositori
+            </a>
+            <a
+              href="/forum"
+              onClick={() => setIsOpen(false)}
+              className={`block px-3 py-2.5 rounded-md text-base font-semibold transition-colors ${
+                pathname.startsWith('/forum') ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-300 hover:text-[#1793D1] hover:bg-gray-800/40'
+              }`}
+            >
+              Forum
             </a>
             <a
               href="/docs"
@@ -214,8 +233,8 @@ export default function Navbar() {
               </a>
             ) : (
               <a
-                href="/login"
                 onClick={() => setIsOpen(false)}
+                href="/login"
                 className="block text-center w-full py-2.5 rounded-md text-base font-bold text-[#1793D1] border border-[#1793D1] hover:bg-[#1793D1] hover:text-[#0F1419] transition-all"
               >
                 Log Masuk
