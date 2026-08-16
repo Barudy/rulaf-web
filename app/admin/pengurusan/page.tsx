@@ -142,12 +142,6 @@ export default function PengurusanMuridPage() {
         <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-4 mb-8">
           <h1 className="text-2xl font-black text-gray-900 dark:text-white">🏫 SISTEM PENGURUSAN INSTITUSI BERSEPADU</h1>
           <div className="flex items-center gap-3">
-            <button
-              onClick={tukarTema}
-              className="p-1.5 rounded bg-gray-200 dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-300 transition-colors"
-            >
-              {tema === 'dark' ? '☀️ Mode Cerah' : '🌙 Mode Gelap'}
-            </button>
             <Link href="/admin" className="text-xs text-[#1793D1] hover:underline font-bold">[ &lt;-- Kembali ]</Link>
           </div>
         </div>
