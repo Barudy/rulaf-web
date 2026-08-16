@@ -1,223 +1,326 @@
 'use client';
-import React, { useState } from 'react';
-import { supabase } from './../../lib/supabaseClient';
-import { useRouter } from 'next/navigation';
 
-export default function PengurusanSekolah() {
-  const router = useRouter();
-  
-  // Hierarki 1: Sekolah
-  const [sekolah, setSekolah] = useState('JYP0014 : SEKOLAH AGAMA SERI MUAFAKAT (6581)');
-  
-  // Hierarki 2: Kelas & Sesi
-  const [kelas, setKelas] = useState('');
-  const [bulanTahun, setBulanTahun] = useState('');
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabaseClient';
+import Link from 'next/link';
 
-  // Hierarki 3: Pelajar & Markah
+export default function PengurusanMuridPage() {
+  const [tema, setTema] = useState('dark');
+  const [kelas, setKelas] = useState('3 Murshid');
+  const [bulanTahun, setBulanTahun] = useState('Ogos 2026');
   const [senaraiMurid, setSenaraiMurid] = useState<any[]>([]);
   const [borangMarkah, setBorangMarkah] = useState<any>({});
   const [isPushing, setIsPushing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Fungsi Tarik Data Murid dari Supabase berdasarkan kelas dan sesi yang dipilih
-  const paparSenaraiPelajar = async () => {
-    if (!kelas) return alert('[!] Ralat: Sila pilih kelas.');
-    if (!bulanTahun) return alert('[!] Ralat: Sila masukkan Bulan & Tahun penggredan.');
-
-    setIsPushing(true); // Guna state loading jika ada
-
-    // Sistem hanya meminta Supabase serahkan data tanpa mendedahkannya dalam kod sumber
-    const { data, error } = await supabase
-      .from('data_murid')
-      .select('mykid, nama_murid, kelas_id, jantina')
-      .eq('kelas_id', kelas)
-      .order('nama_murid', { ascending: true }); // Susun ikut abjad
-
-    setIsPushing(false);
-
-    if (error) {
-      console.error("Ralat menarik data:", error.message);
-      return alert('[!] Gagal menarik data dari pangkalan data.');
-    }
-
-    if (data && data.length > 0) {
-      // Formatkan semula data dari Supabase supaya serasi dengan kod antaramuka (UI) web
-      const dataFormatBaru = data.map((item, index) => ({
-        bil: index + 1,             // Penomboran automatik bermula dari 1, 2, 3...
-        mykid: item.mykid,
-        nama: item.nama_murid,      // Petakan 'nama_murid' (Supabase) kepada 'nama' (UI)
-        jantina: item.jantina
-      }));
-      
-      setSenaraiMurid(dataFormatBaru); 
+  useEffect(() => {
+    const temaSediaAda = localStorage.getItem('theme') || 'dark';
+    setTema(temaSediaAda);
+    if (temaSediaAda === 'dark') {
+      document.documentElement.classList.add('dark');
     } else {
-      alert('Tiada murid dijumpai untuk kelas ini.');
-      setSenaraiMurid([]);
+      document.documentElement.classList.remove('dark');
     }
+  }, []);
+
+  const paparSenaraiPelajar = async () => {
+    if (!kelas || !bulanTahun) return alert('[!] Ralat: Sila pilih kelas dan masukkan tarikh!');
+    
+    setIsLoading(true);
+    setSenaraiMurid([]);
+    setBorangMarkah({});
+
+    // 1. Tarik senarai murid master secara dinamik dari table 'data_murid'
+    const { data: studentsMaster, error: errorMaster } = await supabase
+      .from('data_murid')
+      .select('*')
+      .eq('kelas_id', kelas);
+
+    if (errorMaster) {
+      alert('Ralat menarik senarai master murid: ' + errorMaster.message);
+      setIsLoading(false);
+      return;
+    }
+
+    if (!studentsMaster || studentsMaster.length === 0) {
+      alert(`Pemberitahuan: Tiada master data murid ditemui untuk kelas "${kelas}" di dalam jadual data_murid. Sila pastikan data sudah dimuat naik.`);
+      setIsLoading(false);
+      return;
+    }
+
+    // 2. Tarik rekod markah sedia ada (jika ada) dari 'markah_murid'
+    const { data: existingGrades, error: errorGrades } = await supabase
+      .from('markah_murid')
+      .select('*')
+      .eq('kelas_id', kelas)
+      .eq('bulan_tahun', bulanTahun);
+
+    // 3. Gabungkan master list dengan rekod markah
+    const initialBorang: any = {};
+    studentsMaster.forEach((student: any) => {
+      const gradeRecord = existingGrades?.find((g: any) => g.mykid === student.mykid);
+      initialBorang[student.mykid] = {
+        hari_hadir: gradeRecord?.hari_hadir !== undefined ? gradeRecord.hari_hadir : '',
+        jumlah_hari_sekolah: gradeRecord?.jumlah_hari_sekolah !== undefined ? gradeRecord.jumlah_hari_sekolah : '',
+        markah_jawi: gradeRecord?.markah_jawi !== undefined ? gradeRecord.markah_jawi : '',
+        ujian_bertulis: gradeRecord?.ujian_bertulis !== undefined ? gradeRecord.ujian_bertulis : '',
+        bacaan_quran: gradeRecord?.bacaan_quran || 'Iqra 1',
+        hafazan: gradeRecord?.hafazan || 'Gred A',
+        kerajinan_usaha: gradeRecord?.kerajinan_usaha !== undefined ? gradeRecord.kerajinan_usaha : '',
+        kerjasama_kumpulan: gradeRecord?.kerjasama_kumpulan !== undefined ? gradeRecord.kerjasama_kumpulan : '',
+        akhlak: gradeRecord?.akhlak !== undefined ? gradeRecord.akhlak : ''
+      };
+    });
+
+    setBorangMarkah(initialBorang);
+    setSenaraiMurid(studentsMaster);
+    setIsLoading(false);
   };
 
   const handleInput = (mykid: string, field: string, value: string) => {
     setBorangMarkah((prev: any) => ({
       ...prev,
-      [mykid]: { ...prev[mykid], [field]: value }
+      [mykid]: {
+        ...prev[mykid],
+        [field]: value
+      }
     }));
   };
 
   const pushSistem = async () => {
+    if (senaraiMurid.length === 0) return alert('[!] Sila paparkan kumpulan pelajar terlebih dahulu!');
     setIsPushing(true);
-    const payload = senaraiMurid.map((murid) => ({
-      mykid: murid.mykid,
-      nama_murid: murid.nama,
-      kelas_id: kelas,
-      bulan_tahun: bulanTahun,
-      kehadiran: borangMarkah[murid.mykid].kehadiran,
-      markah_jawi: borangMarkah[murid.mykid].markah_jawi,
-      bacaan_quran: borangMarkah[murid.mykid].bacaan_quran,
-      hafazan: borangMarkah[murid.mykid].hafazan,
-      tahap_rulaf: borangMarkah[murid.mykid]?.tahap_rulaf || murid.tahap_rulaf
-    }));
 
-    const { error } = await supabase.from('markah_murid').insert(payload);
+    // Jalankan operasi upsert data komposit 60/40 ke Supabase
+    const entries = senaraiMurid.map((student) => {
+      const form = borangMarkah[student.mykid] || {};
+      return {
+        mykid: student.mykid,
+        nama_murid: student.nama_murid,
+        kelas_id: kelas,
+        bulan_tahun: bulanTahun,
+        hari_hadir: parseInt(form.hari_hadir) || 0,
+        jumlah_hari_sekolah: parseInt(form.jumlah_hari_sekolah) || 0,
+        markah_jawi: parseInt(form.markah_jawi) || 0,
+        ujian_bertulis: parseInt(form.ujian_bertulis) || 0,
+        bacaan_quran: form.bacaan_quran || 'Iqra 1',
+        hafazan: form.hafazan || 'Gred A',
+        kerajinan_usaha: parseInt(form.kerajinan_usaha) || 0,
+        kerjasama_kumpulan: parseInt(form.kerjasama_kumpulan) || 0,
+        akhlak: parseInt(form.akhlak) || 0
+      };
+    });
+
+    const { error } = await supabase
+      .from('markah_murid')
+      .upsert(entries, { onConflict: 'mykid,bulan_tahun' });
 
     if (error) {
-      alert('Ralat Pangkalan Data: ' + error.message);
+      alert('Ralat menolak data ke Supabase: ' + error.message);
     } else {
-      alert(`[+] Berjaya! Data markah kelas ${kelas} bagi sesi ${bulanTahun} telah dikemas kini ke dalam pangkalan data.`);
-      setSenaraiMurid([]); 
-      setBulanTahun('');
-      setKelas('');
+      alert('🎉 Tahniah bosskur! Data rekod murid (60:40) berjaya disegerakkan (sync) ke Supabase Cloud!');
     }
     setIsPushing(false);
   };
 
+  const tukarTema = () => {
+    const temaBaharu = tema === 'dark' ? 'light' : 'dark';
+    setTema(temaBaharu);
+    localStorage.setItem('theme', temaBaharu);
+    if (temaBaharu === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
-      <div className="max-w-7xl mx-auto bg-[#171A21] border border-[#1793D1] rounded-sm shadow-[0_0_15px_rgba(23,147,209,0.3)]">
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
+      <div className="max-w-7xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1] rounded-sm p-6 shadow-md dark:shadow-[0_0_15px_rgba(23,147,209,0.3)] transition-all duration-300">
         
-        <div className="bg-[#1793D1] text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
-          <span>rulaf-admin(1) - SISTEM PENGURUSAN INSTITUSI BERSEPADU</span>
-          <button onClick={() => router.push('/admin')} className="hover:text-white font-bold transition-colors">
-            [ cd .. / Kembali ke Admin ]
-          </button>
+        {/* Header Navigasi */}
+        <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-4 mb-8">
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white">🏫 SISTEM PENGURUSAN INSTITUSI BERSEPADU</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={tukarTema}
+              className="p-1.5 rounded bg-gray-200 dark:bg-gray-800 text-xs text-gray-700 dark:text-gray-300 transition-colors"
+            >
+              {tema === 'dark' ? '☀️ Mode Cerah' : '🌙 Mode Gelap'}
+            </button>
+            <Link href="/admin" className="text-xs text-[#1793D1] hover:underline font-bold">[ &lt;-- Kembali ]</Link>
+          </div>
         </div>
 
-        <div className="p-8">
-          {/* HIERARKI 1: NAMA SEKOLAH */}
-          <div className="mb-6 border-b border-gray-700 pb-4 flex items-center justify-between">
-            <h1 className="text-2xl font-black text-white flex items-center gap-3">
-              <span className="text-orange-500">❖</span> {sekolah}
-            </h1>
-            <span className="bg-orange-500/20 text-orange-400 border border-orange-500 px-3 py-1 text-xs font-bold rounded">
-              MOD PENGGREDAN AKTIF
-            </span>
+        {/* Bar Pilihan Kelas */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 bg-gray-100 dark:bg-[#11141b] p-6 rounded border border-gray-200 dark:border-gray-800 transition-colors duration-300">
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Pilih Kelas</label>
+            <select
+              value={kelas}
+              onChange={(e) => setKelas(e.target.value)}
+              className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none"
+            >
+              <option value="3 Murshid">3 Murshid</option>
+              <option value="5 Murshid">5 Murshid</option>
+            </select>
           </div>
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Bulan & Tahun Penggredan</label>
+            <input
+              type="text"
+              placeholder="Contoh: Ogos 2026"
+              value={bulanTahun}
+              onChange={(e) => setBulanTahun(e.target.value)}
+              className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none"
+            />
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={paparSenaraiPelajar}
+              disabled={isLoading}
+              className="w-full bg-[#1793D1] hover:bg-[#1272ab] text-[#0F1419] font-bold py-2.5 rounded text-xs transition-colors"
+            >
+              {isLoading ? '[ MEMUAT DATA... ]' : '[ 📊 PAPAR KUMPULAN PELAJAR ]'}
+            </button>
+          </div>
+        </div>
 
-          {/* HIERARKI 2: PILIHAN KELAS (Mirip UI SIMPENI) */}
-          <div className="bg-gray-900 border border-gray-700 p-4 mb-8 shadow-md flex flex-col sm:flex-row gap-4 items-end rounded">
-            <div className="w-full sm:w-1/3">
-              <label className="block text-xs font-bold mb-1 text-gray-300">PILIH KELAS:</label>
-              <select value={kelas} onChange={(e)=>setKelas(e.target.value)} className="w-full p-2 bg-black border border-gray-600 text-white outline-none focus:border-[#1793D1]">
-                <option value="">-- Senarai Kelas --</option>
-                <option value="3 Murshid">3 MURSHID</option>
-                <option value="5 Murshid">5 MURSHID</option>
-              </select>
+        {/* Jadual Masuk Markah */}
+        {senaraiMurid.length > 0 && (
+          <div className="space-y-6">
+            <div className="overflow-x-auto border border-gray-200 dark:border-gray-800 rounded">
+              <table className="w-full text-left border-collapse text-xs min-w-[1000px]">
+                <thead>
+                  <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase tracking-wider font-bold">
+                    <th className="p-3 border-b border-gray-200 dark:border-gray-800">Nama Pelajar</th>
+                    <th className="p-3 border-b border-gray-200 dark:border-gray-800 w-[140px]">Hadir / Jmh Hari</th>
+                    <th className="p-3 border-b border-gray-200 dark:border-gray-800 w-[110px]">Jawi %</th>
+                    <th className="p-3 border-b border-gray-200 dark:border-gray-800 w-[110px]">Ujian %</th>
+                    <th className="p-3 border-b border-gray-200 dark:border-gray-800 w-[130px]">Quran</th>
+                    <th className="p-3 border-b border-gray-200 dark:border-gray-800 w-[130px]">Hafazan</th>
+                    <th className="p-3 border-b border-gray-200 dark:border-gray-800">Sikap (Rjn, Kjsm, Adb) / 10</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {senaraiMurid.map((m) => (
+                    <tr key={m.mykid} className="hover:bg-gray-100/50 dark:hover:bg-gray-800/30 transition-colors">
+                      <td className="p-3 border-b border-gray-200 dark:border-gray-800 font-bold text-gray-900 dark:text-white">
+                        {m.nama_murid}
+                        <span className="block text-[10px] text-gray-400 font-mono mt-0.5">{m.mykid}</span>
+                      </td>
+                      <td className="p-3 border-b border-gray-200 dark:border-gray-800">
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            placeholder="Hdr"
+                            value={borangMarkah[m.mykid]?.hari_hadir || ''}
+                            onChange={(e) => handleInput(m.mykid, 'hari_hadir', e.target.value)}
+                            className="w-12 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1 text-center"
+                          />
+                          <span className="text-gray-400">/</span>
+                          <input
+                            type="number"
+                            placeholder="Jmh"
+                            value={borangMarkah[m.mykid]?.jumlah_hari_sekolah || ''}
+                            onChange={(e) => handleInput(m.mykid, 'jumlah_hari_sekolah', e.target.value)}
+                            className="w-12 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1 text-center"
+                          />
+                        </div>
+                      </td>
+                      <td className="p-3 border-b border-gray-200 dark:border-gray-800">
+                        <input
+                          type="number"
+                          placeholder="%"
+                          value={borangMarkah[m.mykid]?.markah_jawi || ''}
+                          onChange={(e) => handleInput(m.mykid, 'markah_jawi', e.target.value)}
+                          className="w-16 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-2 py-1 text-center"
+                        />
+                      </td>
+                      <td className="p-3 border-b border-gray-200 dark:border-gray-800">
+                        <input
+                          type="number"
+                          placeholder="%"
+                          value={borangMarkah[m.mykid]?.ujian_bertulis || ''}
+                          onChange={(e) => handleInput(m.mykid, 'ujian_bertulis', e.target.value)}
+                          className="w-16 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-2 py-1 text-center"
+                        />
+                      </td>
+                      <td className="p-3 border-b border-gray-200 dark:border-gray-800">
+                        <select
+                          value={borangMarkah[m.mykid]?.bacaan_quran || 'Iqra 1'}
+                          onChange={(e) => handleInput(m.mykid, 'bacaan_quran', e.target.value)}
+                          className="w-full bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1"
+                        >
+                          <option value="Iqra 1">Iqra 1</option>
+                          <option value="Iqra 2">Iqra 2</option>
+                          <option value="Iqra 3">Iqra 3</option>
+                          <option value="Iqra 4">Iqra 4</option>
+                          <option value="Iqra 5">Iqra 5</option>
+                          <option value="Iqra 6">Iqra 6</option>
+                          <option value="Al-Quran">Al-Quran</option>
+                        </select>
+                      </td>
+                      <td className="p-3 border-b border-gray-200 dark:border-gray-800">
+                        <select
+                          value={borangMarkah[m.mykid]?.hafazan || 'Gred A'}
+                          onChange={(e) => handleInput(m.mykid, 'hafazan', e.target.value)}
+                          className="w-full bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1"
+                        >
+                          <option value="Gred A">Gred A</option>
+                          <option value="Gred B">Gred B</option>
+                          <option value="Gred C">Gred C</option>
+                          <option value="Gred D">Gred D</option>
+                          <option value="Lulus">Lulus</option>
+                          <option value="Gagal">Gagal</option>
+                        </select>
+                      </td>
+                      <td className="p-3 border-b border-gray-200 dark:border-gray-800">
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            placeholder="Rjn"
+                            title="Kerajinan Usaha (1-10)"
+                            value={borangMarkah[m.mykid]?.kerajinan_usaha || ''}
+                            onChange={(e) => handleInput(m.mykid, 'kerajinan_usaha', e.target.value)}
+                            className="w-12 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1 text-center"
+                          />
+                          <input
+                            type="number"
+                            placeholder="Kjs"
+                            title="Kerjasama Kumpulan (1-10)"
+                            value={borangMarkah[m.mykid]?.kerjasama_kumpulan || ''}
+                            onChange={(e) => handleInput(m.mykid, 'kerjasama_kumpulan', e.target.value)}
+                            className="w-12 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1 text-center"
+                          />
+                          <input
+                            type="number"
+                            placeholder="Adb"
+                            title="Akhlak Adab (1-10)"
+                            value={borangMarkah[m.mykid]?.akhlak || ''}
+                            onChange={(e) => handleInput(m.mykid, 'akhlak', e.target.value)}
+                            className="w-12 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1 text-center"
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="w-full sm:w-1/3">
-              <label className="block text-xs font-bold mb-1 text-gray-300">BULAN / TAHUN:</label>
-              <input type="text" value={bulanTahun} onChange={(e)=>setBulanTahun(e.target.value)} className="w-full p-2 bg-black border border-gray-600 text-white outline-none focus:border-[#1793D1]" placeholder="Contoh: April 2026" />
-            </div>
-            <div className="w-full sm:w-1/3">
-              <button onClick={paparSenaraiPelajar} className="bg-[#1793D1] text-black w-full py-2 font-bold hover:bg-blue-400 transition-colors h-[42px] rounded-sm">
-                [ PAPAR PELAJAR ]
+
+            {/* Simpan & Segerakkan */}
+            <div className="flex justify-end pt-4">
+              <button
+                onClick={pushSistem}
+                disabled={isPushing}
+                className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-8 rounded shadow-lg transition-colors disabled:opacity-50 text-sm"
+              >
+                {isPushing ? '[ PROSES MENGHANTAR DATA... ]' : '[ 📥 SEGERAKKAN (SYNC) GRED 60:40 KE SUPABASE ]'}
               </button>
             </div>
           </div>
-
-          {/* HIERARKI 3: SENARAI MURID & KEMASUKAN MARKAH */}
-          {senaraiMurid.length > 0 && (
-            <div className="bg-[#14181F] border border-gray-700 shadow-md overflow-hidden rounded">
-              <div className="bg-gray-800 px-4 py-2 border-b border-gray-700 font-bold text-white text-sm">
-                MAKLUMAT PELAJAR & KEMASUKAN MARKAH - KELAS {kelas.toUpperCase()}
-              </div>
-              
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse whitespace-nowrap">
-                  <thead>
-                    <tr className="bg-black/50 text-[#1793D1] text-xs border-b border-gray-700">
-                      <th className="p-3 font-bold text-center w-10">BIL</th>
-                      <th className="p-3 font-bold">NAMA PELAJAR</th>
-                      <th className="p-3 font-bold w-32">NO. KP (MYKID)</th>
-                      <th className="p-3 font-bold w-24">JANTINA</th>
-                      <th className="p-3 font-bold w-24 text-center">KEHADIRAN</th>
-                      <th className="p-3 font-bold w-24 text-center">JAWI (%)</th>
-                      <th className="p-3 font-bold w-32 text-center">BACAAN QURAN</th>
-                      <th className="p-3 font-bold w-24 text-center">HAFAZAN</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-xs text-gray-300">
-                    {senaraiMurid.map((murid) => (
-                      <tr key={murid.mykid} className="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
-                        <td className="p-3 text-center">{murid.bil}.</td>
-                        <td className="p-3 font-bold text-white">{murid.nama}</td>
-                        <td className="p-3">{murid.mykid}</td>
-                        <td className="p-3">{murid.jantina}</td>
-                        
-                        {/* Ruangan Pengisian Manual */}
-                        <td className="p-2">
-                          <input type="number" value={borangMarkah[murid.mykid]?.kehadiran} onChange={(e) => handleInput(murid.mykid, 'kehadiran', e.target.value)} className="w-full p-1.5 bg-black border border-gray-600 text-center text-white outline-none focus:border-green-500 rounded-sm" placeholder="Hari" />
-                        </td>
-                        <td className="p-2">
-                          <input type="number" value={borangMarkah[murid.mykid]?.markah_jawi} onChange={(e) => handleInput(murid.mykid, 'markah_jawi', e.target.value)} className="w-full p-1.5 bg-black border border-gray-600 text-center text-white outline-none focus:border-green-500 rounded-sm" placeholder="%" />
-                        </td>
-                        <td className="p-2">
-                          <select value={borangMarkah[murid.mykid]?.bacaan_quran} onChange={(e) => handleInput(murid.mykid, 'bacaan_quran', e.target.value)} className="w-full p-1.5 bg-black border border-gray-600 text-xs text-center text-white outline-none focus:border-green-500 rounded-sm">
-                            <option value="">--Pilih--</option>
-                            <option value="Iqra 1">Iqra 1</option>
-                            <option value="Iqra 2">Iqra 2</option>
-                            <option value="Iqra 3">Iqra 3</option>
-                            <option value="Iqra 4">Iqra 4</option>
-                            <option value="Iqra 5">Iqra 5</option>
-                            <option value="Iqra 6">Iqra 6</option>
-                            <option value="Al-Quran">Al-Quran</option>
-                          </select>
-                        </td>
-                        <td className="p-2">
-                          <select value={borangMarkah[murid.mykid]?.hafazan} onChange={(e) => handleInput(murid.mykid, 'hafazan', e.target.value)} className="w-full p-1.5 bg-black border border-gray-600 text-xs text-center text-white outline-none focus:border-green-500 rounded-sm">
-                            <option value="">- Gred -</option>
-                            <option value="A">Gred A</option>
-                            <option value="B">Gred B</option>
-                            <option value="C">Gred C</option>
-                            <option value="D">Gred D</option>
-                            <option value="E">Gred E</option>
-    </select>
-                        </td>
-  <td className="p-2 border border-gray-700">
-    <select
-      className="w-full bg-black border border-gray-600 p-1 text-xs text-white focus:border-[#1793D1]"
-      defaultValue={murid.tahap_rulaf || ''}
-      onChange={(e) => handleInput(murid.mykid, 'tahap_rulaf', e.target.value)}
-    >
-      <option value="">- Pilih Tahap -</option>
-      <option value="RuLaF Ta">[*] RuLaF Ta (Mentor)</option>
-      <option value="RuLaF Ba">[~] RuLaF Ba (Sederhana)</option>
-      <option value="RuLaF Alif">[!] RuLaF Alif (Lemah)</option>
-      <option value="RuLaF Khas">[!!] RuLaF Khas (Pemulihan)</option>
-    </select>
-  </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="p-4 bg-gray-900 border-t border-gray-700 flex justify-end">
-                <button onClick={pushSistem} disabled={isPushing} className="bg-green-600 text-white px-8 py-2 font-bold hover:bg-green-500 transition-colors shadow-[0_0_10px_rgba(34,197,94,0.4)] disabled:bg-gray-600 disabled:text-gray-400 rounded-sm">
-                  {isPushing ? 'MENYIMPAN DATA...' : 'SIMPAN MARKAH KELAS'}
-                </button>
-              </div>
-            </div>
-          )}
-
-        </div>
+        )}
       </div>
     </div>
   );

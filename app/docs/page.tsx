@@ -9,18 +9,18 @@ export default function DocsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
-      <div className="max-w-5xl mx-auto bg-[#171A21] border border-[#1793D1] rounded-sm shadow-[0_0_15px_rgba(23,147,209,0.3)]">
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
+    <div className="max-w-5xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1] rounded-sm p-6 shadow-md dark:shadow-[0_0_15px_rgba(23,147,209,0.3)] transition-all duration-300">
         
         {/* Header Terminal */}
-        <div className="bg-[#1793D1] text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
+        <div className="bg-[#1793D1] text-white dark:text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
           <span>rulaf-docs(1) - DOKUMENTASI RASMI SISTEM</span>
         </div>
 
         <div className="p-8">
           <div className="border-b border-gray-700 pb-6 mb-8">
-            <h1 className="text-3xl font-black text-white flex items-center gap-3 mb-2">
-              <span className="text-[#1793D1]">{'>'}</span> DOKUMENTASI RASMI RULAF HUB
+            <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-2">
+              <span className="text-[#1793D1]">{'>'}</span> 📖 DOKUMENTASI RASMI RULAFHUB & REDF
             </h1>
             <p className="text-gray-400 text-sm font-bold italic">
               "Mentransformasikan kaedah perkilangan kepada pendidikan hibrid yang manusiawi."
@@ -31,7 +31,7 @@ export default function DocsPage() {
           <div className="mb-4">
             <button 
               onClick={() => toggleProtokol('pengenalan')}
-              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-[#1793D1] hover:border-[#1793D1] transition-colors flex justify-between"
+              className="w-full text-left bg-gray-200 dark:bg-gray-900 border border-gray-700 p-4 font-bold text-[#1793D1] hover:border-[#1793D1] transition-colors flex justify-between"
             >
               <span>[+] BAB 1: PENGENALAN & FALSAFAH KOMUNITI RULAF</span>
               <span>{activeProtokol === 'pengenalan' ? '[-]' : '[+]'}</span>
@@ -58,7 +58,7 @@ export default function DocsPage() {
           <div className="mb-4">
             <button 
               onClick={() => toggleProtokol('keselamatan')}
-              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-red-400 hover:border-red-500 transition-colors flex justify-between"
+              className="w-full text-left bg-gray-200 dark:bg-gray-900 border border-gray-700 p-4 font-bold text-red-400 hover:border-red-500 transition-colors flex justify-between"
             >
               <span>[+] BAB 2: GARIS PANDUAN KESELAMATAN & CARA MENYUMBANG</span>
               <span>{activeProtokol === 'keselamatan' ? '[-]' : '[+]'}</span>
@@ -99,7 +99,7 @@ export default function DocsPage() {
           <div className="mb-4">
             <button 
               onClick={() => toggleProtokol('sejarah')}
-              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-white hover:border-gray-400 transition-colors flex justify-between"
+              className="w-full text-left bg-gray-200 dark:bg-gray-900 border border-gray-700 p-4 font-bold text-black dark:text-white hover:border-gray-400 transition-colors flex justify-between"
             >
               <span>[+] BAB 3: KRONOLOGI KEMEROSOTAN JAWI (LAPORAN MAIL)</span>
               <span>{activeProtokol === 'sejarah' ? '[-]' : '[+]'}</span>
@@ -121,7 +121,7 @@ export default function DocsPage() {
           <div className="mb-4">
             <button 
               onClick={() => toggleProtokol('intervensi')}
-              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-purple-400 hover:border-purple-500 transition-colors flex justify-between"
+              className="w-full text-left bg-gray-200 dark:bg-gray-900 border border-gray-700 p-4 font-bold text-purple-400 hover:border-purple-500 transition-colors flex justify-between"
             >
               <span>[+] BAB 4: TIGA (3) PROTOKOL INTERVENSI PENDIDIKAN RULAF</span>
               <span>{activeProtokol === 'intervensi' ? '[-]' : '[+]'}</span>
@@ -160,7 +160,7 @@ export default function DocsPage() {
           <div className="mb-4">
             <button 
               onClick={() => toggleProtokol('kumpulan')}
-              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-[#1793D1] hover:border-[#1793D1] transition-colors flex justify-between"
+              className="w-full text-left bg-gray-200 dark:bg-gray-900 border border-gray-700 p-4 font-bold text-[#1793D1] hover:border-[#1793D1] transition-colors flex justify-between"
             >
               <span>[+] BAB 5: PROTOKOL KUMPULAN DINAMIK (HIBRID)</span>
               <span>{activeProtokol === 'kumpulan' ? '[-]' : '[+]'}</span>
@@ -208,13 +208,13 @@ export default function DocsPage() {
           <div className="mb-4">
             <button 
               onClick={() => toggleProtokol('manifesto')}
-              className="w-full text-left bg-gray-900 border border-gray-700 p-4 font-bold text-purple-400 hover:border-purple-500 transition-colors flex justify-between"
+              className="w-full text-left bg-gray-200 dark:bg-gray-900 border border-gray-700 p-4 font-bold text-green-700 hover:border-green-700 dark:text-green-400 hover:border-green-500 transition-colors flex justify-between"
             >
               <span>[+] BAB 6: MANIFESTO: RuLaF Educational Development Framework (REDF)</span>
               <span>{activeProtokol === 'manifesto' ? '[-]' : '[+]'}</span>
             </button>
             {activeProtokol === 'manifesto' && (
-              <div className="bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-6">
+              <div className="bg-gray-200 dark:bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-6">
                 
                 {/* Mukadimah (Visi & Falsafah) */}
                 <div>

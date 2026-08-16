@@ -177,27 +177,27 @@ const klikLogin = async (e: React.FormEvent) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
-      <div className="max-w-4xl mx-auto bg-[#171A21] border border-[#1793D1] rounded-sm shadow-[0_0_15px_rgba(23,147,209,0.3)]">
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
+    <div className="max-w-4xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1] rounded-sm p-6 shadow-md dark:shadow-[0_0_15px_rgba(23,147,209,0.3)] transition-all duration-300">
         
-        <div className="bg-[#1793D1] text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
+        <div className="bg-[#1793D1] text-white dark:text-[#0F1419] px-4 py-2 flex justify-between items-center font-bold text-sm">
           <span>rulaf-admin(1) - PUSAT KAWALAN UTAMA</span>
           <button onClick={logKeluar} className="hover:text-white transition-colors">[ sudo logout ]</button>
         </div>
 
         <div className="p-8">
-          <h1 className="text-3xl font-black text-white mb-8 border-b border-gray-700 pb-4">Papan Pemuka RuLaFHub</h1>
+          <h1 className="text-3xl font-black text-black dark:text-white mb-8 border-b border-gray-700 pb-4">Papan Pemuka RuLaFHub</h1>
 
           {/* EJEN AI (FUNGSI BARU!) */}
-          <div className="mb-10 bg-black p-6 border border-green-500 border-l-4 shadow-md">
+          <div className="mb-10 bg-gray-200 dark:bg-black p-6 border border-green-500 border-l-4 shadow-md">
             <h2 className="text-xl font-bold text-green-400 mb-2">++ EJEN AI ANALISIS PRESTASI (NL2SQL)</h2>
-            <p className="text-gray-400 text-sm mb-4">Tanya soalan dalam bahasa biasa. AI akan menjana kod SQL dan menarik analisis markah Jawi terus dari pangkalan data.</p>
+            <p className="text-black dark:text-gray-400 text-sm mb-4">Tanya soalan dalam bahasa biasa. AI akan menjana kod SQL dan menarik analisis markah Jawi terus dari pangkalan data.</p>
             <form onSubmit={tanyaAI} className="flex flex-col sm:flex-row gap-2 mb-4">
               <input
                 type="text"
                 value={soalanAI}
                 onChange={(e) => setSoalanAI(e.target.value)}
-                className="w-full p-3 bg-gray-900 border border-green-500/50 text-white outline-none focus:border-green-400 font-mono text-sm"
+                className="w-full p-3 bg-white dark:bg-gray-900 border border-green-500/50 text-black dark:text-white outline-none focus:border-green-400 font-mono text-sm"
                 placeholder="Cth: Senaraikan nama murid kelas 5 Murshid yang gagal Jawi..."
               />
               <button type="submit" disabled={isThinking} className="bg-green-600 text-black px-6 py-2 font-bold hover:bg-green-500 transition-colors disabled:bg-gray-600 whitespace-nowrap">
@@ -207,9 +207,9 @@ const klikLogin = async (e: React.FormEvent) => {
 
             {/* PAPARAN HASIL AI */}
             {hasilAI && (
-              <div className="bg-gray-900 border border-gray-700 p-4 mt-4 font-mono text-sm overflow-x-auto">
+              <div className="bg-gray-200 border-gray-400 dark:bg-gray-900 border dark:border-gray-700 p-4 mt-4 font-mono text-sm overflow-x-auto">
                 {hasilAI.sql && (
-                  <div className="text-[#1793D1] mb-4 border-b border-gray-800 pb-2">
+                  <div className="text-black dark:text-[#1793D1] mb-4 border-b border-gray-800 pb-2">
                     <span className="font-bold">~% SQL_GENERATED:</span> <br/>
                     <span className="text-gray-500 text-xs">{hasilAI.sql}</span>
                   </div>
@@ -218,14 +218,14 @@ const klikLogin = async (e: React.FormEvent) => {
                 {hasilAI.ralat ? (
                   <div className="text-red-500 font-bold animate-pulse">[!] RALAT: {hasilAI.ralat}</div>
                 ) : (
-                  <div className="text-green-300">
+                  <div className="text-green-700 dark:text-green-300">
                     <div className="mb-2 font-bold">[+] REKOD DITEMUI ({hasilAI.hasil?.length || 0}):</div>
-                    <ul className="list-decimal ml-4 space-y-2 text-gray-300">
+                    <ul className="list-decimal ml-4 space-y-2 text-black dark:text-gray-300">
                       {hasilAI.hasil?.map((item: any, i: number) => (
-                        <li key={i} className="bg-black p-2 border border-gray-800 rounded-sm">
+                        <li key={i} className="bg-gray-500 dark:bg-black p-2 border border-gray-800 rounded-sm">
                           {Object.entries(item).map(([key, val]) => (
                             <span key={key} className="mr-4">
-                              <span className="text-purple-400">{key}:</span> <span className="text-white font-bold">{String(val)}</span>
+                              <span className="text-white dark:text-purple-400">{key}:</span> <span className="text-white font-bold">{String(val)}</span>
                             </span>
                           ))}
                         </li>
@@ -238,7 +238,7 @@ const klikLogin = async (e: React.FormEvent) => {
           </div>
 
           {/* JEMBATAN KE PENGURUSAN SEKOLAH */}
-          <div className="mb-10 bg-black p-6 border border-purple-500 border-l-4 shadow-md">
+          <div className="mb-10 bg-gray-200 dark:bg-black p-6 border border-purple-500 border-l-4 shadow-md">
             <h2 className="text-xl font-bold text-purple-400 mb-2">++ MODUL PENGURUSAN & PENGGREDAN</h2>
             <p className="text-gray-400 text-sm mb-4">Akses pangkalan data sekolah, pendaftaran murid, dan kemas kini markah formatif Jawi secara masa nyata (Real-time).</p>
             <button
@@ -250,7 +250,7 @@ const klikLogin = async (e: React.FormEvent) => {
           </div>
 
           {/* MODUL CMS BLOG */}
-          <div className="bg-gray-900 p-6 border border-gray-700 shadow-md">
+          <div className="bg-gray-200 dark:bg-gray-900 p-6 border border-gray-300 dark:border border-gray-700 shadow-md">
             <h2 className="text-[#1793D1] font-bold mb-4"> TERBIT JURNAL INOVASI & BERITA</h2>
             <form onSubmit={muatNaikBlog} className="flex flex-col gap-4">
               <div>
@@ -266,13 +266,6 @@ const klikLogin = async (e: React.FormEvent) => {
               </button>
               {statusBlog && <p className="text-sm font-bold text-green-400 mt-2">{statusBlog}</p>}
             </form>
-          </div>
-
-          {/* Kembali ke laman utama */}
-          <div className="mt-8 pt-4 border-t border-gray-700">
-            <a href="/" className="text-gray-500 hover:text-[#1793D1] text-sm font-bold transition-colors">
-              [ cd ~ / Kembali ke Laman Utama ]
-            </a>
           </div>
         </div>
       </div>

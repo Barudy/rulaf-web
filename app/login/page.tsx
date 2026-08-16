@@ -30,13 +30,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F1419] text-[#A5B2D9] font-mono flex flex-col items-center justify-center p-6 selection:bg-[#1793D1] selection:text-white">
-      <div className="w-full max-w-md bg-[#171A21] p-8 border border-[#1793D1] shadow-[0_0_15px_rgba(23,147,209,0.3)] rounded-sm">
-        
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono flex flex-col items-center justify-center p-6 selection:bg-[#1793D1] selection:text-white">
+    <div className="w-full max-w-md bg-white dark:bg-[#171A21] p-8 border border-gray-200 dark:border-[#1793D1] shadow-md dark:shadow-[0_0_15px_rgba(23,147,209,0.3)] rounded-sm transition-all duration-300">
         {/* Header Ala Terminal */}
         <div className="border-b border-gray-700 pb-4 mb-6">
-          <h1 className="text-2xl font-black text-white">rulaf-auth(1)</h1>
-          <p className="text-gray-400 text-sm mt-1">Sistem Pengesahan Komuniti RuLaF</p>
+          <h1 className="text-2xltext-2xl font-black text-gray-900 dark:text-white text-center mb-6">🔑 LOG MASUK RULAFHUB</h1>
+          <p className="text-gray-900 dark:text-gray-400 text-sm mt-1">Sistem Pengesahan Komuniti RuLaF</p>
         </div>
 
         {/* Borang Log Masuk */}
@@ -47,7 +46,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 bg-black border border-gray-700 text-white outline-none focus:border-[#1793D1]"
+              className="w-full p-2 bg-gray-300 text-black dark:bg-black border border-gray-700 dark:text-white outline-none focus:border-[#1793D1]"
               placeholder="contoh@rulaf.com"
               required
             />
@@ -59,7 +58,7 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 bg-black border border-gray-700 text-white outline-none focus:border-[#1793D1]"
+              className="w-full p-2 bg-gray-300 text-black dark:bg-black border border-gray-700 dark:text-white outline-none focus:border-[#1793D1]"
               placeholder="Kata laluan..."
               required
             />
