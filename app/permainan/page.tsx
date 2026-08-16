@@ -1,242 +1,162 @@
 'use client';
-import React, { useState } from 'react';
-// Pautkan fail JSON berpusat (Pastikan laluan / path betul mengikut folder bosskur)
-import bankSoalan from './../data/soalan.json'; 
 
-export default function GameEnginePage() {
-  const [fasa, setFasa] = useState('menu_utama'); 
-  const [topikPilihan, setTopikPilihan] = useState(Object.keys(bankSoalan)[0]); // Default topik pertama
-  const [modTulisan, setModTulisan] = useState('dwi'); 
-  
-  // State In-Game
-  const [level, setLevel] = useState(1);
-  const [skor, setSkor] = useState(0);
-  const [indeksSoalan, setIndeksSoalan] = useState(0);
-  const [bossHp, setBossHp] = useState(100);
-  const [nyawaPemain, setNyawaPemain] = useState(3);
+import React, { useState, useEffect } from 'react';
+import Link from 'next/navigation';
 
-  // [+] STATE BARU UNTUK INTERAKTIF (WARNA BUTANG)
-  const [sedangSemak, setSedangSemak] = useState(false);
-  const [jawapanDipilih, setJawapanDipilih] = useState<string | null>(null);
+// Definisi Jenis Data Permainan
+interface Game {
+  id: string;
+  tajuk: string;
+  subjek: string;
+  darjah: string;
+  topik: string;
+  penerangan: string;
+  ikon: string;
+  pautan: string;
+  bilanganSoalan: string;
+  tahapKesukaran: 'Mudah' | 'Sederhana' | 'Tinggi';
+}
 
-  // Tarik data game dari JSON
-  const gameData = bankSoalan[topikPilihan as keyof typeof bankSoalan];
-  const soalanSemasaArray = level === 1 ? gameData.level1 : level === 2 ? gameData.level2 : gameData.level3;
+export default function PermainanArkedPage() {
+  const [tema, setTema] = useState('dark');
 
-  // Fungsi Render Soalan & Jawapan (Sistem Dwi-Bahasa dengan Auto-Fading)
-  const paparTeks = (obj: any, jenis: 'q' | 'options' | 'a', indexOption?: number) => {
-    
-    // [+] LOGIK AUTO-FADING (TADRIJ)
-    // Jika Tahap 1, ikut pilihan murid. Jika Tahap 2 atau 3, PAKSA jadi 'jawi' sahaja!
-    const modSebenar = level === 1 ? modTulisan : 'jawi'; 
-
-    if (jenis === 'options' && indexOption !== undefined) {
-      if (modSebenar === 'jawi') return obj.jawi.options[indexOption];
-      if (modSebenar === 'rumi') return obj.rumi.options[indexOption];
-      return `${obj.jawi.options[indexOption]} / ${obj.rumi.options[indexOption]}`; // Dwi-Tulisan
+  // Senarai Tiga (3) Game Utama dalam Ekosistem RuLaF
+  const senaraiGame: Game[] = [
+    {
+      id: 'gerhana',
+      tajuk: 'Game Solat Gerhana Matahari & Bulan',
+      subjek: 'Ibadat (Pendidikan Islam)',
+      darjah: 'Darjah 5',
+      topik: 'Solat Sunat Kusuf & Khusuf',
+      penerangan: 'Permainan platformer pengembaraan siber di mana murid melompat untuk memecahkan blok planet Jawi, menjawab kuiz definisi, hukum, waktu, dan surah mengenai gerhana matahari dan bulan, mengelak bola api naga, serta menumpaskan Boss!',
+      ikon: '☀️🌙',
+      pautan: '/permainan/gerhana',
+      bilanganSoalan: '10 Soalan (3 Level)',
+      tahapKesukaran: 'Sederhana'
+    },
+    {
+      id: 'hari-raya',
+      tajuk: 'Game Solat & Khutbah Hari Raya',
+      subjek: 'Ibadat (Pendidikan Islam)',
+      darjah: 'Darjah 3',
+      topik: 'Solat & Khutbah Sunat Hari Raya',
+      penerangan: 'Bantu murid menguasai rukun, jumlah takbir rakaat pertama dan kedua, lafaz takbir, syarat khutbah, serta sunat-sunat hari raya melalui permainan Arked interaktif bertahap (Tadrij) yang sangat menyeronokkan.',
+      ikon: '🕋🎁',
+      pautan: '/permainan/hari-raya',
+      bilanganSoalan: '10 Soalan (3 Level)',
+      tahapKesukaran: 'Mudah'
+    },
+    {
+      id: 'solat-jumaat',
+      tajuk: 'Game Solat & Khutbah Jumaat',
+      subjek: 'Ibadat (Pendidikan Islam)',
+      darjah: 'Darjah 4 / 5',
+      topik: 'Solat Jumaat & Syarat Wajib',
+      penerangan: 'Uji kefahaman murid mengenai syarat wajib dan sah solat Jumaat, rukun-rukun dua khutbah Jumaat, serta adab-adab sebelum dan selepas ke masjid. Jawab pantas, kumpul bintang, dan tebus kod ganjaran!',
+      ikon: '🕌⚔️',
+      pautan: '/permainan/solat-jumaat',
+      bilanganSoalan: '10 Soalan (3 Level)',
+      tahapKesukaran: 'Tinggi'
     }
-    
-    if (jenis === 'q') {
-      if (modSebenar === 'jawi') return <span dir="rtl" className="font-arabic text-2xl">{obj.jawi.q}</span>;
-      if (modSebenar === 'rumi') return <span>{obj.rumi.q}</span>;
-      return (
-        <div className="flex flex-col gap-2">
-          <span dir="rtl" className="font-arabic text-2xl text-blue-300">{obj.jawi.q}</span>
-          <span className="text-lg text-gray-300">{obj.rumi.q}</span>
-        </div>
-      );
-    }
+  ];
 
-    return obj.rumi.a; // Kunci jawapan Rumi untuk semakan AI di belakang tabir
-  };
-  
-  const mulaMain = () => {
-    if (soalanSemasaArray.length === 0) return alert("Soalan belum dimasukkan untuk topik ini!");
-    setFasa('bermain');
-    setLevel(1);
-    setSkor(0);
-    setIndeksSoalan(0);
-    setBossHp(100);
-    setNyawaPemain(3);
-    setSedangSemak(false);
-    setJawapanDipilih(null);
-  };
-
-  // [+] FUNGSI SEMAK YANG DITAMBAH BAIK DENGAN ANIMASI INTERAKTIF
-  const semakJawapan = (jawapanRumiYgDipilih: string, jawapanBetulRumi: string) => {
-    if (sedangSemak) return; // Halang murid klik banyak kali berturut-turut
-
-    setJawapanDipilih(jawapanRumiYgDipilih);
-    setSedangSemak(true); // Kunci butang dan mula animasi semakan
-
-    const isCorrect = jawapanRumiYgDipilih === jawapanBetulRumi;
-
-    if (isCorrect) {
-      setSkor(skor + 10);
-      if (level === 3) setBossHp(bossHp - 50); 
+  useEffect(() => {
+    // Laraskan tema paparan sedia ada daripada LocalStorage atau tag HTML
+    const temaSediaAda = localStorage.getItem('theme') || 'dark';
+    setTema(temaSediaAda);
+    if (temaSediaAda === 'dark') {
+      document.documentElement.classList.add('dark');
     } else {
-      setNyawaPemain(nyawaPemain - 1);
+      document.documentElement.classList.remove('dark');
     }
+  }, []);
 
-    // Tangguh 1.5 saat supaya murid nampak jawapan mana yang Betul (Hijau) & Salah (Merah)
-    setTimeout(() => {
-      setJawapanDipilih(null);
-      setSedangSemak(false);
-
-      if (!isCorrect && nyawaPemain - 1 === 0) {
-        setFasa('kalah');
-        return;
-      }
-
-      // Pergi ke soalan seterusnya atau naik level
-      if (indeksSoalan + 1 < soalanSemasaArray.length) {
-        setIndeksSoalan(indeksSoalan + 1);
-      } else {
-        if (level < 3) {
-          setLevel(level + 1);
-          setIndeksSoalan(0);
-        } else {
-          setFasa('menang');
-        }
-      }
-    }, 1500); // 1500 milisaat = 1.5 saat
+  const tukarTema = () => {
+    const temaBaharu = tema === 'dark' ? 'light' : 'dark';
+    setTema(temaBaharu);
+    localStorage.setItem('theme', temaBaharu);
+    if (temaBaharu === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-6 sm:p-10 flex flex-col items-center justify-center selection:bg-[#1793D1] selection:text-white">
-    <div className="max-w-3xl w-full bg-white dark:bg-[#171A21] border border-gray-200 dark:border-blue-500 rounded shadow-md dark:shadow-[0_0_20px_rgba(59,130,246,0.4)] overflow-hidden transition-all duration-300">
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
+      <div className="max-w-6xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded-sm shadow-md dark:shadow-[0_0_15px_rgba(23,147,209,0.3)] overflow-hidden transition-all duration-300">
         
-        {/* Header */}
-        <div className="bg-blue-600 text-white px-6 py-3 font-black flex justify-between uppercase tracking-wider">
-          <span>🎮 RuLaF Game Engine 1.5</span>
-          {fasa === 'bermain' && <span>Tahap: {level === 3 ? 'BOSS 🐉' : level}</span>}
+        {/* ================= HEADER PORTAL ARKED ================= */}
+        <div className="bg-[#1793D1] text-white dark:text-[#0F1419] px-6 py-4 flex justify-between items-center font-bold text-sm border-b border-[#1272ab]/30">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">🎮</span>
+            <span>RULAF-HUB :: ARKED DIDAKTIK UTAMA</span>
+          </div>
         </div>
 
-        <div className="p-8 min-h-[450px] flex flex-col justify-center">
+        <div className="p-6 sm:p-10">
           
-          {/* FASA 1: MENU UTAMA */}
-          {fasa === 'menu_utama' && (
-            <div className="flex flex-col gap-6">
-              <h1 className="text-3xl font-black text-center text-blue-400 mb-4">Pusat Latihan RuLaF</h1>
-              
-              <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 p-6 rounded mb-8 transition-colors duration-300">
-                <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mt-1">1. PILIH MISI (TAJUK):</label>
-                <select 
-                  value={topikPilihan} 
-                  onChange={(e) => setTopikPilihan(e.target.value)}
-                  className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-gray-900 dark:text-white text-sm focus:border-[#1793D1] focus:outline-none"
-                >
-                  {Object.keys(bankSoalan).map((key) => (
-                    <option key={key} value={key}>
-                      [{bankSoalan[key as keyof typeof bankSoalan].subjek}] {bankSoalan[key as keyof typeof bankSoalan].tajuk}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-blue-400 mt-2">{gameData.deskripsi}</p>
-              </div>
+          {/* ================= HEBAHAN SISTEM & PHILOSOPHY ================= */}
+          <div className="mb-10 text-center max-w-3xl mx-auto">
+            <h1 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-3">
+              RuLaF Arked Gamifikasi Jawi
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+              Selamat datang ke portal permainan interaktif. Melalui pendekatan <strong>didik-hibur (fun learning)</strong>, murid-murid boleh mengasah kemahiran kognitif dan literasi Jawi secara praktikal. Bergerak, melompat, memecahkan kotak soalan, dan takluki Boss untuk mengukuhkan kefahaman Pendidikan Islam!
+            </p>
+          </div>
 
-              <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 p-6 rounded mb-8 transition-colors duration-300">
-                <label className="block text-sm font-bold text-gray-500 dark:text-gray-400 mt-1">2. PILIH MOD TULISAN:</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <button onClick={() => setModTulisan('jawi')} className={`p-3 border rounded font-bold ${modTulisan === 'jawi' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white-300 border-gray-200 text-gray-400 dark:bg-gray-900 border-gray-600 text-gray-400'}`}>JAWI SAHAJA</button>
-                  <button onClick={() => setModTulisan('rumi')} className={`p-3 border rounded font-bold ${modTulisan === 'rumi' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white-300 border-gray-200 text-gray-400 dark:bg-gray-900 border-gray-600 text-gray-400'}`}>RUMI SAHAJA</button>
-                  <button onClick={() => setModTulisan('dwi')} className={`p-3 border rounded font-bold ${modTulisan === 'dwi' ? 'bg-blue-600 border-blue-400 text-white' : 'bg-white-300 border-gray-200 text-gray-400 dark:bg-gray-900 border-gray-600 text-gray-400'}`}>DWI-TULISAN</button>
-                </div>
-              </div>
-
-              <button onClick={mulaMain} className="mt-4 px-8 py-4 bg-green-600 hover:bg-green-500 text-white font-black text-xl rounded shadow-lg transition-transform transform hover:scale-105">
-                [ MULAKAN MISI ]
-              </button>
-            </div>
-          )}
-
-          {/* FASA 2: BERMAIN (DENGAN FEEDBACK WARNA) */}
-          {fasa === 'bermain' && (
-            <div className="flex flex-col gap-6">
-              <div className="flex justify-between border-b border-gray-700 pb-4">
-                <div className="text-green-400 font-bold text-xl">Skor: {skor}</div>
-                <div className="text-red-400 font-bold text-xl">Nyawa: {'❤️'.repeat(nyawaPemain)}</div>
-              </div>
-
-              {level === 3 && (
-                <div className="bg-red-900/30 p-4 border border-red-500 rounded text-center mb-2">
-                  <p className="text-red-400 font-bold uppercase mb-2">💪🔥 Misi Akhir</p>
-                  <div className="w-full bg-gray-800 rounded-full h-4">
-                    <div className="bg-red-500 h-4 rounded-full transition-all duration-500" style={{ width: `${bossHp}%` }}></div>
+          {/* ================= SENARAI GRID GAME ================= */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {senaraiGame.map((game) => (
+              <div
+                key={game.id}
+                className="bg-gray-100 dark:bg-[#11141b]/60 border border-gray-200 dark:border-gray-800 rounded p-6 flex flex-col justify-between hover:border-[#1793D1] dark:hover:border-[#1793D1]/50 transition-all duration-300 group"
+              >
+                <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <span className="text-4xl select-none group-hover:scale-110 transition-transform duration-300">
+                      {game.ikon}
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                      game.tahapKesukaran === 'Mudah' 
+                        ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-900/40' 
+                        : game.tahapKesukaran === 'Sederhana'
+                        ? 'bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/40'
+                        : 'bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/40'
+                    }`}>
+                      Kesukaran: {game.tahapKesukaran}
+                    </span>
                   </div>
+
+                  <span className="inline-block bg-[#1793D1]/10 text-[#1793D1] text-[10px] px-2 py-0.5 rounded font-extrabold mb-2">
+                    {game.subjek} - {game.darjah}
+                  </span>
+
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-[#1793D1] transition-colors">
+                    {game.tajuk}
+                  </h2>
+
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 font-sans leading-relaxed">
+                    {game.penerangan}
+                  </p>
                 </div>
-              )}
 
-              <div className="bg-gray-200/50 dark:bg-gray-800/40 border-b border-gray-200 dark:border-gray-800 p-6 rounded border-l-4 border-blue-500 relative">
-                <p className="text-xs text-blue-400 font-bold mb-4">SOALAN {indeksSoalan + 1} / {soalanSemasaArray.length}</p>
-                {paparTeks(soalanSemasaArray[indeksSoalan], 'q')}
-                
-                {/* Pop up kecil comel beritahu Betul / Salah */}
-                {sedangSemak && jawapanDipilih === soalanSemasaArray[indeksSoalan].rumi.a && (
-                  <div className="absolute top-4 right-4 bg-green-500 text-white font-black px-4 py-1 rounded animate-bounce">Tepat! ✅</div>
-                )}
-                {sedangSemak && jawapanDipilih && jawapanDipilih !== soalanSemasaArray[indeksSoalan].rumi.a && (
-                  <div className="absolute top-4 right-4 bg-red-500 text-white font-black px-4 py-1 rounded animate-bounce">Salah! ❌</div>
-                )}
+                <div className="border-t border-gray-200 dark:border-gray-800/80 pt-4 mt-4">
+                  <div className="flex justify-between items-center text-xs mb-4 text-gray-400 dark:text-gray-500">
+                    <span>Topik: {game.topik}</span>
+                    <span>{game.bilanganSoalan}</span>
+                  </div>
+                  <a
+                    href={`/permainan/${game.id}`}
+                    className="block text-center bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-[#1793D1] hover:text-[#0F1419] py-2.5 rounded text-xs font-bold transition-all"
+                  >
+                    [ Main Sekarang ]
+                  </a>
+                </div>
               </div>
-
-              <div className="grid grid-cols-1 gap-4 mt-2">
-                {soalanSemasaArray[indeksSoalan].rumi.options.map((optRumi: string, i: number) => {
-                  const jawapanSebenar = soalanSemasaArray[indeksSoalan].rumi.a;
-                  const isCorrectAnswer = optRumi === jawapanSebenar;
-                  const isSelected = optRumi === jawapanDipilih;
-
-                  // [+] LOGIK WARNA INTERAKTIF
-                  let btnColorClass = 'bg-gray-200/50 dark:bg-gray-800/40 border-b border-gray-200 dark:border-gray-800'; // Warna Asal
-
-                  if (sedangSemak) {
-                    if (isCorrectAnswer) {
-                      btnColorClass = 'bg-green-600 border-green-400 text-white shadow-[0_0_15px_rgba(34,197,94,0.6)] scale-105 z-10'; // Hijau menyala (Jawapan Betul)
-                    } else if (isSelected && !isCorrectAnswer) {
-                      btnColorClass = 'bg-red-600 border-red-400 text-white shadow-[0_0_15px_rgba(239,68,68,0.6)]'; // Merah menyala (Pilihan Salah)
-                    } else {
-                      btnColorClass = 'bg-gray-800 border-gray-700 text-gray-500 opacity-50'; // Butang lain dikelabukan
-                    }
-                  }
-
-                  return (
-                    <button 
-                      key={i} 
-                      disabled={sedangSemak}
-                      onClick={() => semakJawapan(optRumi, jawapanSebenar)}
-                      className={`p-4 border rounded transition-all duration-300 text-center font-bold ${modTulisan === 'jawi' ? 'text-2xl font-arabic text-right' : 'text-lg text-left'} ${btnColorClass}`}
-                    >
-                      {paparTeks(soalanSemasaArray[indeksSoalan], 'options', i)}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* FASA 3: MENANG / KALAH */}
-          {fasa === 'menang' && (
-            <div className="text-center flex flex-col items-center gap-6 animate-pulse-once">
-              <div className="text-7xl">🏆</div>
-              <h1 className="text-4xl font-black text-green-400">Misi Berjaya!</h1>
-              <p className="text-gray-300">Tahniah! Anda telah menguasai topik <b>{gameData.tajuk}</b>.</p>
-              <p className="text-2xl font-bold text-blue-400">Skor Akhir: {skor}</p>
-              <button onClick={() => setFasa('menu_utama')} className="bg-[#1793D1] text-[#0F1419] font-bold px-5 py-2 rounded text-sm hover:bg-[#1272ab] transition-colors">
-                [ KEMBALI KE MENU ]
-              </button>
-            </div>
-          )}
-
-          {fasa === 'kalah' && (
-            <div className="text-center flex flex-col items-center gap-6">
-              <div className="text-7xl">💀</div>
-              <h1 className="text-4xl font-black text-red-500">Misi Gagal!</h1>
-              <p className="text-gray-400">Nyawa anda telah habis. Perhatikan di mana kesilapan anda sebentar tadi dan cuba lagi.</p>
-              <button onClick={() => setFasa('menu_utama')} className="mt-4 px-6 py-3 bg-gray-800 border border-red-900 hover:bg-red-900 text-white font-bold rounded">
-                [ KEMBALI KE MENU ]
-              </button>
-            </div>
-          )}
+            ))}
+          </div>
 
         </div>
       </div>

@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+ <head><script>window["__codeletBootstrap__"]=JSON.parse('{"A":"A","B":"20260814-05-a1b2e7b","C":{"Abril Fatface":"YACgEZbkUVE,0","Alfa Slab One":"YACgEYS9sJU,0","Anton":"YACgEcYqQ-A,0","Archivo":"YAHO2-t-jNE,0","Arial":"YAGyDvJ_4Ts,0","Bebas Neue":"YACgESME5ew,0","Bricolage Grotesque":"YAFyMcdwzpc,0","Canva Sans":"YAFLd8sKbwc,2","Caveat":"YALBs2ploWQ,0","Comic Sans MS":"YAHO2VMiyZo,0","Cormorant Garamond":"YAFdJhX-538,0","Courier New":"YAGzXiGs0_8,0","DM Sans":"YAD1aU3sLnI,0","DM Serif Display":"YAD1aYG82rc,0","Forum":"YACgEcnnqB4,0","Fraunces":"YAEul-FRQw4,0","Georgia":"YAGzXkO0pEM,0","Helvetica Neue":"YAFcf6CtJfI,0","Impact":"YAFcfnjI7Vk,0","Inter":"YAFdJvSyp_k,3","Iowan Old Style":"YAGNIFa8j9o,0","Jacques Francois":"YAHO2a5g66Q,0","JetBrains Mono":"YAFdJksXcAk,0","Libre Baskerville":"YACgEUFdPdA,0","Manrope":"YAHO2b2feC4,0","Merriweather":"YACgEXvHxxs,0","Montserrat":"YADLjI9qxTA,0","Nunito":"YACgEX8C5Gg,0","Oleo Script":"YACgEQQ14jI,0","Phantom Sans":"YAHO2E8Pb88,0","Playfair Display":"YACgEYmuCJE,0","Poppins":"YAFdJjbTu24,1","Press Start 2P":"YAFyGr-8pmQ,0","Quicksand":"YADWjpfPmdk,0","Raleway":"YACgEVg3xZg,0","Segoe UI":"YAHNdRD1Klw,0","Source Sans 3":"YAG4lO1Mj10,0","Spectral":"YAHO2rVUHIM,0","Times New Roman":"YAGzXW3gftg,0","Times":"YAGzXW3gftg,0","Ubuntu":"YACgERDU--Q,0","Work Sans":"YAGXhLOKv44,0","Yellowtail":"YACgEYG4kG4,0","ui-monospace":"YADlN8CFZ8Q,0","ui-sans-serif":"YACkoN-xg4g,0"}}');</script><script src="/_sdk/7949ff62d67710d5.telemetry_sdk.js" integrity="sha512-KIvXA82Di44YY/RH9/63A9MuTuavYgDFG8PfErJn7Wli4K0LAOk+coo/aPXk3+ZNL96nHh9VYD4PE+fLes+laQ=="></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eclipse Quest</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'DM Sans', sans-serif; margin: 0; overflow: hidden; }
+    #game-canvas { display: block; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 50; }
+    .modal-content { position: relative; max-width: 420px; width: 90%; }
+    .quiz-btn { transition: all 0.2s; }
+    .quiz-btn.correct { background: #16a34a !important; color: #fff !important; }
+    .quiz-btn.wrong { background: #dc2626 !important; color: #fff !important; }
+    .fade-in { animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 40; }
+    .ctrl-btn { width: 56px; height: 56px; border-radius: 50%; background: rgba(30,20,60,0.85); border: 3px solid #a78bfa; color: #e2e8f0; font-size: 24px; font-weight: bold; display: flex; align-items: center; justify-content: center; user-select: none; cursor: pointer; }
+    .ctrl-btn:active { background: #7c3aed; }
+    #hud { position: fixed; top: 12px; right: 16px; z-index: 40; display: flex; align-items: center; gap: 6px; background: rgba(10,5,30,0.7); padding: 6px 14px; border-radius: 20px; }
+    #level-hud { position: fixed; top: 12px; left: 16px; z-index: 40; background: rgba(10,5,30,0.7); padding: 6px 14px; border-radius: 20px; color: #e2e8f0; font-weight: 700; }
+    .level-screen { position: fixed; inset: 0; z-index: 55; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); }
+    [data-bg="start-bg"] { background-image: linear-gradient(rgba(5,0,20,0.6), rgba(5,0,20,0.8)), url('https://images.pexels.com/photos/580679/pexels-photo-580679.jpeg?auto=compress&cs=tinysrgb&w=1280'); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="/_sdk/0e8d3a91e1c6f495.data_sdk.js" type="text/javascript" integrity="sha512-c00oDoGjsMgluCLLEyVl3suwEkgjOGGplVFbsilUoBg4aMKNmsL3mwsc9r0dPn95qiSZyjBousQXgROkAW7p/w=="></script>
+  <script src="/_sdk/eba18683f23e5798.resizing_sdk.js" type="text/javascript" integrity="sha512-E0UWUllhwPXaNJtjyTKXWKrIE+FruPfFpO4mRmMDP2LI+U9bOizy5npCq6xx/JyWcvSK7D3TFf2wFR2Mha9kbA=="></script>
+ </head>
+ <body data-template-id="__page-root" class="min-h-screen">
+  <!-- Start Screen -->
+  <div id="start-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center fade-in bg-cover bg-center" style="background-size: cover; background-position: center; background-image: linear-gradient(rgba(5,0,20,0.6), rgba(5,0,20,0.8));" data-bg="start-bg">
+   <img data-template-id="start-image" class="canva-image w-56 h-56 object-contain mb-4" loading="lazy">
+   <h1 data-template-id="game-title" class="canva-text text-3xl font-bold mb-2 text-center"></h1>
+   <p data-template-id="game-subtitle" class="canva-text mb-6 text-center px-4"></p><button data-template-id="start-btn" class="canva-button px-8 py-3 rounded-xl font-bold text-lg" onclick="startGame()"></button>
+  </div><!-- HUD -->
+  <div id="hud" class="hidden">
+   <img data-template-id="coin-icon" class="canva-image w-7 h-7 object-contain" loading="lazy"> <span id="score-display" class="text-white font-bold text-lg">0</span> <span id="score-total" class="text-white/60 text-sm ml-2">/ 10</span>
+  </div>
+  <div id="level-hud" class="hidden"><span id="level-display">Level 1</span>
+  </div><!-- Game Canvas -->
+  <canvas id="game-canvas"></canvas><!-- Touch Controls -->
+  <div class="controls hidden" id="controls">
+   <button class="ctrl-btn" id="btn-left">←</button> <button class="ctrl-btn" id="btn-right">→</button> <button class="ctrl-btn" id="btn-jump">↑</button>
+  </div><!-- Level Transition -->
+  <div id="level-screen" class="level-screen hidden">
+   <div class="text-center fade-in">
+    <h2 id="level-title" class="text-4xl font-bold text-purple-300 mb-3"></h2>
+    <p id="level-desc" class="text-white/80 text-lg mb-2"></p>
+    <p id="level-warning" class="text-red-400 font-bold text-sm hidden"></p>
+   </div>
+  </div><!-- Quiz Modal -->
+  <div id="quiz-modal" class="modal-overlay hidden">
+   <div class="modal-content fade-in">
+    <div class="relative z-10 p-8 pt-10 rounded-2xl shadow-2xl" style="background: linear-gradient(135deg, #1e1b4b, #312e81);">
+     <h2 id="quiz-question" class="text-center font-bold text-xl mb-5 text-purple-100"></h2>
+     <div id="quiz-options" class="grid grid-cols-2 gap-3"></div>
+    </div>
+   </div>
+  </div><!-- Result Screen -->
+  <div id="result-screen" class="fixed inset-0 z-50 hidden flex-col items-center justify-center" style="background: linear-gradient(180deg, #0f0a2e, #1a0533);">
+   <div class="text-center fade-in">
+    <img data-template-id="result-coin" class="canva-image w-20 h-20 mx-auto mb-4 object-contain" loading="lazy">
+    <h2 id="result-heading" class="text-2xl font-bold mb-2"></h2>
+    <p id="result-score" class="text-5xl font-bold text-white mb-6"></p><button data-template-id="restart-btn" class="canva-button px-8 py-3 rounded-xl font-bold" onclick="startGame()"></button>
+   </div>
+  </div><!-- Game Over Screen -->
+  <div id="gameover-screen" class="fixed inset-0 z-50 hidden flex-col items-center justify-center" style="background: linear-gradient(180deg, #1a0a2e, #0a0010);">
+   <div class="text-center fade-in">
+    <p class="text-6xl mb-4">🌑</p>
+    <h2 data-template-id="gameover-title" class="canva-text text-3xl font-bold mb-2"></h2>
+    <p data-template-id="gameover-subtitle" class="canva-text mb-6"></p><button data-template-id="retry-btn" class="canva-button px-8 py-3 rounded-xl font-bold" onclick="startGame()"></button>
+   </div>
+  </div>
+  <script src="/_sdk/a051f9537983733d.editing_sdk.js" integrity="sha512-IWn3eBHnVt7zQ0Rp79J72qSgJoLbskCA9lcfY4retf+5km4LjuhSHpvx+182KCHmEZ6EbJtWqVsybpV8Sd8PQQ=="></script>
+  <script>
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+
+const level1Questions = [
+  { q: "Apakah pengertian kusuf?", answer: 'Gerhana matahari', options: ['Tiang bendera', 'Gerhana bulan', 'Gelap malam', 'Gerhana matahari'] },
+  { q: "Apakah pengertian khusuf?", answer: 'Gerhana bulan', options: ['Tiang bendera', 'Gerhana bulan', 'Gelap malam', 'Gerhana matahari'] },
+  { q: "Apakah pengertian kusuf dan khusuf dalam istilah?", answer: 'Solat sunah 2 rakaat serta khutbah', options: ['Solat fardhu subuh', 'Solat sunah 2 rakaat serta khutbah', 'Solat hari Jumaat', 'Solat sunah hari Raya'] },
+  { q: "Apakah hukum solat gerhana?", answer: 'Sunah', options: ['Sunah', 'Wajib', 'Makruh', 'Harus'] },
+  { q: "Apakah hikmah solat gerhana?", answer: 'Supaya manusia sentiasa bersyukur', options: ['Supaya manusia sentiasa bersyukur', 'Supaya manusia sentiasa membosankan', 'Supaya manusia sentiasa cerah', 'Supaya manusia sentiasa mengantuk'] }
+];
+
+const level2Questions = [
+  { q: "Apakah waktu solat gerhana matahari?", answer: 'Bermula gerhana matahari sehingga terakhir', options: ['Bermula gerhana matahari sehingga terakhir', 'Bermula gerhana bulan sehingga terakhir', 'Bermula terbit matahari sehingga terakhir', 'Bermula tenggelam matahari sehingga terakhir'] },
+  { q: "Apakah waktu gerhana bulan?", answer: 'Bermula gerhana bulan sehingga terakhir', options: ['Bermula gerhana matahari sehingga terakhir', 'Bermula gerhana bulan sehingga terakhir', 'Bermula terbit matahari sehingga terakhir', 'Bermula tenggelam matahari sehingga terakhir'] },
+  { q: "Transliterasi 'Gerhana' dalam Jawi ialah", answer: 'Gerhana', options: ['Gerhanam', 'Grohan', 'Grahan', 'Gerhana'] }
+];
+
+const level3Questions = [
+  { q: "Nama surah yang diturunkan mengenai solat gerhana", answer: 'Surah Al-Hadid : 1', options: ['Surah Al-Hadid : 1', 'Surah Al-Hadid : 3', 'Surah Al-Hadid : 10', 'Surah Al-Hadid : 13'] },
+  { q: "Transliterasi 'Sunah' dalam Jawi ialah", answer: 'Sunah', options: ['Sunah', 'Sunt', 'Sunah', 'Swant'] }
+];
+
+let W, H, player, boxes, score, gameOver, keys, groundY, quizActive, currentBox;
+let currentLevel = 1;
+let levelQuestions = [];
+let bossAlive = false;
+let bossHits = 0;
+let fireballs = [];
+let nextFireballTime = 0;
+let invulnerable = false;
+
+function resize() {
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = W; canvas.height = H;
+  groundY = H - 80;
+}
+window.addEventListener('resize', resize);
+
+function startGame() {
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('result-screen').style.display = 'none';
+  document.getElementById('gameover-screen').classList.add('hidden');
+  document.getElementById('gameover-screen').style.display = 'none';
+  score = 0; currentLevel = 1; bossHits = 0;
+  document.getElementById('score-display').textContent = '0';
+  document.getElementById('score-total').textContent = '/ 10';
+  showLevelScreen();
+}
+
+function showLevelScreen() {
+  const ls = document.getElementById('level-screen');
+  const titles = ['', 'Level 1 — Gerhana Matahari ☀️', 'Level 2 — Gerhana Bulan 🌙', 'Boss Level 🐉'];
+  const descs = ['', '5 soalan mudah — Terokai gerhana!', '3 soalan sederhana — Lebih mencabar!', '2 soalan sukar — Kalahkan Boss!'];
+  document.getElementById('level-title').textContent = titles[currentLevel];
+  document.getElementById('level-desc').textContent = descs[currentLevel];
+  const warn = document.getElementById('level-warning');
+  if (currentLevel === 3) { warn.textContent = '⚠️ Jawab salah = Game Over!'; warn.classList.remove('hidden'); }
+  else { warn.classList.add('hidden'); }
+  ls.classList.remove('hidden');
+  setTimeout(() => { ls.classList.add('hidden'); initLevel(); }, 2000);
+}
+
+function initLevel() {
+  document.getElementById('hud').classList.remove('hidden');
+  document.getElementById('level-hud').classList.remove('hidden');
+  document.getElementById('controls').classList.remove('hidden');
+  document.getElementById('level-display').textContent = currentLevel === 3 ? '⚔️ BOSS' : `Level ${currentLevel}`;
+  resize();
+  gameOver = false; quizActive = false;
+  bossAlive = currentLevel === 3;
+  fireballs = [];
+  nextFireballTime = Date.now() + 3000;
+
+  if (currentLevel === 1) levelQuestions = level1Questions;
+  else if (currentLevel === 2) levelQuestions = level2Questions;
+  else levelQuestions = level3Questions;
+
+  player = { x: 80, y: groundY - 48, w: 36, h: 48, vy: 0, vx: 0, onGround: true, facing: 1 };
+
+  const count = levelQuestions.length;
+  const spacing = Math.min(200, (W - 120) / count);
+  boxes = levelQuestions.map((q, i) => ({
+    x: 100 + i * spacing, y: groundY - 180, w: 48, h: 48, opened: false, qIndex: i, bounceY: 0
+  }));
+
+  keys = {};
+  requestAnimationFrame(loop);
+}
+
+document.addEventListener('keydown', e => { keys[e.key] = true; });
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
+const btnJump = document.getElementById('btn-jump');
+['mousedown','touchstart'].forEach(ev => {
+  btnLeft.addEventListener(ev, e => { e.preventDefault(); keys['ArrowLeft'] = true; });
+  btnRight.addEventListener(ev, e => { e.preventDefault(); keys['ArrowRight'] = true; });
+  btnJump.addEventListener(ev, e => { e.preventDefault(); keys['ArrowUp'] = true; });
+});
+['mouseup','touchend'].forEach(ev => {
+  btnLeft.addEventListener(ev, () => { keys['ArrowLeft'] = false; });
+  btnRight.addEventListener(ev, () => { keys['ArrowRight'] = false; });
+  btnJump.addEventListener(ev, () => { keys['ArrowUp'] = false; });
+});
+
+function loop() {
+  if (gameOver || quizActive) { requestAnimationFrame(loop); return; }
+  update(); draw(); requestAnimationFrame(loop);
+}
+
+function update() {
+  if (keys['ArrowLeft'] || keys['a']) { player.vx = -5; player.facing = -1; }
+  else if (keys['ArrowRight'] || keys['d']) { player.vx = 5; player.facing = 1; }
+  else { player.vx *= 0.7; }
+  if ((keys['ArrowUp'] || keys['w'] || keys[' ']) && player.onGround) {
+    player.vy = -14; player.onGround = false;
+    keys['ArrowUp'] = false; keys['w'] = false; keys[' '] = false;
+  }
+  player.vy += 0.7; player.x += player.vx; player.y += player.vy;
+  if (player.y >= groundY - player.h) { player.y = groundY - player.h; player.vy = 0; player.onGround = true; }
+  if (player.x < 0) player.x = 0;
+  if (player.x > W - player.w) player.x = W - player.w;
+
+  boxes.forEach(box => {
+    if (box.opened) return;
+    if (player.vy < 0 && player.x + player.w > box.x && player.x < box.x + box.w &&
+        player.y <= box.y + box.h && player.y + player.h/2 > box.y) {
+      player.vy = 4; box.bounceY = -10; openBox(box);
+    }
+  });
+  boxes.forEach(box => { if (box.bounceY < 0) box.bounceY += 1; });
+
+  if (bossAlive && Date.now() > nextFireballTime) {
+    fireballs.push({ x: W - 80, y: groundY - 80, vx: -6, vy: (Math.random() - 0.5) * 2, w: 16, h: 16 });
+    nextFireballTime = Date.now() + (2000 + Math.random() * 2000);
+  }
+
+  fireballs = fireballs.filter(fb => fb.x > -20);
+  fireballs.forEach(fb => {
+    fb.x += fb.vx; fb.y += fb.vy;
+    if (fb.y > groundY) fb.vy *= -0.6;
+    if (!invulnerable && player.x < fb.x + fb.w && player.x + player.w > fb.x &&
+        player.y < fb.y + fb.h && player.y + player.h > fb.y) {
+      invulnerable = true;
+      setTimeout(() => { invulnerable = false; }, 300);
+      showGameOver();
+    }
+  });
+}
+
+function draw() {
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  if (currentLevel === 1) {
+    // Solar eclipse: dark sky with warm corona glow
+    grad.addColorStop(0, '#0a0a1a');
+    grad.addColorStop(0.4, '#1a0f2e');
+    grad.addColorStop(1, '#2d1810');
+  } else if (currentLevel === 2) {
+    // Lunar eclipse: deep blue-purple night
+    grad.addColorStop(0, '#05051a');
+    grad.addColorStop(0.5, '#0f0a2e');
+    grad.addColorStop(1, '#1a1040');
+  } else {
+    // Boss: blood red eclipse
+    grad.addColorStop(0, '#1a0000');
+    grad.addColorStop(0.5, '#2d0a0a');
+    grad.addColorStop(1, '#0a0010');
+  }
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+
+  // Draw eclipse in sky
+  drawEclipse();
+
+  // Stars
+  drawStars();
+
+  // Ground
+  ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0, groundY, W, 20);
+  ctx.fillStyle = '#2d2d4e'; ctx.fillRect(0, groundY - 6, W, 8);
+  ctx.fillStyle = '#0f0f1e';
+  for (let i = 0; i < W; i += 40) { ctx.fillRect(i, groundY + 18, 38, 60); }
+
+  if (bossAlive) { drawBoss(); }
+
+  fireballs.forEach(fb => {
+    const gf = ctx.createRadialGradient(fb.x, fb.y, 2, fb.x, fb.y, 10);
+    gf.addColorStop(0, '#fbbf24');
+    gf.addColorStop(0.5, '#f59e0b');
+    gf.addColorStop(1, '#ea580c');
+    ctx.fillStyle = gf;
+    ctx.beginPath(); ctx.arc(fb.x, fb.y, 8, 0, Math.PI * 2); ctx.fill();
+  });
+
+  boxes.forEach(box => {
+    const by = box.y + box.bounceY;
+    if (box.opened) {
+      ctx.fillStyle = '#374151'; ctx.fillRect(box.x, by, box.w, box.h);
+      ctx.strokeStyle = '#1f2937'; ctx.lineWidth = 3; ctx.strokeRect(box.x, by, box.w, box.h);
+    } else {
+      ctx.fillStyle = currentLevel === 3 ? '#7f1d1d' : '#6d28d9';
+      ctx.fillRect(box.x, by, box.w, box.h);
+      ctx.strokeStyle = currentLevel === 3 ? '#450a0a' : '#4c1d95';
+      ctx.lineWidth = 3; ctx.strokeRect(box.x, by, box.w, box.h);
+      ctx.fillStyle = '#fff'; ctx.font = 'bold 28px DM Sans'; ctx.textAlign = 'center';
+      ctx.fillText(currentLevel === 3 ? '💀' : '🌑', box.x + box.w/2, by + 36);
+    }
+  });
+
+  if (invulnerable && Math.floor(Date.now() / 100) % 2) return;
+  const px = player.x, py = player.y;
+  ctx.fillStyle = '#7c3aed'; ctx.fillRect(px + 6, py + 16, 24, 20);
+  ctx.fillStyle = '#ffd6a5'; ctx.beginPath(); ctx.arc(px + 18, py + 12, 12, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#4c1d95'; ctx.fillRect(px + 6, py, 24, 8); ctx.fillRect(px + 2, py + 6, 32, 5);
+  ctx.fillStyle = '#fff'; ctx.fillRect(px + (player.facing > 0 ? 20 : 12), py + 10, 4, 4);
+  ctx.fillStyle = '#312e81'; ctx.fillRect(px + 8, py + 36, 8, 12); ctx.fillRect(px + 20, py + 36, 8, 12);
+}
+
+function drawEclipse() {
+  const cx = W * 0.75, cy = H * 0.2, r = 40;
+  if (currentLevel === 1) {
+    // Solar eclipse - corona glow
+    const cg = ctx.createRadialGradient(cx, cy, r - 5, cx, cy, r + 30);
+    cg.addColorStop(0, 'rgba(0,0,0,1)');
+    cg.addColorStop(0.5, 'rgba(255,165,0,0.6)');
+    cg.addColorStop(1, 'rgba(255,100,0,0)');
+    ctx.fillStyle = cg;
+    ctx.beginPath(); ctx.arc(cx, cy, r + 30, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  } else if (currentLevel === 2) {
+    // Lunar eclipse - red moon
+    const cg = ctx.createRadialGradient(cx, cy, r - 10, cx, cy, r + 15);
+    cg.addColorStop(0, '#8b2020');
+    cg.addColorStop(0.7, '#5c1010');
+    cg.addColorStop(1, 'rgba(50,5,5,0)');
+    ctx.fillStyle = cg;
+    ctx.beginPath(); ctx.arc(cx, cy, r + 15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7f1d1d';
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  } else {
+    // Boss: total darkness with red ring
+    const cg = ctx.createRadialGradient(cx, cy, r, cx, cy, r + 20);
+    cg.addColorStop(0, 'rgba(0,0,0,1)');
+    cg.addColorStop(0.6, 'rgba(200,0,0,0.5)');
+    cg.addColorStop(1, 'rgba(100,0,0,0)');
+    ctx.fillStyle = cg;
+    ctx.beginPath(); ctx.arc(cx, cy, r + 20, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function drawStars() {
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  const seed = currentLevel * 100;
+  for (let i = 0; i < 40; i++) {
+    const sx = ((seed + i * 137) % W);
+    const sy = ((seed + i * 97) % (groundY - 50));
+    ctx.fillRect(sx, sy, 2, 2);
+  }
+}
+
+function drawBoss() {
+  const bx = W - 120, by = groundY - 100;
+  ctx.fillStyle = '#7c2d12';
+  ctx.beginPath(); ctx.ellipse(bx, by, 50, 40, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#991b1b';
+  ctx.beginPath(); ctx.ellipse(bx - 40, by - 30, 25, 20, -0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fbbf24';
+  ctx.beginPath(); ctx.arc(bx - 48, by - 35, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.arc(bx - 48, by - 35, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#450a0a';
+  ctx.beginPath(); ctx.moveTo(bx + 10, by - 30); ctx.lineTo(bx + 60, by - 70); ctx.lineTo(bx + 50, by - 10); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = '#7c2d12'; ctx.lineWidth = 8;
+  ctx.beginPath(); ctx.moveTo(bx + 45, by); ctx.quadraticCurveTo(bx + 80, by + 20, bx + 70, by - 20); ctx.stroke();
+  const time = Date.now() / 200;
+  ctx.fillStyle = `rgba(251, 191, 36, ${0.5 + Math.sin(time) * 0.3})`;
+  ctx.beginPath(); ctx.moveTo(bx - 60, by - 30); ctx.lineTo(bx - 100, by - 40 + Math.sin(time)*5); ctx.lineTo(bx - 90, by - 20); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 14px DM Sans'; ctx.textAlign = 'center';
+  ctx.fillText(`BOSS ❤️ ${2 - bossHits}/2`, bx, by - 60);
+}
+
+function openBox(box) {
+  quizActive = true; currentBox = box;
+  const q = levelQuestions[box.qIndex];
+  document.getElementById('quiz-question').textContent = q.q;
+  const opts = document.getElementById('quiz-options');
+  opts.innerHTML = '';
+  const shuffled = [...q.options].sort(() => Math.random() - 0.5);
+  shuffled.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-btn px-3 py-3 rounded-lg font-semibold bg-indigo-900/50 border-2 border-purple-400 text-purple-100 hover:bg-purple-800/60';
+    btn.textContent = opt;
+    btn.onclick = () => answerQuiz(btn, opt, q.answer);
+    opts.appendChild(btn);
+  });
+  document.getElementById('quiz-modal').classList.remove('hidden');
+}
+
+function answerQuiz(btn, selected, correct) {
+  if (!quizActive) return;
+  const btns = document.querySelectorAll('.quiz-btn');
+  btns.forEach(b => b.disabled = true);
+  const isCorrect = selected === correct;
+
+  if (isCorrect) {
+    btn.classList.add('correct'); score++; bossHits++;
+    document.getElementById('score-display').textContent = score;
+  } else {
+    btn.classList.add('wrong');
+    btns.forEach(b => { if (b.textContent === correct) b.classList.add('correct'); });
+  }
+  currentBox.opened = true;
+
+  setTimeout(() => {
+    document.getElementById('quiz-modal').classList.add('hidden');
+    quizActive = false;
+
+    if (currentLevel === 3 && !isCorrect) {
+      setTimeout(showGameOver, 500); return;
+    }
+
+    if (boxes.every(b => b.opened)) {
+      setTimeout(() => {
+        if (currentLevel < 3) { currentLevel++; showLevelScreen(); }
+        else { showResult(); }
+      }, 500);
+    }
+  }, 1200);
+}
+
+function showGameOver() {
+  gameOver = true;
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('level-hud').classList.add('hidden');
+  document.getElementById('controls').classList.add('hidden');
+  const gs = document.getElementById('gameover-screen');
+  gs.classList.remove('hidden'); gs.style.display = 'flex';
+}
+
+function showResult() {
+  gameOver = true;
+  document.getElementById('hud').classList.add('hidden');
+  document.getElementById('level-hud').classList.add('hidden');
+  document.getElementById('controls').classList.add('hidden');
+  const rs = document.getElementById('result-screen');
+  rs.classList.remove('hidden'); rs.style.display = 'flex';
+  document.getElementById('result-heading').textContent = '🏆 Boss Dikalahkan!';
+  document.getElementById('result-heading').style.color = '#c4b5fd';
+  document.getElementById('result-score').textContent = `${score} / 10`;
+}
+  </script>
+ </body>
+</html>

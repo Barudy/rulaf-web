@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ms">
+ <head><script>window["__codeletBootstrap__"]=JSON.parse('{"A":"A","B":"20260814-05-a1b2e7b","C":{"Abril Fatface":"YACgEZbkUVE,0","Alfa Slab One":"YACgEYS9sJU,0","Anton":"YACgEcYqQ-A,0","Archivo":"YAHO2-t-jNE,0","Arial":"YAGyDvJ_4Ts,0","Bebas Neue":"YACgESME5ew,0","Bricolage Grotesque":"YAFyMcdwzpc,0","Canva Sans":"YAFLd8sKbwc,2","Caveat":"YALBs2ploWQ,0","Comic Sans MS":"YAHO2VMiyZo,0","Cormorant Garamond":"YAFdJhX-538,0","Courier New":"YAGzXiGs0_8,0","DM Sans":"YAD1aU3sLnI,0","DM Serif Display":"YAD1aYG82rc,0","Forum":"YACgEcnnqB4,0","Fraunces":"YAEul-FRQw4,0","Georgia":"YAGzXkO0pEM,0","Helvetica Neue":"YAFcf6CtJfI,0","Impact":"YAFcfnjI7Vk,0","Inter":"YAFdJvSyp_k,3","Iowan Old Style":"YAGNIFa8j9o,0","Jacques Francois":"YAHO2a5g66Q,0","JetBrains Mono":"YAFdJksXcAk,0","Libre Baskerville":"YACgEUFdPdA,0","Manrope":"YAHO2b2feC4,0","Merriweather":"YACgEXvHxxs,0","Montserrat":"YADLjI9qxTA,0","Nunito":"YACgEX8C5Gg,0","Oleo Script":"YACgEQQ14jI,0","Phantom Sans":"YAHO2E8Pb88,0","Playfair Display":"YACgEYmuCJE,0","Poppins":"YAFdJjbTu24,1","Press Start 2P":"YAFyGr-8pmQ,0","Quicksand":"YADWjpfPmdk,0","Raleway":"YACgEVg3xZg,0","Segoe UI":"YAHNdRD1Klw,0","Source Sans 3":"YAG4lO1Mj10,0","Spectral":"YAHO2rVUHIM,0","Times New Roman":"YAGzXW3gftg,0","Times":"YAGzXW3gftg,0","Ubuntu":"YACgERDU--Q,0","Work Sans":"YAGXhLOKv44,0","Yellowtail":"YACgEYG4kG4,0","ui-monospace":"YADlN8CFZ8Q,0","ui-sans-serif":"YACkoN-xg4g,0"}}');</script><script src="/_sdk/7949ff62d67710d5.telemetry_sdk.js" integrity="sha512-KIvXA82Di44YY/RH9/63A9MuTuavYgDFG8PfErJn7Wli4K0LAOk+coo/aPXk3+ZNL96nHh9VYD4PE+fLes+laQ=="></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kuiz Solat Jumaat</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+  <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        .opt-btn { transition: all 0.2s; }
+        .opt-btn:hover:not(:disabled) { transform: scale(1.02); }
+        .opt-correct { background: #166534 !important; color: #fff !important; }
+        .opt-wrong { background: #991b1b !important; color: #fff !important; }
+    </style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="/_sdk/0e8d3a91e1c6f495.data_sdk.js" type="text/javascript" integrity="sha512-c00oDoGjsMgluCLLEyVl3suwEkgjOGGplVFbsilUoBg4aMKNmsL3mwsc9r0dPn95qiSZyjBousQXgROkAW7p/w=="></script>
+  <script src="/_sdk/eba18683f23e5798.resizing_sdk.js" type="text/javascript" integrity="sha512-E0UWUllhwPXaNJtjyTKXWKrIE+FruPfFpO4mRmMDP2LI+U9bOizy5npCq6xx/JyWcvSK7D3TFf2wFR2Mha9kbA=="></script>
+ </head>
+ <body data-template-id="__page-root" class="min-h-screen flex items-center justify-center p-4">
+  <main class="w-full max-w-2xl">
+   <!-- Start Screen -->
+   <div id="start-screen" class="text-center space-y-6">
+    <img data-template-id="hero-img" class="canva-image w-full h-48 object-cover rounded-2xl shadow-lg" loading="lazy">
+    <h1 data-template-id="quiz-title" class="canva-text font-bold"></h1>
+    <p data-template-id="quiz-desc" class="canva-text"></p><button data-template-id="start-btn" class="canva-button px-8 py-3 rounded-full font-bold text-lg" onclick="startQuiz()"></button>
+   </div><!-- Quiz Screen -->
+   <div id="quiz-screen" class="hidden space-y-6">
+    <div class="flex justify-between items-center">
+     <span data-template-id="progress-label" class="canva-text font-medium"></span> <span id="progress-text" class="font-medium text-sm"></span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-2">
+     <div id="progress-bar" class="h-2 rounded-full transition-all" style="width:0%;background:#6d2c2c;"></div>
+    </div>
+    <h2 id="question-text" class="text-xl font-bold leading-relaxed"></h2>
+    <div id="options" class="grid gap-3"></div><button id="next-btn" class="hidden w-full py-3 rounded-full font-bold text-white" style="background:#6d2c2c;" onclick="nextQuestion()">Seterusnya →</button>
+   </div><!-- Result Screen -->
+   <div id="result-screen" class="hidden text-center space-y-6">
+    <h2 data-template-id="result-title" class="canva-text font-bold"></h2>
+    <p id="score-text" class="text-5xl font-bold" style="color:#6d2c2c;"></p>
+    <p id="score-msg" class="text-lg"></p><button data-template-id="restart-btn" class="canva-button px-8 py-3 rounded-full font-bold text-lg" onclick="startQuiz()"></button>
+   </div>
+  </main>
+  <script src="/_sdk/a051f9537983733d.editing_sdk.js" integrity="sha512-IWn3eBHnVt7zQ0Rp79J72qSgJoLbskCA9lcfY4retf+5km4LjuhSHpvx+182KCHmEZ6EbJtWqVsybpV8Sd8PQQ=="></script>
+  <script>
+        const questions = [
+            { q: "Solat Jumaat wajib atas siapa?", opts: ["Semua Muslim", "Lelaki Muslim yang baligh, berakal, dan mampu", "Perempuan Muslim yang baligh", "Anak-anak Muslim"], ans: 1 },
+            { q: "Berapa bilangan hadal adna (had minimum) untuk ahlil Jumaat?", opts: ["10 orang", "20 orang", "40 orang", "50 orang"], ans: 2 },
+            { q: "Pada waktu mana Solat Jumaat dilakukan?", opts: ["Waktu Subuh", "Waktu Zohor hari Jumaat", "Waktu Asar", "Waktu Maghrib"], ans: 1 },
+            { q: "Berapa bilangan syarat Solat Jumaat yang wajib?", opts: ["5 syarat", "6 syarat", "7 syarat", "8 syarat"], ans: 2 },
+            { q: "Mana yang bukan dari hikmah Solat Jumaat?", opts: ["Menguatkan iman", "Menguatkan ukhuwah sesama Muslim", "Mendapat keuntungan dunia", "Menguatkan persatuan Muslim"], ans: 2 },
+            { q: "Daripada syarat Solat Jumaat yang wajib dalam Islam, apa syarat-syarat yang lain?", opts: ["Akal dan baligh dan lelaki dan mampu", "Hanya baligh dan berakal", "Hanya lelaki", "Hanya mampu"], ans: 0 },
+            { q: "Apa maksud syarat baligh dalam Solat Jumaat?", opts: ["Sampai pada umur belum hijrah", "Kedewasaan yang tinggi", "Harta yang banyak", "Jawatan yang tinggi"], ans: 0 },
+            { q: "Ada kah wajib atas perempuan hadir Solat Jumaat?", opts: ["Ya, wajib atas mereka", "Tidak, Jumaat wajib atas lelaki sahaja", "Hanya jika sudah berkahwin", "Hanya dengan izin ibu bapa"], ans: 1 },
+            { q: "Berapa had minimum bilangan Muslim dalam jemaah Jumaat?", opts: ["10 orang", "20 orang", "40 orang", "Seorang dengan imam"], ans: 2 },
+            { q: "Mana yang termasuk syarat tempat Solat Jumaat yang betul?", opts: ["Harus di masjid sahaja", "Tempat yang dikenali dan tetap", "Diantara rumah", "Tempat yang khusus"], ans: 1 },
+            { q: "Apa perbezaan antara rakaat Jumaat dan solat-solat lain?", opts: ["Bilangan rakaat (dua rakaat sahaja)", "Jumaat lebih panjang daripada yang lain", "Jumaat tiada waktu yang tertentu", "Tiada perbezaan"], ans: 0 },
+            { q: "Bolehkah ditangguhkan Solat Jumaat tanpa uzur syarie?", opts: ["Ya, boleh tanpa syarat apa-apa", "Tidak, tidak boleh kecuali ada uzur syarie", "Boleh jika masih sibuk", "Boleh jika masih malam"], ans: 1 },
+            { q: "Apa surah yang diajarkan dalam khutbah sebelum Solat Jumaat?", opts: ["Hanya Surah Al-Fatihah sahaja", "Surah Al-Jumuah dan Surah Al-Munafiqun atau surah-surah lain", "Apa surah yang dipilih imam", "Tiada surah yang tertentu"], ans: 1 },
+            { q: "Mana yang termasuk hikmah Solat Jumaat?", opts: ["Menguatkan iman dan takwa", "Menguatkan kesedihan Muslim", "Mengetahui hal-ehwal Muslim", "Semua yang di atas"], ans: 3 },
+            { q: "Berapa bilangan rukun Solat Jumaat yang asasi?", opts: ["Dua rukun sahaja", "Tiga rukun", "Empat rukun", "Lima rukun"], ans: 0 }
+        ];
+
+        let current = 0, score = 0, answered = false;
+
+        function startQuiz() {
+            current = 0; score = 0;
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            answered = false;
+            const q = questions[current];
+            document.getElementById('question-text').textContent = q.q;
+            document.getElementById('progress-text').textContent = `${current+1} / ${questions.length}`;
+            document.getElementById('progress-bar').style.width = `${((current)/questions.length)*100}%`;
+            document.getElementById('next-btn').classList.add('hidden');
+            const opts = document.getElementById('options');
+            opts.innerHTML = '';
+            q.opts.forEach((o, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'opt-btn w-full text-left p-4 rounded-xl border-2 border-gray-200 font-medium';
+                btn.textContent = o;
+                btn.onclick = () => selectAnswer(i, btn);
+                opts.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(i, btn) {
+            if (answered) return;
+            answered = true;
+            const correct = questions[current].ans;
+            if (i === correct) { score++; btn.classList.add('opt-correct'); }
+            else { btn.classList.add('opt-wrong'); document.getElementById('options').children[correct].classList.add('opt-correct'); }
+            [...document.getElementById('options').children].forEach(b => b.disabled = true);
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            current++;
+            if (current >= questions.length) {
+                document.getElementById('quiz-screen').classList.add('hidden');
+                document.getElementById('result-screen').classList.remove('hidden');
+                document.getElementById('score-text').textContent = `${score} / ${questions.length}`;
+                document.getElementById('score-msg').textContent = score >= 4 ? 'Tahniah! Cemerlang! 🎉' : score >= 3 ? 'Bagus! Teruskan usaha! 👍' : 'Cuba lagi! 💪';
+                document.getElementById('progress-bar').style.width = '100%';
+            } else { showQuestion(); }
+        }
+    </script>
+ </body>
+</html>

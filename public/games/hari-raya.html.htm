@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ms">
+ <head><script>window["__codeletBootstrap__"]=JSON.parse('{"A":"A","B":"20260814-05-a1b2e7b","C":{"Abril Fatface":"YACgEZbkUVE,0","Alfa Slab One":"YACgEYS9sJU,0","Anton":"YACgEcYqQ-A,0","Archivo":"YAHO2-t-jNE,0","Arial":"YAGyDvJ_4Ts,0","Bebas Neue":"YACgESME5ew,0","Bricolage Grotesque":"YAFyMcdwzpc,0","Canva Sans":"YAFLd8sKbwc,2","Caveat":"YALBs2ploWQ,0","Comic Sans MS":"YAHO2VMiyZo,0","Cormorant Garamond":"YAFdJhX-538,0","Courier New":"YAGzXiGs0_8,0","DM Sans":"YAD1aU3sLnI,0","DM Serif Display":"YAD1aYG82rc,0","Forum":"YACgEcnnqB4,0","Fraunces":"YAEul-FRQw4,0","Georgia":"YAGzXkO0pEM,0","Helvetica Neue":"YAFcf6CtJfI,0","Impact":"YAFcfnjI7Vk,0","Inter":"YAFdJvSyp_k,3","Iowan Old Style":"YAGNIFa8j9o,0","Jacques Francois":"YAHO2a5g66Q,0","JetBrains Mono":"YAFdJksXcAk,0","Libre Baskerville":"YACgEUFdPdA,0","Manrope":"YAHO2b2feC4,0","Merriweather":"YACgEXvHxxs,0","Montserrat":"YADLjI9qxTA,0","Nunito":"YACgEX8C5Gg,0","Oleo Script":"YACgEQQ14jI,0","Phantom Sans":"YAHO2E8Pb88,0","Playfair Display":"YACgEYmuCJE,0","Poppins":"YAFdJjbTu24,1","Press Start 2P":"YAFyGr-8pmQ,0","Quicksand":"YADWjpfPmdk,0","Raleway":"YACgEVg3xZg,0","Segoe UI":"YAHNdRD1Klw,0","Source Sans 3":"YAG4lO1Mj10,0","Spectral":"YAHO2rVUHIM,0","Times New Roman":"YAGzXW3gftg,0","Times":"YAGzXW3gftg,0","Ubuntu":"YACgERDU--Q,0","Work Sans":"YAGXhLOKv44,0","Yellowtail":"YACgEYG4kG4,0","ui-monospace":"YADlN8CFZ8Q,0","ui-sans-serif":"YACkoN-xg4g,0"}}');</script><script src="/_sdk/7949ff62d67710d5.telemetry_sdk.js" integrity="sha512-KIvXA82Di44YY/RH9/63A9MuTuavYgDFG8PfErJn7Wli4K0LAOk+coo/aPXk3+ZNL96nHh9VYD4PE+fLes+laQ=="></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solat Hari Raya Quiz</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+  <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        .fade-in { animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="/_sdk/0e8d3a91e1c6f495.data_sdk.js" type="text/javascript" integrity="sha512-c00oDoGjsMgluCLLEyVl3suwEkgjOGGplVFbsilUoBg4aMKNmsL3mwsc9r0dPn95qiSZyjBousQXgROkAW7p/w=="></script>
+  <script src="/_sdk/eba18683f23e5798.resizing_sdk.js" type="text/javascript" integrity="sha512-E0UWUllhwPXaNJtjyTKXWKrIE+FruPfFpO4mRmMDP2LI+U9bOizy5npCq6xx/JyWcvSK7D3TFf2wFR2Mha9kbA=="></script>
+ </head>
+ <body data-template-id="__page-root" class="min-h-screen">
+  <header class="relative overflow-hidden">
+   <img data-template-id="hero-image" class="canva-image w-full h-48 object-cover" loading="lazy">
+   <div class="absolute inset-0 bg-gradient-to-b from-transparent to-teal-900/80"></div>
+   <div class="absolute bottom-4 left-0 right-0 text-center">
+    <h1 data-template-id="page-title" class="canva-text font-bold text-white drop-shadow-lg"></h1>
+    <p data-template-id="page-subtitle" class="canva-text text-white/90"></p>
+   </div>
+  </header>
+  <main class="max-w-2xl mx-auto p-5">
+   <div id="quiz-area" class="fade-in">
+    <div class="flex justify-between items-center mb-4">
+     <span id="progress" class="text-sm font-medium text-teal-700"></span> <span id="score-display" class="text-sm font-bold text-amber-600"></span>
+    </div>
+    <div data-template-id="question-card" class="canva-card rounded-xl p-6 shadow-lg mb-4">
+     <p id="question-text" class="text-lg font-semibold text-gray-800 text-center leading-relaxed"></p>
+    </div>
+    <div id="options" class="grid gap-3"></div>
+    <div id="feedback" class="mt-4 text-center font-semibold text-lg hidden"></div>
+   </div>
+   <div id="result-area" class="hidden fade-in text-center py-10">
+    <div data-template-id="result-card" class="canva-card rounded-xl p-8 shadow-lg">
+     <h2 id="result-title" class="text-2xl font-bold text-teal-800 mb-2"></h2>
+     <p id="result-score" class="text-4xl font-bold text-amber-600 mb-4"></p>
+     <p id="result-msg" class="text-gray-600 mb-6"></p><button data-template-id="retry-button" class="canva-button px-6 py-3 rounded-lg font-semibold" onclick="restartQuiz()"></button>
+    </div>
+   </div>
+  </main>
+  <script src="/_sdk/a051f9537983733d.editing_sdk.js" integrity="sha512-IWn3eBHnVt7zQ0Rp79J72qSgJoLbskCA9lcfY4retf+5km4LjuhSHpvx+182KCHmEZ6EbJtWqVsybpV8Sd8PQQ=="></script>
+  <script>
+        const questions = [
+            { q: "Apakah pengertian Solat Hari Raya?", opts: ["Solat sunat yang didirikan pada pagi Hari Raya", "Solat wajib lima waktu", "Solat yang dilakukan sebelum tidur", "Solat khusus pada waktu malam"], ans: 0, type: "mcq" },
+            { q: "Betul atau salah: Hukum Solat Hari Raya ialah Sunat Muakkad.", opts: ["Betul", "Salah"], ans: 0, type: "tf" },
+            { q: "Apakah dalil yang menjadi asas pensyariatan Solat Hari Raya?", opts: ["Surah Al-Kauthar ayat 2", "Surah Al-Fatihah ayat 1", "Surah Al-Ikhlas ayat 1", "Surah An-Nas ayat 1"], ans: 0, type: "mcq" },
+            { q: "Betul atau salah: Solat Hari Raya membantu meraikan kemenangan dan meningkatkan kesyukuran kepada Allah.", opts: ["Betul", "Salah"], ans: 0, type: "tf" },
+            { q: "Bagaimanakah cara menghayati hikmah Hari Raya?", opts: ["Bermaaf-maafan dan mengeratkan silaturahim", "Bergaduh dengan jiran", "Meninggalkan solat", "Membazir tanpa kawalan"], ans: 0, type: "mcq" }
+        ];
+
+        let current = 0, score = 0, answered = false;
+
+        function render() {
+            document.getElementById('progress').textContent = `Soalan ${current + 1} / ${questions.length}`;
+            document.getElementById('score-display').textContent = `Skor: ${score}`;
+            document.getElementById('question-text').textContent = questions[current].q;
+            document.getElementById('feedback').classList.add('hidden');
+            const opts = document.getElementById('options');
+            opts.innerHTML = '';
+            const isTrue = questions[current].type === 'tf';
+            questions[current].opts.forEach((o, i) => {
+                const btn = document.createElement('button');
+                btn.textContent = o;
+                const baseClass = 'w-full p-4 rounded-lg border-2 border-teal-200 bg-white text-gray-800 font-medium hover:bg-teal-50 hover:border-teal-400 transition-all';
+                const alignClass = isTrue ? 'text-center' : 'text-left';
+                btn.className = `${baseClass} ${alignClass}`;
+                btn.onclick = () => selectAnswer(i, btn);
+                opts.appendChild(btn);
+            });
+            answered = false;
+        }
+
+        function selectAnswer(i, btn) {
+            if (answered) return;
+            answered = true;
+            const correct = questions[current].ans === i;
+            if (correct) score++;
+            const btns = document.getElementById('options').children;
+            for (let b of btns) {
+                b.disabled = true;
+                b.classList.add('cursor-not-allowed');
+            }
+            btn.className = btn.className.replace('border-teal-200', correct ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50');
+            if (!correct) btns[questions[current].ans].className = btns[questions[current].ans].className.replace('border-teal-200', 'border-green-500 bg-green-50');
+            const fb = document.getElementById('feedback');
+            fb.textContent = correct ? '✓ Betul!' : '✗ Salah';
+            fb.className = `mt-4 text-center font-semibold text-lg ${correct ? 'text-green-600' : 'text-red-600'}`;
+            fb.classList.remove('hidden');
+            setTimeout(() => {
+                current++;
+                if (current < questions.length) render();
+                else showResult();
+            }, 1200);
+        }
+
+        function showResult() {
+            document.getElementById('quiz-area').classList.add('hidden');
+            const r = document.getElementById('result-area');
+            r.classList.remove('hidden');
+            document.getElementById('result-title').textContent = 'Tahniah!';
+            document.getElementById('result-score').textContent = `${score} / ${questions.length}`;
+            document.getElementById('result-msg').textContent = score >= 5 ? 'Cemerlang! Anda memahami Solat Hari Raya dengan baik.' : score >= 4 ? 'Bagus! Teruskan belajar.' : 'Cuba lagi dan tingkatkan pengetahuan anda.';
+        }
+
+        function restartQuiz() {
+            current = 0; score = 0;
+            document.getElementById('result-area').classList.add('hidden');
+            document.getElementById('quiz-area').classList.remove('hidden');
+            render();
+        }
+
+        render();
+    </script>
+ </body>
+</html>
