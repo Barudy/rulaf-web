@@ -118,7 +118,7 @@
     "level1": [
       {
         "rumi": { "q": "Asal perktaan istisqa' ialah:", "options": ["taqa", "saqa", "itqa"], "a": "saqa" },
-        "jawi": { "q": "اصل ڤرکاتاءن استسقاء استسقاء اياله:", "options": ["تقى", " سقى", "اتقى"], "a": "سقى" }
+        "jawi": { "q": "اصل ڤرکاتاءن استسقاء استسقاء اياله:", "options": ["تقى", "سقى", "اتقى"], "a": "سقى" }
       },
       {
         "rumi": { "q": "Istisqa' pada bahasa ialah:", "options": ["Meminta makanan", "Meminta sedekah", "Meminta Air"], "a": "Meminta Air" },
