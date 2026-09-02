@@ -81,13 +81,16 @@ export default function SemakanIbuBapa() {
       // Ekstrak data dari lajur yang wujud dalam pangkalan data anda
       const akhlak = parseFloat(dataMarkah.akhlak) || 0; 
       const kerajinan = parseFloat(dataMarkah.kerajinan_usaha) || 0; 
-      const kerjasama = parseFloat(dataMarkah.kerjasama_kumpulan) || 0; 
+      const kerjasama = parseFloat(dataMarkah.kerjasama_kumpulan) || 0;
+      const hariHadir = parseFloat(dataMarkah.kehadiran) || 0;
+      const jumlahHari = parseFloat(dataMarkah.jumlah_hari) || 140; // Tetapkan jumlah hari sekolah secara manual jika tiada data
+      const kehadiran = (hariHadir / jumlahHari) * 10; // Tukar ke skala 1-10
       
-      // Kira jumlah keseluruhan (Maksimum: 10 + 10 + 10 = 30)
-      const jumlahSahsiah = akhlak + kerajinan + kerjasama;
+      // Kira jumlah keseluruhan (Maksimum: 10 + 10 + 10 + 10 = 40)
+      const jumlahSahsiah = akhlak + kerajinan + kerjasama + kehadiran; 
       
-      // Tukar kepada peratusan 100% (Contoh: Dapat 24/30 = 80%)
-      const peratusSahsiah = (jumlahSahsiah / 30) * 100;
+      // Tukar kepada peratusan 100% (Contoh: Dapat 24/40 = 60%)
+      const peratusSahsiah = (jumlahSahsiah / 40) * 100;
       
       // --- 3. FORMULA GRED PURATA KUMULATIF (60/40) ---
       const skorKeseluruhan = (purataAkademik * 0.6) + (peratusSahsiah * 0.4);
@@ -103,7 +106,7 @@ export default function SemakanIbuBapa() {
         nilai_sahsiah: `${peratusSahsiah.toFixed(0)}`, 
         
         // Purata Skala 1-10 (Jika anda mahu papar: "Sahsiah: 8.0/10" di UI nanti)
-        skala_sahsiah_10: (jumlahSahsiah / 3).toFixed(1),
+        skala_sahsiah_10: (jumlahSahsiah / 4).toFixed(1),
         
         bulan_tahun: 'Ogos 2026',
         tahap_rulaf: dataMarkah.tahap_rulaf || 'Belum Ditetapkan',
