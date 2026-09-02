@@ -166,14 +166,15 @@ export default function SemakanIbuBapa() {
               type="text" 
               value={carian}
               onChange={(e) => setCarian(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && klikSemak()}
               placeholder="Masukkan No. MyKid (Cth: 000000000000)"
               className="flex-1 bg-white dark:bg-[#0F1419] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white p-3 rounded focus:outline-none focus:border-[#1793D1] transition-colors"
             />
             <button 
               onClick={klikSemak}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition duration-300 shadow-lg tracking-wide uppercase"
+              className="w-full bg-[#1793D1] sm:w-auto hover:bg-blue-600 text-white font-bold px-8 py-3 rounded-md transition-colors"
             >
-              SEMAK KEPUTUSAN
+              [ SEMAK ]
             </button>
           </div>
           
