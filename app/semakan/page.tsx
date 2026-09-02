@@ -168,7 +168,7 @@ export default function SemakanIbuBapa() {
               onChange={(e) => setCarian(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && klikSemak()}
               placeholder="Masukkan No. MyKid (Cth: 000000000000)"
-              className="flex-1 bg-white dark:bg-[#0F1419] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white p-3 rounded focus:outline-none focus:border-[#1793D1] transition-colors"
+              className="flex flex-col sm:flex-row w-full bg-white dark:bg-[#0F1419] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white p-3 rounded focus:outline-none focus:border-[#1793D1] transition-colors"
             />
             <button 
               onClick={klikSemak}
