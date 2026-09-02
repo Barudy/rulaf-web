@@ -171,11 +171,12 @@ export default function SemakanIbuBapa() {
             />
             <button 
               onClick={klikSemak}
-              className="bg-[#1793D1] text-white dark:text-[#0F1419] px-6 py-4 flex justify-between items-center font-bold text-sm border-b border-[#1793D1]"
+              className="w-full bg-[#1793D1] sm:w-auto hover:bg-blue-600 text-white font-bold px-8 py-3 rounded-md transition-colors"
             >
               SEMAK
             </button>
           </div>
+          
         )}
 
         {mesejRalat && (
