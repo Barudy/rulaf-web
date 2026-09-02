@@ -72,24 +72,22 @@ export default function SemakanIbuBapa() {
     } else {
       const dataMarkah = data[0];
       
-      // --- 1. PENGIRAAN MARKAH AKADEMIK (JAWI) ---
-      const akademik = parseFloat(dataMarkah.ujian_bertulis) || 0;
+      // --- 1. PENGIRAAN MARKAH AKADEMIK (JAWI & UJIAN) ---
+      const ujianBertulis = parseFloat(dataMarkah.ujian_bertulis) || 0;
       const markahJawi = parseFloat(dataMarkah.markah_jawi) || 0;
-      const purataAkademik = (akademik + markahJawi) / 2; // Purata Akademik
+      const purataAkademik = ((ujianBertulis + markahJawi) / 200) * 100; 
       
       // --- 2. PENGIRAAN SAHSIAH HOLISTIK (SKALA 1-10) ---
-      // Ekstrak data dari lajur yang wujud dalam pangkalan data anda
       const akhlak = parseFloat(dataMarkah.akhlak) || 0; 
       const kerajinan = parseFloat(dataMarkah.kerajinan_usaha) || 0; 
       const kerjasama = parseFloat(dataMarkah.kerjasama_kumpulan) || 0;
-      const hariHadir = parseFloat(dataMarkah.kehadiran) || 0;
-      const jumlahHari = parseFloat(dataMarkah.jumlah_hari) || 140; // Tetapkan jumlah hari sekolah secara manual jika tiada data
-      const kehadiran = (hariHadir / jumlahHari) * 10; // Tukar ke skala 1-10
       
-      // Kira jumlah keseluruhan (Maksimum: 10 + 10 + 10 + 10 = 40)
-      const jumlahSahsiah = akhlak + kerajinan + kerjasama + kehadiran; 
+      // [+] NAMA LAJUR DIBETULKAN (hari_hadir & jumlah_hari_sekolah)
+      const hariHadir = parseFloat(dataMarkah.hari_hadir) || 0;
+      const jumlahHari = parseFloat(dataMarkah.jumlah_hari_sekolah) || 140; 
       
-      // Tukar kepada peratusan 100% (Contoh: Dapat 24/40 = 60%)
+      const kehadiranSkala = ((hariHadir / Math.max(jumlahHari, 1)) * 100) / 10;
+      const jumlahSahsiah = akhlak + kerajinan + kerjasama + kehadiranSkala; 
       const peratusSahsiah = (jumlahSahsiah / 40) * 100;
       
       // --- 3. FORMULA GRED PURATA KUMULATIF (60/40) ---
@@ -101,16 +99,18 @@ export default function SemakanIbuBapa() {
         nama: dataMarkah.nama_murid, 
         kelas: dataMarkah.kelas_id,  
         
-        // Data Peratusan Sahsiah (untuk dipapar pada Kad Sahsiah UI)
-        sahsiah: `${peratusSahsiah.toFixed(0)}%`,
-        nilai_sahsiah: `${peratusSahsiah.toFixed(0)}`, 
+        // [+] STATE BAHARU UNTUK PAPARAN AKADEMIK
+        nilai_akademik: `${purataAkademik.toFixed(1)}%`,
         
-        // Purata Skala 1-10 (Jika anda mahu papar: "Sahsiah: 8.0/10" di UI nanti)
+        // Menggunakan 1 titik perpuluhan untuk ketepatan (Contoh: 77.5%)
+        sahsiah: `${peratusSahsiah.toFixed(1)}%`,
+        nilai_sahsiah: peratusSahsiah.toFixed(1), 
         skala_sahsiah_10: (jumlahSahsiah / 4).toFixed(1),
         
         bulan_tahun: 'Ogos 2026',
         tahap_rulaf: dataMarkah.tahap_rulaf || 'Belum Ditetapkan',
-        skor_akhir: `${skorKeseluruhan.toFixed(2)}`
+        
+        skor_akhir: skorKeseluruhan.toFixed(2)
       });
     }
 };
@@ -136,7 +136,7 @@ export default function SemakanIbuBapa() {
       ...dataMarkah,
       // Hantar peratusan sahsiah yang dikira ke UI
       nilai_sahsiah: `${peratusSahsiah.toFixed(0)}%`, 
-      skor_akhir: `${skorKeseluruhan.toFixed(2)}%`
+      skor_akhir: `${skorKeseluruhan.toFixed(2)}`
     });
 };
 
