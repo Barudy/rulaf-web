@@ -64,27 +64,78 @@ export default function SemakanIbuBapa() {
       .from('markah_murid')
       .select('*')
       .eq('mykid', carian)
+      .order('id', { ascending: false }) 
       .limit(1);
 
     if (error || !data || data.length === 0) {
       setMesejRalat('Rekod tidak dijumpai. Sila pastikan No. MyKid adalah tepat.');
     } else {
-      prosesDataPaparan(data[0]);
+      const dataMarkah = data[0];
+      
+      // --- 1. PENGIRAAN MARKAH AKADEMIK (JAWI) ---
+      const akademik = parseFloat(dataMarkah.ujian_bertulis) || 0;
+      const markahJawi = parseFloat(dataMarkah.markah_jawi) || 0;
+      const purataAkademik = (akademik + markahJawi) / 2; // Purata Akademik
+      
+      // --- 2. PENGIRAAN SAHSIAH HOLISTIK (SKALA 1-10) ---
+      // Ekstrak data dari lajur yang wujud dalam pangkalan data anda
+      const akhlak = parseFloat(dataMarkah.akhlak) || 0; 
+      const kerajinan = parseFloat(dataMarkah.kerajinan_usaha) || 0; 
+      const kerjasama = parseFloat(dataMarkah.kerjasama_kumpulan) || 0; 
+      
+      // Kira jumlah keseluruhan (Maksimum: 10 + 10 + 10 = 30)
+      const jumlahSahsiah = akhlak + kerajinan + kerjasama;
+      
+      // Tukar kepada peratusan 100% (Contoh: Dapat 24/30 = 80%)
+      const peratusSahsiah = (jumlahSahsiah / 30) * 100;
+      
+      // --- 3. FORMULA GRED PURATA KUMULATIF (60/40) ---
+      const skorKeseluruhan = (purataAkademik * 0.6) + (peratusSahsiah * 0.4);
+      
+      // --- 4. PENYELARASAN DATA UNTUK PAPARAN UI ---
+      setMuridDitemui({
+        ...dataMarkah,
+        nama: dataMarkah.nama_murid, 
+        kelas: dataMarkah.kelas_id,  
+        
+        // Data Peratusan Sahsiah (untuk dipapar pada Kad Sahsiah UI)
+        sahsiah: `${peratusSahsiah.toFixed(0)}%`,
+        nilai_sahsiah: `${peratusSahsiah.toFixed(0)}`, 
+        
+        // Purata Skala 1-10 (Jika anda mahu papar: "Sahsiah: 8.0/10" di UI nanti)
+        skala_sahsiah_10: (jumlahSahsiah / 3).toFixed(1),
+        
+        bulan_tahun: 'Ogos 2026',
+        tahap_rulaf: dataMarkah.tahap_rulaf || 'Belum Ditetapkan',
+        skor_akhir: `${skorKeseluruhan.toFixed(2)}`
+      });
     }
-  };
+};
 
   const prosesDataPaparan = (dataMarkah: any) => {
+    // 1. Ambil markah Jawi
     const akademik = parseFloat(dataMarkah.markah_jawi) || 0;
-    const sahsiah = parseFloat(dataMarkah.kehadiran) || 0;
     
-    // Formula Penggredan Kumulatif Dinamik (60% Akademi + 40% Sahsiah)
-    const skorKeseluruhan = ((akademik * 0.6) + (sahsiah * 0.4)).toFixed(2);
+    // 2. TUKAR KEMBALI KEPADA 'kehadiran' (sebab data disimpan dalam lajur kehadiran)
+    const hariHadir = parseFloat(dataMarkah.kehadiran) || 0; 
+    
+    // Tetapkan jumlah hari sekolah secara manual (Contoh: 140 hari). 
+    // Sila ubah nilai 140 ini mengikut jumlah hari persekolahan sebenar.
+    const jumlahHari = 140; 
+    
+    // 3. Kira Peratus Sahsiah
+    const peratusSahsiah = (hariHadir / jumlahHari) * 100;
+    
+    // 4. Formula 60/40 (Gred Purata Kumulatif)
+    const skorKeseluruhan = (akademik * 0.6) + (peratusSahsiah * 0.4);
     
     setMuridDitemui({
       ...dataMarkah,
-      skor_akhir: skorKeseluruhan
+      // Hantar peratusan sahsiah yang dikira ke UI
+      nilai_sahsiah: `${peratusSahsiah.toFixed(0)}%`, 
+      skor_akhir: `${skorKeseluruhan.toFixed(2)}%`
     });
-  };
+};
 
   if (loadingAkaun) {
     return (
@@ -112,12 +163,12 @@ export default function SemakanIbuBapa() {
               type="text" 
               value={carian}
               onChange={(e) => setCarian(e.target.value)}
-              placeholder="Masukkan No. MyKid (Cth: 170807010333)"
+              placeholder="Masukkan No. MyKid (Cth: 000000000000)"
               className="flex-1 bg-white dark:bg-[#0F1419] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white p-3 rounded focus:outline-none focus:border-[#1793D1] transition-colors"
             />
             <button 
               onClick={klikSemak}
-              className="bg-[#1793D1] hover:bg-blue-600 text-white font-bold py-3 px-6 rounded transition-colors"
+              className="w-full bg-[#1793D1] sm:w-auto hover:bg-blue-600 text-white font-bold px-8 py-3 rounded-md transition-colors"
             >
               [ SEMAK ]
             </button>
@@ -150,13 +201,16 @@ export default function SemakanIbuBapa() {
                 <p className="text-gray-900 dark:text-white font-bold text-lg">{muridDitemui.bulan_tahun || 'Belum Ditetapkan'}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-bold mb-1">NO. MYKID:</p>
-                <p className="text-gray-900 dark:text-white font-bold text-lg font-mono">{muridDitemui.mykid}</p>
-              </div>
+  <p className="text-xs text-gray-500 font-bold mb-1">KUMPULAN RULAF:</p>
+  {/* Gunakan warna berbeza mengikut tahap jika mahu, tetapi ini kod asasnya */}
+  <p className="text-lg font-bold text-red-500">
+    {muridDitemui?.tahap_rulaf || 'Belum Ditetapkan'}
+  </p>
+</div>
             </div>
+            
 
             <h3 className="text-[#1793D1] text-sm font-bold mb-4">PENCAPAIAN HOLISTIK (60/40)</h3>
-            
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               {/* Kad Gred Utama */}
               <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 p-4 rounded col-span-1 sm:col-span-4 flex flex-col sm:flex-row items-center justify-between transition-colors duration-300">
@@ -169,12 +223,12 @@ export default function SemakanIbuBapa() {
 
               {/* Kad Pecahan */}
               <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 p-4 rounded transition-colors duration-300">
-                <p className="text-xs text-gray-500 font-bold mb-2">AKADEMIK (JAWI)</p>
+                <p className="text-xs text-gray-500 font-bold mb-2">AKADEMIK</p>
                 <p className="text-xl font-bold text-gray-900 dark:text-white">{muridDitemui.markah_jawi || '0'}%</p>
               </div>
               <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 p-4 rounded transition-colors duration-300">
-                <p className="text-xs text-gray-500 font-bold mb-2">SAHSIAH (KEHADIRAN)</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{muridDitemui.kehadiran || '0'}%</p>
+                <p className="text-xs text-gray-500 font-bold mb-2">SAHSIAH</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{muridDitemui?.nilai_sahsiah || '0'}%</p>
               </div>
               <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 p-4 rounded transition-colors duration-300">
                 <p className="text-xs text-gray-500 font-bold mb-2">BACAAN QURAN</p>

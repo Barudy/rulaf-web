@@ -107,7 +107,8 @@ export default function PengurusanMuridPage() {
         hafazan: form.hafazan || 'Gred A',
         kerajinan_usaha: parseInt(form.kerajinan_usaha) || 0,
         kerjasama_kumpulan: parseInt(form.kerjasama_kumpulan) || 0,
-        akhlak: parseInt(form.akhlak) || 0
+        akhlak: parseInt(form.akhlak) || 0,
+        tahap_rulaf: borangMarkah[student.mykid].tahap_rulaf
       };
     });
 
@@ -194,6 +195,7 @@ export default function PengurusanMuridPage() {
                     <th className="p-3 border-b border-gray-200 dark:border-gray-800 w-[130px]">Quran</th>
                     <th className="p-3 border-b border-gray-200 dark:border-gray-800 w-[130px]">Hafazan</th>
                     <th className="p-3 border-b border-gray-200 dark:border-gray-800">Sikap (Rjn, Kjsm, Adb) / 10</th>
+                    <th className="p-3 border-b border-gray-200 dark:border-gray-800">Tahap RuLaF</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -297,6 +299,21 @@ export default function PengurusanMuridPage() {
                           />
                         </div>
                       </td>
+                      <td>
+  <select
+    // 1. Tangkap nilai sedia ada atau jadikan kosong
+    value={borangMarkah[m.mykid]?.tahap_rulaf || ''} 
+    // 2. Tembak fungsi handleInput apabila pilihan ditukar
+    onChange={(e) => handleInput(m.mykid, 'tahap_rulaf', e.target.value)}
+    className="w-12 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1 text-center p-2 rounded w-full"
+  >
+    <option value="">- Pilih Tahap -</option>
+    <option value="RuLaF Khas">RuLaF Khas</option>
+    <option value="RuLaF Alif">RuLaF Alif</option>
+    <option value="RuLaF Ba">RuLaF Ba</option>
+    <option value="RuLaF Ta">RuLaF Ta</option>
+  </select>
+</td>
                     </tr>
                   ))}
                 </tbody>
