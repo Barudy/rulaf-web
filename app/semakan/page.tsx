@@ -100,7 +100,7 @@ export default function SemakanIbuBapa() {
         kelas: dataMarkah.kelas_id,  
         
         // [+] STATE BAHARU UNTUK PAPARAN AKADEMIK
-        nilai_akademik: `${purataAkademik.toFixed(1)}%`,
+        nilai_akademik: `${purataAkademik.toFixed(1)}`,
         
         // Menggunakan 1 titik perpuluhan untuk ketepatan (Contoh: 77.5%)
         sahsiah: `${peratusSahsiah.toFixed(1)}%`,
@@ -227,7 +227,7 @@ export default function SemakanIbuBapa() {
               {/* Kad Pecahan */}
               <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 p-4 rounded transition-colors duration-300">
                 <p className="text-xs text-gray-500 font-bold mb-2">AKADEMIK</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white">{muridDitemui.markah_jawi || '0'}%</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white">{muridDitemui?.nilai_akademik || '0'}%</p>
               </div>
               <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 p-4 rounded transition-colors duration-300">
                 <p className="text-xs text-gray-500 font-bold mb-2">SAHSIAH</p>
