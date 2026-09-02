@@ -172,7 +172,7 @@ export default function SemakanIbuBapa() {
             />
             <button 
               onClick={klikSemak}
-              className="w-full bg-[#1793D1] sm:w-auto hover:bg-blue-600 text-white font-bold px-8 py-3 rounded-md transition-colors"
+              className="flex flex-col sm:flex-row bg-[#1793D1] sm:w-auto hover:bg-blue-600 text-white font-bold px-8 py-3 rounded-md transition-colors"
             >
               [ SEMAK ]
             </button>
