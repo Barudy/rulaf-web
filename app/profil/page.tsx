@@ -25,43 +25,55 @@ export default function ProfilPage() {
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Data Matriks Kerajinan Harian (Heatmap GitHub Style)
-  const [dataKerajinan, setDataKerajinan] = useState<HariKerajinan[]>([
-    { tarikh: '2026-09-01', tugasanDiberi: 3, tugasanSiap: 3, hadir: true },
-    { tarikh: '2026-09-02', tugasanDiberi: 2, tugasanSiap: 2, hadir: true },
-    { tarikh: '2026-09-03', tugasanDiberi: 3, tugasanSiap: 1, hadir: true },
-    { tarikh: '2026-09-04', tugasanDiberi: 2, tugasanSiap: 0, hadir: true },
-    { tarikh: '2026-09-05', tugasanDiberi: 0, tugasanSiap: 0, hadir: false },
-    { tarikh: '2026-09-06', tugasanDiberi: 3, tugasanSiap: 2, hadir: true },
-    { tarikh: '2026-09-07', tugasanDiberi: 2, tugasanSiap: 2, hadir: true },
-  ]);
+  const [dataKerajinan, setDataKerajinan] = useState<HariKerajinan[]>([]);
 
   useEffect(() => {
     semakSesi();
   }, []);
 
   const semakSesi = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      router.push('/login'); 
-    } else {
-      setUserEmail(session.user.email || '');
-      const { data } = await supabase
-        .from('profil_pengguna')
-        .select('*')
-        .eq('email', session.user.email)
-        .single();
-      
-      if (data) {
-        setProfil({
-          nama: data.nama || '',
-          umur: data.umur || '',
-          jantina: data.jantina || '',
-          peranan: data.peranan || 'Murid',
-          mykid: data.mykid || '0000000000000'
-        });
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    router.push('/login'); 
+  } else {
+    setUserEmail(session.user.email || '');
+    const { data } = await supabase
+      .from('profil_pengguna')
+      .select('*')
+      .eq('email', session.user.email)
+      .single();
+    
+    if (data) {
+      const mykidMurid = data.mykid || '0000000000000';
+      setProfil({
+        nama: data.nama || '',
+        umur: data.umur || '',
+        jantina: data.jantina || '',
+        peranan: data.peranan || 'Murid',
+        mykid: mykidMurid
+      });
+
+      // 🔑 SEDUT REKOD KERAJINAN SEBENAR DARI SUPABASE
+      if (mykidMurid && mykidMurid !== '0000000000000') {
+        const { data: rekodHarian } = await supabase
+          .from('rekod_kerajinan_harian')
+          .select('*')
+          .eq('mykid', mykidMurid)
+          .order('tarikh', { ascending: true });
+
+        if (rekodHarian && rekodHarian.length > 0) {
+          const formattedData: HariKerajinan[] = rekodHarian.map((item: any) => ({
+            tarikh: item.tarikh,
+            tugasanDiberi: 2, // Nilai sandaran sasaran harian
+            tugasanSiap: item.tugasan_siap || 0,
+            hadir: item.status_hadir ?? true
+          }));
+          setDataKerajinan(formattedData);
+        }
       }
     }
-  };
+  }
+};
 
   const simpanProfil = async () => {
     setIsUpdating(true);
