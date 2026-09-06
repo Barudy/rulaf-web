@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabaseClient';
-import bankSoalan from './../../data/soalan.json';
+import bankSoalan from '../../data/soalan.json';
 import Link from 'next/link';
 
-export default function PermainanKonsolPage() {
+export default function PermainanKonsolRPGPage() {
   const params = useParams();
   const router = useRouter();
   const gameId = params.id as string;
@@ -14,28 +14,32 @@ export default function PermainanKonsolPage() {
   const [tema, setTema] = useState('dark');
   const [gameMeta, setGameMeta] = useState<any>(null);
   const [soalanList, setSoalanList] = useState<any[]>([]);
-  const [currentLevel, setCurrentLevel] = useState(1); // Tahap 1, 2, 3
+  const [currentLevel, setCurrentLevel] = useState(1);
   const [maxLevel, setMaxLevel] = useState(1);
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [score, setScore] = useState(0);
-  const [isFinished, setIsFinished] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Pilihan Dwi-Tulisan (Level 1 Sahaja)
+  // ⚔️ RPG Battle States
+  const [playerHp, setPlayerHp] = useState(100);
+  const [maxPlayerHp] = useState(100);
+  const [enemyHp, setEnemyHp] = useState(100);
+  const [maxEnemyHp, setMaxEnemyHp] = useState(100);
+  const [isBossLevel, setIsBossLevel] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [isVictory, setIsVictory] = useState(false);
+
+  // 📊 Statistik Jawapan & Leaderboard
+  const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [mistakes, setMistakes] = useState(0);
+  const [finalScore, setFinalScore] = useState(0);
+  const [senaraiLeaderboard, setSenaraiLeaderboard] = useState<any[]>([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+  // 📝 Mod Tulisan & Soalan
   const [modeTulisan, setModeTulisan] = useState<'dwi' | 'jawi' | 'rumi'>('dwi');
-
-  // States untuk interaktiviti
-  const [selectedOpt, setSelectedIdx] = useState<number | null>(null);
+  const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
-  const [feedbackMsg, setFeedbackMsg] = useState('');
-
-  // Click-to-Order (Drag & Drop replacement)
-  const [selectedWords, setSelectedWords] = useState<string[]>([]);
-  const [scrambledWords, setScrambledWords] = useState<string[]>([]);
-
-  // Canvas menulis Jawi
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
+  const [battleLog, setBattleLog] = useState('');
 
   useEffect(() => {
     const temaSediaAda = localStorage.getItem('theme') || 'dark';
@@ -46,11 +50,8 @@ export default function PermainanKonsolPage() {
   const tarikDataGame = async () => {
     setIsLoading(true);
     let meta: any = null;
-    let soalan: any[] = [];
 
-    // Cari terus di soalan.json
     const dataSiri = (bankSoalan as any)[gameId];
-
     if (dataSiri) {
       meta = {
         subjek: dataSiri.subjek,
@@ -61,7 +62,6 @@ export default function PermainanKonsolPage() {
         level3: dataSiri.level3 || []
       };
     } else {
-      // Cuba tarik dari database Supabase jika ia kuiz ciptaan guru
       try {
         const { data } = await supabase.from('rulaf_kuiz').select('*').eq('id', gameId).single();
         if (data) {
@@ -81,8 +81,6 @@ export default function PermainanKonsolPage() {
 
     if (meta) {
       setGameMeta(meta);
-      
-      // Kira maxLevel yang sahih untuk siri ini
       let calculatedMax = 1;
       if (meta.level3 && meta.level3.length > 0) calculatedMax = 3;
       else if (meta.level2 && meta.level2.length > 0) calculatedMax = 2;
@@ -90,390 +88,428 @@ export default function PermainanKonsolPage() {
 
       const soalanSemasa = meta[`level${currentLevel}`] || [];
       setSoalanList(soalanSemasa);
-      setupInteraktiviti(soalanSemasa[0]);
-    } else {
-      setGameMeta(null);
-      setSoalanList([]);
+
+      // Inisialisasi Musuh & Status Bos
+      const isBoss = currentLevel === calculatedMax;
+      setIsBossLevel(isBoss);
+      const enemyBaseHp = isBoss ? 150 : 100;
+      setEnemyHp(enemyBaseHp);
+      setMaxEnemyHp(enemyBaseHp);
+      setBattleLog(isBoss ? '⚠️ AMARAN: Bos muncul! Kesilapan akan memulihkan nyawa Bos!' : 'Pertarungan bermula! Serang musuh dengan menjawab tepat.');
+      resetTurn();
     }
     setIsLoading(false);
   };
 
-  const setupInteraktiviti = (soalan: any) => {
-    if (!soalan) return;
+  const resetTurn = () => {
     setIsAnswered(false);
-    setSelectedIdx(null);
-    setFeedbackMsg('');
-    setSelectedWords([]);
-
-    // Dapatkan sasaran soalan berasaskan mode tulisan semasa di Tahap 1
-    const soalanSemasa = currentLevel === 1 
-      ? (modeTulisan === 'rumi' ? soalan.rumi : soalan.jawi) 
-      : (soalan.jawi || soalan.rumi);
-
-    if (soalanSemasa && soalanSemasa.q && (soalanSemasa.q.toLowerCase().includes("susun") || soalanSemasa.q.toLowerCase().includes("nyatakan"))) {
-      const kataSplit = soalanSemasa.a.split(" ");
-      setScrambledWords([...kataSplit].sort(() => Math.random() - 0.5));
-    }
+    setSelectedOpt(null);
   };
 
-  // 🔊 Sebutan Suara Lafaz Arab
-  const mainkanAudioSintesis = (teks: string) => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(teks);
-      utterance.lang = 'ar-SA';
-      utterance.rate = 0.8;
-      window.speechSynthesis.speak(utterance);
-    } else {
-      alert('Maaf, fungsi audio tidak disokong pada pelayar peranti ini.');
-    }
-  };
+  // ⚔️ Enjin Tempur Berasaskan Jawapan
+  const serang = (jawapanDipilih: string, idx: number) => {
+    if (isAnswered || isGameOver || isVictory) return;
 
-  const pilihKataSusun = (kata: string) => {
-    setSelectedWords(prev => [...prev, kata]);
-    setScrambledWords(prev => prev.filter(w => w !== kata));
-  };
-
-  const batalKataSusun = (kata: string) => {
-    setScrambledWords(prev => [...prev, kata]);
-    setSelectedWords(prev => prev.filter(w => w !== kata));
-  };
-
-  // Kanvas Lakar Jawi
-  const mulakanLukis = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.beginPath();
-    ctx.moveTo(e.nativeEvent.offsetX, e.clientY - canvas.getBoundingClientRect().top);
-    setIsDrawing(true);
-  };
-
-  const lukis = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.lineTo(e.nativeEvent.offsetX, e.clientY - canvas.getBoundingClientRect().top);
-    ctx.strokeStyle = tema === 'dark' ? '#1793D1' : '#0F1419';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-  };
-
-  const padamKanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const hantarJawapan = (jawapanDipilih?: string) => {
-    if (isAnswered) return;
+    setSelectedOpt(idx);
+    setIsAnswered(true);
 
     const soalan = soalanList[currentIdx];
     const targetObj = currentLevel === 1 
       ? (modeTulisan === 'rumi' ? soalan.rumi : soalan.jawi) 
       : (soalan.jawi || soalan.rumi);
-    const jawapanBetul = targetObj.a;
+    
+    const isCorrect = jawapanDipilih.trim() === targetObj.a.trim();
+    const damageDealt = Math.ceil(maxEnemyHp / Math.max(soalanList.length, 1));
+    const damageTaken = 25; // Penalti nyawa hero jika salah
 
-    let betul = false;
-    if (jawapanDipilih) {
-      betul = jawapanDipilih === jawapanBetul;
-    } else if (selectedWords.length > 0) {
-      betul = selectedWords.join(" ") === jawapanBetul;
-    }
+    if (isCorrect) {
+      setCorrectAnswers(prev => prev + 1);
+      const nextEnemyHp = Math.max(0, enemyHp - damageDealt);
+      setEnemyHp(nextEnemyHp);
+      setBattleLog(`💥 SERANGAN BERJAYA! Anda mengenakan ${damageDealt} kerosakan kepada musuh!`);
 
-    if (betul) {
-      setScore(prev => prev + 1);
-      setFeedbackMsg("🎉 Cemerlang! Jawapan anda adalah tepat sekali.");
+      if (nextEnemyHp <= 0) {
+        setBattleLog('🎉 MUSUH TEWAS! Misi berjaya diteruskan.');
+      }
     } else {
-      setFeedbackMsg(`❌ Kurang Tepat. Jawapan yang betul ialah: "${jawapanBetul}"`);
+      setMistakes(prev => prev + 1);
+      const nextPlayerHp = Math.max(0, playerHp - damageTaken);
+      setPlayerHp(nextPlayerHp);
+
+      if (isBossLevel) {
+        // Mekanik Bos: Kesilapan menetapkan semula HP Bos ke tahap maksimum
+        setEnemyHp(maxEnemyHp);
+        setBattleLog(`❌ JAWAPAN SALAH! Bos memulihkan HP ke penuh dan menyerang anda (${damageTaken} kerosakan)!`);
+      } else {
+        setBattleLog(`❌ JAWAPAN SALAH! Anda menerima serangan musuh sebanyak ${damageTaken} kerosakan!`);
+      }
+
+      if (nextPlayerHp <= 0) {
+        setIsGameOver(true);
+        setBattleLog('💀 ANDA TEWAS! Nyawa anda telah habis.');
+      }
     }
-    setIsAnswered(true);
   };
 
-  const maraMisi = () => {
-    if (currentIdx + 1 < soalanList.length) {
+  const maraPusingan = () => {
+    if (currentIdx + 1 < soalanList.length && enemyHp > 0) {
       setCurrentIdx(prev => prev + 1);
-      setupInteraktiviti(soalanList[currentIdx + 1]);
+      resetTurn();
     } else {
+      // Jika tamat soalan atau musuh mati
       if (currentLevel < maxLevel) {
         setCurrentLevel(prev => prev + 1);
         setCurrentIdx(0);
+        setPlayerHp(prev => Math.min(maxPlayerHp, prev + 30)); // Pulihkan sedikit HP
       } else {
-        setIsFinished(true);
-        simpanMarkahSupabase();
+        // Kemenangan Penuh Keseluruhan Tahap
+        selesaikanPermainan();
       }
     }
   };
 
-  const simpanMarkahSupabase = async () => {
+  // 🏆 Formula Skor & Penyegerakan Pangkalan Data (Leaderboard & Kerajinan +3)
+  const selesaikanPermainan = async () => {
+    setIsVictory(true);
+
+    // Formula Skor: (Level * 100) + (Betul * 10) - (Salah * 5)
+    const skorTerkira = Math.max(0, (currentLevel * 100) + ((correctAnswers + 1) * 10) - (mistakes * 5));
+    setFinalScore(skorTerkira);
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        const { data: profil } = await supabase.from('profil_pengguna').select('mykid, nama').eq('email', session.user.email).single();
-        if (profil && profil.mykid) {
-          const totalSoalan = soalanList.length * maxLevel;
-          const peratusAkademik = Math.round((score / totalSoalan) * 100) || 80;
-          
-          await supabase.from('markah_murid').upsert({
-            mykid: profil.mykid,
-            nama_murid: profil.nama,
-            markah_jawi: peratusAkademik,
-            bulan_tahun: "Ogos 2026"
-          }, { onConflict: 'mykid' });
-        }
+        const { data: profil } = await supabase
+          .from('profil_pengguna')
+          .select('mykid, nama')
+          .eq('email', session.user.email)
+          .single();
+
+        const mykidMurid = profil?.mykid || '000000000000';
+        const namaMurid = profil?.nama || session.user.email;
+        const tarikhHariIni = new Date().toISOString().split('T')[0];
+
+        // 1. Catat ke Papan Pendahulu (rulaf_leaderboard)
+        await supabase.from('rulaf_leaderboard').insert([
+          {
+            mykid: mykidMurid,
+            nama_murid: namaMurid,
+            skor: skorTerkira,
+            level_capai: currentLevel,
+            jawapan_betul: correctAnswers + 1,
+            jawapan_salah: mistakes,
+            tarikh: tarikhHariIni
+          }
+        ]);
+
+        // 2. Ganjaran Bonus +3 Markah ke rekod_kerajinan_harian
+        await supabase.from('rekod_kerajinan_harian').upsert({
+          tarikh: tarikhHariIni,
+          mykid: mykidMurid,
+          subjek: gameMeta?.subjek || 'Jawi',
+          tugasan_siap: 3, // Bonus maksimum siap penuh aktiviti arked
+          status_hadir: true,
+          status_kehadiran: 'hadir',
+          catatan: `Bonus Arked RPG (+3 Kerajinan: Skor ${skorTerkira})`
+        }, { onConflict: 'tarikh,mykid' });
       }
+
+      // Tarik semula senarai leaderboard terkini
+      tarikLeaderboard();
+    } catch (err) {
+      console.error('Ralat penyegerakan markah RPG:', err);
+    }
+  };
+
+  const tarikLeaderboard = async () => {
+    try {
+      const { data } = await supabase
+        .from('rulaf_leaderboard')
+        .select('*')
+        .order('skor', { ascending: false })
+        .limit(10);
+
+      if (data) setSenaraiLeaderboard(data);
     } catch (e) {
-      console.error("Gagal simpan markah ke Supabase:", e);
+      console.error(e);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center font-mono text-gray-500">
-        <p className="animate-pulse text-[#1793D1]">Menghubungkan konsol permainan asli...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center font-mono">
+        <p className="animate-pulse text-[#1793D1]">Menyediakan medan pertempuran RPG RuLaF...</p>
       </div>
     );
   }
 
   const soalanSemasa = soalanList[currentIdx];
-  
-  // Sembuhkan ralat jika level tidak dijumpai
-  if (!gameMeta || soalanList.length === 0 || !soalanSemasa) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex flex-col items-center justify-center p-6 text-gray-800 dark:text-white">
-        <div className="max-w-md w-full bg-white dark:bg-[#171A21] border border-red-500 p-8 rounded shadow-lg text-center">
-          <p className="text-red-500 font-bold mb-4">⚠️ Misi Tidak Ditemui!</p>
-          <p className="text-sm text-gray-500 mb-6">Misi pelajaran ini kosong atau gagal dimuat naik ke peranti.</p>
-          <Link href="/permainan" className="bg-gray-800 text-white px-5 py-2.5 rounded text-xs font-bold hover:bg-[#1793D1] transition-all">[ Balik ke Arked ]</Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Tentukan soalan siri berasaskan mode tulisan yang dipilih oleh murid (Level 1)
   const objSoalan = currentLevel === 1 
-    ? (modeTulisan === 'rumi' ? soalanSemasa.rumi : soalanSemasa.jawi) 
-    : (soalanSemasa.jawi);
+    ? (modeTulisan === 'rumi' ? soalanSemasa?.rumi : soalanSemasa?.jawi) 
+    : (soalanSemasa?.jawi || soalanSemasa?.rumi);
 
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
-      <div className="max-w-4xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1] rounded shadow-lg overflow-hidden transition-all duration-300">
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-3 sm:p-8">
+      <div className="max-w-4xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded-xl shadow-xl overflow-hidden">
         
-        {/* Banner */}
-        <div className="bg-[#1793D1] text-white dark:text-[#0F1419] px-6 py-4 flex justify-between items-center font-bold text-sm">
-          <span>🎮 KONSOL AKTIF :: {gameMeta.tajuk.toUpperCase()}</span>
-          <Link href="/permainan" className="text-white hover:underline">[ ⬅️ Balik Ke Arked ]</Link>
+        {/* Bar Atas Konsol */}
+        <div className="bg-[#1793D1] text-white px-5 py-3 flex justify-between items-center text-xs font-bold">
+          <span>⚔️ PERTEMPURAN RPG :: {gameMeta?.tajuk?.toUpperCase()}</span>
+          <Link href="/permainan" className="hover:underline">[ ⬅️ Balik Ke Arked ]</Link>
         </div>
 
-        <div className="p-6 sm:p-10">
-          {!isFinished ? (
-            <div className="space-y-8">
-              
-              {/* Level Progress */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-100 dark:bg-[#11141b] p-4 rounded border border-gray-200 dark:border-gray-800">
-                <div>
-                  <span className="text-xs text-gray-500 font-bold block">TAHAP SEMASA:</span>
-                  <span className="text-lg font-black text-[#1793D1]">
-                    {currentLevel === 1 ? `TAHAP 1 (MOD: ${modeTulisan.toUpperCase()})` : `TAHAP ${currentLevel} (JAWI SAHAJA)`}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs text-gray-500 font-bold block">SKOR SEMASA:</span>
-                  <span className="text-lg font-black text-green-600 dark:text-green-400">{score} Mata</span>
-                </div>
-              </div>
-
-              {/* Selector Mode Tulisan (Hanya terpapar di Tahap 1 untuk menyokong teori multimedia) */}
-              {currentLevel === 1 && (
-                <div className="flex gap-2 justify-center bg-gray-100 dark:bg-[#11141b] p-3 rounded-lg border border-gray-200 dark:border-gray-800">
-                  <span className="text-xs font-bold text-gray-500 self-center mr-2">PILIH TULISAN:</span>
-                  <button
-                    onClick={() => { setModeTulisan('dwi'); setupInteraktiviti(soalanSemasa); }}
-                    className={`px-3 py-1 text-xs font-bold rounded border transition-all ${modeTulisan === 'dwi' ? 'bg-[#1793D1] text-[#0F1419] border-[#1793D1]' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-                  >
-                    Dwi-Tulisan
-                  </button>
-                  <button
-                    onClick={() => { setModeTulisan('jawi'); setupInteraktiviti(soalanSemasa); }}
-                    className={`px-3 py-1 text-xs font-bold rounded border transition-all ${modeTulisan === 'jawi' ? 'bg-[#1793D1] text-[#0F1419] border-[#1793D1]' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-                  >
-                    Jawi Sahaja
-                  </button>
-                  <button
-                    onClick={() => { setModeTulisan('rumi'); setupInteraktiviti(soalanSemasa); }}
-                    className={`px-3 py-1 text-xs font-bold rounded border transition-all ${modeTulisan === 'rumi' ? 'bg-[#1793D1] text-[#0F1419] border-[#1793D1]' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}
-                  >
-                    Rumi Sahaja
-                  </button>
-                </div>
-              )}
-
-              {/* Soalan Box */}
-              {objSoalan ? (
-                <div className="space-y-6">
-                  <div className="p-6 bg-gray-50 dark:bg-[#11141b]/40 border border-gray-200 dark:border-gray-800 rounded">
-                    <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-                      <span className="bg-[#1793D1] text-[#0F1419] px-2 py-0.5 text-xs font-bold rounded">
-                        Soalan {currentIdx + 1} daripada {soalanList.length}
-                      </span>
-                      {objSoalan.q.toLowerCase().includes("niat") && (
-                        <button 
-                          onClick={() => mainkanAudioSintesis(objSoalan.a)} 
-                          className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold rounded flex items-center gap-1.5 transition-colors"
-                        >
-                          🔊 Dengar Sebutan Arab
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Pembentangan visual berpandukan pilihan mode tulisan */}
-                    <div className="space-y-3">
-                      {currentLevel === 1 && modeTulisan === 'dwi' ? (
-                        <>
-                          <h2 className="text-2xl font-black text-gray-950 dark:text-white leading-relaxed text-right font-sans">
-                            {soalanSemasa.jawi?.q}
-                          </h2>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                            ({soalanSemasa.rumi?.q})
-                          </p>
-                        </>
-                      ) : (
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-relaxed">
-                          {objSoalan.q}
-                        </h2>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 1. INTERAKTIF: Klik Susun Ayat */}
-                  {(objSoalan.q.toLowerCase().includes("susun") || objSoalan.q.toLowerCase().includes("nyatakan")) ? (
-                    <div className="space-y-4">
-                      <div className="min-h-16 p-4 bg-gray-50 dark:bg-[#0F1419] border-2 border-dashed border-gray-300 dark:border-gray-800 rounded flex flex-wrap gap-2 items-center">
-                        {selectedWords.length === 0 && <span className="text-xs text-gray-400">Susun jawapan anda di sini...</span>}
-                        {selectedWords.map((word, i) => (
-                          <button key={i} onClick={() => batalKataSusun(word)} className="bg-[#1793D1] text-[#0F1419] font-bold px-3 py-1.5 rounded text-xs hover:bg-red-500 hover:text-white transition-all">
-                            {word}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {scrambledWords.map((word, i) => (
-                          <button key={i} onClick={() => pilihKataSusun(word)} className="bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-300 px-3 py-1.5 rounded text-xs hover:border-amber-500 border border-transparent transition-colors">
-                            {word}
-                          </button>
-                        ))}
-                      </div>
-                      {!isAnswered && (
-                        <button onClick={() => hantarJawapan()} className="w-full py-3 bg-[#1793D1] text-[#0F1419] font-bold text-sm rounded shadow hover:bg-blue-600 transition-colors">
-                          [ HANTAR JAWAPAN SUSUNAN ]
-                        </button>
-                      )}
-                    </div>
-                  ) : objSoalan.q.toLowerCase().includes("tulis") ? (
-                    // 2. INTERAKTIF: Kanvas Menulis Jawi Tunggal
-                    <div className="space-y-4">
-                      <p className="text-xs text-amber-500">Sila tulis lakar huruf tunggal anda di dalam kotak kanvas di bawah:</p>
-                      <div className="relative border-2 border-gray-300 dark:border-gray-800 rounded overflow-hidden bg-white dark:bg-gray-950">
-                        <canvas
-                          ref={canvasRef}
-                          width={400}
-                          height={200}
-                          onMouseDown={mulakanLukis}
-                          onMouseMove={lukis}
-                          onMouseUp={() => setIsDrawing(false)}
-                          onMouseLeave={() => setIsDrawing(false)}
-                          className="mx-auto cursor-crosshair"
-                        />
-                      </div>
-                      <div className="flex gap-4">
-                        <button onClick={padamKanvas} className="px-4 py-2 bg-gray-500 text-white text-xs font-bold rounded">
-                          Padam Kanvas
-                        </button>
-                        <button onClick={() => hantarJawapan("A")} className="flex-1 py-2.5 bg-green-600 text-white text-xs font-bold rounded">
-                          Selesai Menulis (Sahkan)
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    // 3. MULTIPLE CHOICE STANDARD
-                    <div className="grid grid-cols-1 gap-3">
-                      {objSoalan.options.map((opt: string, idx: number) => {
-                        // Sembuhkan ralat jika data rumi tak wujud
-                        const optJawi = currentLevel === 1 && modeTulisan === 'dwi' ? soalanSemasa.jawi?.options[idx] : null;
-                        
-                        return (
-                          <button
-                            key={idx}
-                            disabled={isAnswered}
-                            onClick={() => {
-                              setSelectedIdx(idx);
-                              hantarJawapan(opt);
-                            }}
-                            className={`w-full text-left p-4 rounded border text-sm font-medium transition-all ${
-                              isAnswered 
-                                ? opt === objSoalan.a
-                                  ? 'bg-green-100 dark:bg-green-950/30 border-green-500 text-green-700 dark:text-green-400'
-                                  : selectedOpt === idx
-                                    ? 'bg-red-100 dark:bg-red-950/30 border-red-500 text-red-700 dark:text-red-400'
-                                    : 'bg-white dark:bg-[#171A21] border-gray-200 dark:border-gray-800 opacity-60'
-                                : 'bg-white dark:bg-[#171A21] border-gray-200 dark:border-gray-800 hover:border-[#1793D1]/50'
-                            }`}
-                          >
-                            {currentLevel === 1 && modeTulisan === 'dwi' && optJawi ? (
-                              <div className="flex flex-col text-right">
-                                <span className="font-bold text-base text-gray-950 dark:text-white font-sans">{optJawi}</span>
-                                <span className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-left">({opt})</span>
-                              </div>
-                            ) : (
-                              <span>{opt}</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Feedback Area */}
-                  {isAnswered && (
-                    <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded border border-blue-200 dark:border-blue-900/50 text-sm">
-                      <p className="font-bold text-gray-900 dark:text-white mb-3">{feedbackMsg}</p>
-                      <button onClick={maraMisi} className="px-5 py-2 bg-[#1793D1] text-[#0F1419] font-bold rounded text-xs shadow hover:bg-blue-600 transition-colors">
-                        [ TERUSKAN MISI TERDEKAT ]
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-center text-gray-400 py-10">Misi soalan tidak ditemui.</p>
-              )}
-            </div>
-          ) : (
-            // Selesai Permainan
-            <div className="text-center space-y-6 py-10">
-              <span className="text-6xl block">🏆</span>
-              <h1 className="text-3xl font-black text-gray-900 dark:text-white">Semua Misi Selesai!</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Tahniah! Anda telah berjaya menyelesaikan keseluruhan tahap (Tadrij) dengan skor akhir:
-              </p>
-              <div className="inline-block bg-green-500/10 border border-green-500 text-green-500 font-black text-2xl px-8 py-3 rounded">
-                {score} Mata
-              </div>
-              <p className="text-xs text-gray-400">
-                Data prestasi anda telah berjaya disegerakkan (sync) terus ke portal penggredan guru.
-              </p>
-              <div className="pt-6">
-                <Link href="/permainan" className="bg-[#1793D1] text-[#0F1419] font-bold px-6 py-3 rounded text-sm">
-                  [ KEMBALI KE ARKED ]
-                </Link>
-              </div>
+        <div className="p-4 sm:p-8 space-y-6">
+          
+          {/* Amaran Peringkat Bos */}
+          {isBossLevel && (
+            <div className="bg-red-950/40 border border-red-600/80 text-red-400 p-3 rounded-lg text-xs font-bold text-center animate-pulse">
+              ⚠️ TAHAP BOS AKHIR — Kesilapan jawapan akan memulihkan nyawa Bos ke tahap maksimum!
             </div>
           )}
-        </div>
 
+          {/* ARENA PERTEMPURAN: BILAH HP HERO VS MUSUH */}
+          <div className="bg-gray-100 dark:bg-[#0F1419] border border-gray-200 dark:border-gray-800 rounded-xl p-4 sm:p-6 shadow-inner">
+            <div className="flex justify-between items-center gap-4">
+              
+              {/* Sisi Hero */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-2xl select-none">🧙‍♂️</span>
+                  <div>
+                    <span className="text-xs font-bold text-gray-900 dark:text-white block">Hero Murid</span>
+                    <span className="text-[10px] text-gray-400">{playerHp}/{maxPlayerHp} HP</span>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-300 dark:bg-gray-700 h-3.5 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-emerald-500 h-full transition-all duration-500" 
+                    style={{ width: `${(playerHp / maxPlayerHp) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Status Pusingan / Pangkat */}
+              <div className="text-center px-2">
+                <span className="text-[10px] font-bold text-[#1793D1] block uppercase tracking-wider">Tahap {currentLevel}</span>
+                <span className="text-xs font-black text-amber-500">VS</span>
+              </div>
+
+              {/* Sisi Musuh / Bos */}
+              <div className="flex-1 text-right">
+                <div className="flex items-center justify-end gap-2 mb-1.5">
+                  <div>
+                    <span className="text-xs font-bold text-gray-900 dark:text-white block">
+                      {isBossLevel ? 'Naga Ifrit (Bos)' : 'Pendekar Bayang'}
+                    </span>
+                    <span className="text-[10px] text-gray-400">{enemyHp}/{maxEnemyHp} HP</span>
+                  </div>
+                  <span className="text-2xl select-none">{isBossLevel ? '🐉' : '🛡️'}</span>
+                </div>
+                <div className="w-full bg-gray-300 dark:bg-gray-700 h-3.5 rounded-full overflow-hidden flex justify-end">
+                  <div 
+                    className="bg-rose-500 h-full transition-all duration-500" 
+                    style={{ width: `${(enemyHp / maxEnemyHp) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+            </div>
+
+            {/* Log Pertarungan */}
+            <p className="text-center text-xs mt-4 pt-3 border-t border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 font-sans font-semibold">
+              {battleLog}
+            </p>
+          </div>
+
+          {/* KOTAK SOALAN & INTERAKSI (JIKA BELUM GAME OVER / MENANG) */}
+          {!isGameOver && !isVictory && objSoalan && (
+            <div className="space-y-6">
+              
+              {/* Pemilihan Dwi-Tulisan (Tahap 1) */}
+              {currentLevel === 1 && (
+                <div className="flex justify-center gap-2">
+                  {(['dwi', 'jawi', 'rumi'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      onClick={() => setModeTulisan(mode)}
+                      className={`px-3 py-1 text-xs rounded border font-bold transition-all ${
+                        modeTulisan === mode 
+                          ? 'bg-[#1793D1] text-white border-[#1793D1]' 
+                          : 'bg-transparent text-gray-400 border-gray-300 dark:border-gray-700'
+                      }`}
+                    >
+                      {mode === 'dwi' ? 'Dwi-Tulisan' : mode === 'jawi' ? 'Jawi' : 'Rumi'}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Kad Paparan Soalan & Sokongan Gambar */}
+              <div className="bg-gray-50 dark:bg-[#11141b]/60 border border-gray-200 dark:border-gray-800 p-6 rounded-xl text-center space-y-4">
+                <span className="inline-block bg-[#1793D1]/10 text-[#1793D1] text-xs px-2.5 py-1 rounded font-bold">
+                  Soalan {currentIdx + 1} / {soalanList.length}
+                </span>
+
+                {/* Sokongan Paparan Soalan Bergambar */}
+                {soalanSemasa.gambar_url && (
+                  <div className="my-3 flex justify-center">
+                    <img 
+                      src={soalanSemasa.gambar_url} 
+                      alt="Ilustrasi Soalan" 
+                      className="max-h-48 rounded-lg border border-gray-300 dark:border-gray-700 object-contain shadow-md"
+                    />
+                  </div>
+                )}
+
+                {/* Teks Soalan */}
+                {modeTulisan === 'dwi' && currentLevel === 1 ? (
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white font-sans">
+                      {soalanSemasa.jawi?.q}
+                    </h2>
+                    <p className="text-sm text-gray-500 italic">({soalanSemasa.rumi?.q})</p>
+                  </div>
+                ) : (
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-relaxed">
+                    {objSoalan.q}
+                  </h2>
+                )}
+              </div>
+
+              {/* Senarai Butang Serangan (Pilihan Jawapan) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {objSoalan.options?.map((opt: string, idx: number) => {
+                  const optJawi = modeTulisan === 'dwi' && currentLevel === 1 ? soalanSemasa.jawi?.options[idx] : null;
+                  const isCorrect = opt.trim() === objSoalan.a.trim();
+                  
+                  return (
+                    <button
+                      key={idx}
+                      disabled={isAnswered}
+                      onClick={() => serang(opt, idx)}
+                      className={`p-4 rounded-xl border text-sm font-semibold transition-all text-left flex justify-between items-center ${
+                        isAnswered
+                          ? isCorrect
+                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                            : selectedOpt === idx
+                              ? 'bg-rose-500/20 border-rose-500 text-rose-600 dark:text-rose-400'
+                              : 'opacity-40 border-gray-200 dark:border-gray-800'
+                          : 'bg-white dark:bg-[#171A21] border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:scale-[1.01]'
+                      }`}
+                    >
+                      <div>
+                        {optJawi && <span className="block font-bold text-base mb-1 font-sans">{optJawi}</span>}
+                        <span>{opt}</span>
+                      </div>
+                      <span className="text-xs text-gray-400 font-mono">[SERANG]</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Butang Teruskan Pertarungan */}
+              {isAnswered && (
+                <div className="pt-2 text-center">
+                  <button
+                    onClick={maraPusingan}
+                    className="w-full sm:w-auto px-8 py-3 bg-[#1793D1] text-white font-bold rounded-lg text-xs shadow hover:bg-blue-600 transition-colors"
+                  >
+                    [ PUSINGAN SETERUSNYA ➡️ ]
+                  </button>
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {/* PAPARAN KEKALAHAN (GAME OVER) */}
+          {isGameOver && (
+            <div className="text-center py-10 space-y-4">
+              <span className="text-6xl block select-none">💀</span>
+              <h2 className="text-2xl font-black text-rose-500">HERO TEWAS DALAM MISI!</h2>
+              <p className="text-xs text-gray-400 max-w-md mx-auto">
+                Nyawa anda telah habis diserang musuh. Ulang kaji semula topik ini dan cuba lagi!
+              </p>
+              <button
+                onClick={() => {
+                  setPlayerHp(100);
+                  setIsGameOver(false);
+                  setCurrentIdx(0);
+                  resetTurn();
+                  tarikDataGame();
+                }}
+                className="px-6 py-2.5 bg-gray-700 text-white rounded font-bold text-xs hover:bg-gray-600"
+              >
+                [ CUBA SEMULA ]
+              </button>
+            </div>
+          )}
+
+          {/* PAPARAN KEMENANGAN & GANJARAN SAHSIAH (+3 KERAJINAN) */}
+          {isVictory && (
+            <div className="text-center py-8 space-y-5">
+              <span className="text-6xl block select-none">🏆</span>
+              <h2 className="text-3xl font-black text-emerald-500">MISI PERTEMPURAN SELESAI!</h2>
+              <p className="text-xs text-gray-400">
+                Semua musuh dan Bos berjaya ditumpaskan. Markah automatik direkodkan ke sistem pentaksiran!
+              </p>
+
+              {/* Kotak Kiraan Mata Berasaskan Formula */}
+              <div className="inline-block bg-[#1793D1]/10 border border-[#1793D1] p-5 rounded-xl text-center space-y-1">
+                <span className="text-xs text-gray-400 font-bold block">JUMLAH MATA RPG</span>
+                <span className="text-3xl font-black text-[#1793D1]">{finalScore} PTS</span>
+                <span className="text-[10px] text-emerald-500 font-bold block mt-1">
+                  ✓ Ganjaran +3 Markah Kerajinan Ditolak ke Rekod Harian
+                </span>
+              </div>
+
+              <div className="flex justify-center gap-3 pt-2">
+                <button
+                  onClick={() => setShowLeaderboard(!showLeaderboard)}
+                  className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded text-xs transition-colors"
+                >
+                  {showLeaderboard ? 'Tutup Leaderboard' : '🏅 Lihat Leaderboard'}
+                </button>
+                <Link
+                  href="/permainan"
+                  className="px-5 py-2.5 bg-[#1793D1] hover:bg-blue-600 text-white font-bold rounded text-xs transition-colors"
+                >
+                  [ Balik ke Arked ]
+                </Link>
+              </div>
+
+              {/* PAPARAN LEADERBOARD DINAMIK */}
+              {showLeaderboard && (
+                <div className="mt-8 text-left bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 rounded-xl p-5">
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                    <span>🏆 Papan Pendahulu Teratas (Top Players)</span>
+                  </h3>
+                  <div className="space-y-2">
+                    {senaraiLeaderboard.map((player, idx) => (
+                      <div 
+                        key={player.id || idx}
+                        className="flex justify-between items-center p-2.5 bg-white dark:bg-[#171A21] rounded-lg border border-gray-200 dark:border-gray-800 text-xs"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className={`font-bold ${idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-amber-700' : 'text-gray-500'}`}>
+                            #{idx + 1}
+                          </span>
+                          <span className="font-bold text-gray-900 dark:text-white">{player.nama_murid}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-bold text-[#1793D1] block">{player.skor} PTS</span>
+                          <span className="text-[9px] text-gray-400">Tahap {player.level_capai}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          )}
+
+        </div>
       </div>
     </div>
   );
