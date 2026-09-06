@@ -192,16 +192,35 @@ export default function AuditKehadiranPage() {
   };
 
   // Simpan / Kemas Kini Rekod ke Supabase
-  const simpanStatusKehadiran = async () => {
-    if (!selectedMyKid || !modalData.tarikh) return;
-    setIsSaving(true);
+  // Simpan / Kemas Kini Rekod ke Supabase (Mod Kebal: Update jika ada ID, Insert jika baru)
+const simpanStatusKehadiran = async () => {
+  if (!selectedMyKid || !modalData.tarikh) return;
+  setIsSaving(true);
 
-    const isHadirBool = modalData.status === 'hadir' || modalData.status === 'lewat';
+  const isHadirBool = modalData.status === 'hadir' || modalData.status === 'lewat';
+  const sediaAda = petaRekodHarian.get(modalData.tarikh);
 
-    try {
+  try {
+    let errorOperasi = null;
+
+    if (sediaAda && sediaAda.id) {
+      // 🔄 JIKA REKOD SUDAH WUJUD: Lakukan kemas kini (UPDATE) mengikut ID rekod
       const { error } = await supabase
         .from('rekod_kerajinan_harian')
-        .upsert({
+        .update({
+          status_hadir: isHadirBool,
+          status_kehadiran: modalData.status,
+          tugasan_siap: modalData.tugasan_siap,
+          catatan: modalData.catatan
+        })
+        .eq('id', sediaAda.id);
+
+      errorOperasi = error;
+    } else {
+      // ➕ JIKA HARI TERSEBUT KOSONG: Masukkan rekod baharu (INSERT)
+      const { error } = await supabase
+        .from('rekod_kerajinan_harian')
+        .insert({
           tarikh: modalData.tarikh,
           mykid: selectedMyKid,
           subjek: 'Jawi',
@@ -209,20 +228,23 @@ export default function AuditKehadiranPage() {
           status_kehadiran: modalData.status,
           tugasan_siap: modalData.tugasan_siap,
           catatan: modalData.catatan
-        }, { onConflict: 'tarikh,mykid' });
+        });
 
-      if (error) {
-        alert('Ralat menyimpan rekod: ' + error.message);
-      } else {
-        setIsModalOpen(false);
-        tarikRekodKehadiran();
-      }
-    } catch (err: any) {
-      alert('Ralat: ' + err.message);
-    } finally {
-      setIsSaving(false);
+      errorOperasi = error;
     }
-  };
+
+    if (errorOperasi) {
+      alert('Ralat menyimpan rekod: ' + errorOperasi.message);
+    } else {
+      setIsModalOpen(false);
+      tarikRekodKehadiran(); // Muat semula data kalendar serta-merta
+    }
+  } catch (err: any) {
+    alert('Ralat: ' + err.message);
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   // Fungsi Warna Mengikut Skim Status
   const getBadgeStyle = (status?: string) => {
