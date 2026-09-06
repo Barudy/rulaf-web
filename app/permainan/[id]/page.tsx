@@ -40,6 +40,33 @@ export default function PermainanKonsolRPGPage() {
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [battleLog, setBattleLog] = useState('');
+  // Di dalam komponen PermainanKonsolRPGPage
+const [userProfile, setUserProfile] = useState<{ mykid: string; nama: string; peranan: string } | null>(null);
+const [isAccessDenied, setIsAccessDenied] = useState(false);
+
+const semakKelayakanPemain = async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session) {
+    setIsAccessDenied(true);
+    return false;
+  }
+
+  const { data: profil } = await supabase
+    .from('profil_pengguna')
+    .select('mykid, nama, peranan')
+    .eq('email', session.user.email)
+    .single();
+
+  // 🔒 Sekat tetamu, admin, guru, atau akaun murid tanpa No. MyKid
+  if (!profil || profil.peranan !== 'Murid' || !profil.mykid || profil.mykid === '000000000000') {
+    setIsAccessDenied(true);
+    return false;
+  }
+
+  setUserProfile(profil);
+  return true;
+};
 
   useEffect(() => {
     const temaSediaAda = localStorage.getItem('theme') || 'dark';
