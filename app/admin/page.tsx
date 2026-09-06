@@ -370,8 +370,8 @@ export default function AdminDashboardPage() {
               <Link href="/repo" className="flex items-center justify-center gap-2 p-3 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-850 dark:text-gray-200 rounded-sm text-xs font-bold text-center transition-all">
                 <span>📁</span> [ Repositori Open-BBM ]
               </Link>
-              <Link href="/" className="flex items-center justify-center gap-2 p-3 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-850 dark:text-gray-200 rounded-sm text-xs font-bold text-center transition-all">
-                <span>🏠</span> [ Laman Utama Hub ]
+              <Link href="/admin/kehadiran" className="flex items-center justify-center gap-2 p-3 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-850 dark:text-gray-200 rounded-sm text-xs font-bold text-center transition-all">
+                <span>📋</span> [ Audit Kehadiran Murid ]
               </Link>
             </div>
           </div>
