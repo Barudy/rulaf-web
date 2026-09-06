@@ -72,7 +72,20 @@ const semakKelayakanPemain = async () => {
     const temaSediaAda = localStorage.getItem('theme') || 'dark';
     setTema(temaSediaAda);
     tarikDataGame();
-  }, [gameId, currentLevel]);
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    if (!isVictory && !isGameOver && !isLoading) {
+      rekodPenaltiKeluar();
+      e.preventDefault();
+      e.returnValue = 'AMARAN: Meninggalkan permainan sebelum selesai akan menyebabkan markah kerajinan anda ditolak kepada 0!';
+    }
+  };
+
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  return () => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  };
+  }, [gameId, currentLevel, isVictory, isGameOver, isLoading, userProfile]);
 
   const tarikDataGame = async () => {
     setIsLoading(true);
@@ -132,6 +145,23 @@ const semakKelayakanPemain = async () => {
     setIsAnswered(false);
     setSelectedOpt(null);
   };
+
+  const rekodPenaltiKeluar = async () => {
+  if (!userProfile?.mykid || isVictory || isGameOver) return;
+
+  const tarikhHariIni = new Date().toISOString().split('T')[0];
+  
+  // ⚠️ Hantar penalti 0 markah tugasan akibat melanggar etika permainan
+  await supabase.from('rekod_kerajinan_harian').upsert({
+    tarikh: tarikhHariIni,
+    mykid: userProfile.mykid,
+    subjek: gameMeta?.subjek || 'Jawi',
+    tugasan_siap: 0, // Diberi 0 markah
+    status_hadir: true,
+    status_kehadiran: 'lewat', // Atau kategori amaran
+    catatan: 'PENALTI DISIPLIN: Keluar daripada sesi ujian RPG sebelum selesai (Skor Dibatalkan).'
+  }, { onConflict: 'tarikh,mykid' });
+};
 
   // ⚔️ Enjin Tempur Berasaskan Jawapan
   const serang = (jawapanDipilih: string, idx: number) => {
@@ -263,11 +293,22 @@ const semakKelayakanPemain = async () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center font-mono">
-        <p className="animate-pulse text-[#1793D1]">Menyediakan medan pertempuran RPG RuLaF...</p>
+    if (isAccessDenied) {
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex flex-col items-center justify-center p-6 text-center font-mono">
+      <div className="max-w-md bg-white dark:bg-[#171A21] border border-red-500/50 p-8 rounded-xl shadow-lg">
+        <span className="text-5xl block mb-3">⛔</span>
+        <h2 className="text-lg font-bold text-red-500 mb-2">AKSES PERMAINAN DISEKAT</h2>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+          Modul RPG ini adalah pentaksiran berdaftar untuk murid rasmi RuLaFHub. Pengguna luar atau akaun tanpa No. MyKid yang sah tidak dibenarkan bermain atau merekod sebarang markah[cite: 1].
+        </p>
+        <Link href="/" className="bg-gray-800 text-white px-5 py-2.5 rounded text-xs font-bold hover:bg-[#1793D1]">
+          [ Kembali ke Laman Utama ]
+        </Link>
       </div>
-    );
+    </div>
+  );
+}
   }
 
   const soalanSemasa = soalanList[currentIdx];
@@ -282,7 +323,22 @@ const semakKelayakanPemain = async () => {
         {/* Bar Atas Konsol */}
         <div className="bg-[#1793D1] text-white px-5 py-3 flex justify-between items-center text-xs font-bold">
           <span>⚔️ PERTEMPURAN RPG :: {gameMeta?.tajuk?.toUpperCase()}</span>
-          <Link href="/permainan" className="hover:underline">[ ⬅️ Balik Ke Arked ]</Link>
+          <button
+  onClick={async () => {
+    if (!isVictory && !isGameOver) {
+      const pasti = window.confirm('⚠️ AMARAN: Jika anda keluar sekarang, anda akan dikenakan PENALTI 0 MARKAH bagi kerajinan hari ini. Anda pasti?');
+      if (pasti) {
+        await rekodPenaltiKeluar();
+        router.push('/permainan');
+      }
+    } else {
+      router.push('/permainan');
+    }
+  }}
+  className="text-red-300 hover:text-white hover:underline text-xs"
+>
+  [ ⬅️ Keluar Misi ]
+</button>
         </div>
 
         <div className="p-4 sm:p-8 space-y-6">
