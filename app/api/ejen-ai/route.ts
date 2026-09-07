@@ -2,87 +2,109 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { createClient } from '@supabase/supabase-js';
 
-// 1. Sambungan ke OpenAI
+// 1. Sambungan ke OpenRouter (OpenAI SDK)
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, 
+  apiKey: process.env.OPENAI_API_KEY || '',
   baseURL: 'https://openrouter.ai/api/v1',
+  defaultHeaders: {
+    'HTTP-Referer': 'https://rulafhub.vercel.app',
+    'X-Title': 'RuLaFHub Admin AI',
+  },
 });
 
-// 2. Sambungan rahsia ke Supabase
+// 2. Sambungan ke Supabase
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 );
 
 export async function POST(req: Request) {
   try {
-    // Ambil soalan yang ditaip oleh cikgu dari paparan web
-    const { soalan_guru } = await req.json();
+    // 🔑 DIBAIKI: Terima sama ada 'soalan' atau 'soalan_guru'
+    const body = await req.json();
+    const soalanTeks = body.soalan || body.soalan_guru;
 
-    // 3. PROMPT SISTEM (Menyuap konteks pangkalan data kepada AI)
+    if (!soalanTeks || typeof soalanTeks !== 'string' || !soalanTeks.trim()) {
+      return NextResponse.json(
+        { error: 'Sila masukkan soalan teks yang sah.' },
+        { status: 400 }
+      );
+    }
+
+    // 3. Prompt Sistem NL2SQL yang Tepat (Teks kuiz lisan telah dibuang)
     const skema_database = `
-    Anda adalah Ejen Analisis Data Pendidikan (ERP Agent) untuk RuLaFHub.
-    Anda mempunyai akses kepada jadual PostgreSQL bernama 'markah_murid'.
-    Lajur yang ada: 
-    - mykid (text)
-    - nama_murid (text)
-    - kelas_id (text) - Contoh: '3 Murshid', '5 Murshid'
-    - kehadiran (int)
-    - markah_jawi (int)
-    - bacaan_quran (text)
-    - hafazan (text)
-    - bulan_tahun (text) - Contoh: 'April 2026'
-    
-    Tugas anda: Tukarkan soalan pengguna kepada arahan SQL (PostgreSQL) yang SAH.
-    Mod Artifak: HANYA berikan kod SQL tanpa blok kod (tiada tag \`\`\`sql). Jangan berikan sebarang penerangan tambahan. 
-    Hanya pilih (SELECT) lajur yang relevan untuk menjawab soalan tersebut.
-    PENTING: JANGAN letak tanda koma bertitik (;) pada hujung kod SQL!
-    "Tindak sebagai Pakar Pendidikan Islam dan Pembina Modul Pembelajaran Terbeza (Differentiated Learning). Esok saya akan mengadakan ujian senyap secara lisan di dalam kelas (murid tidak dibenarkan buka buku).
-Tajuk Ujian: [ Sila taip tajuk di sini, contoh: Cara Menyucikan Hadas Besar / Ejaan Jawi Imbuhan Awal ]
-Tolong bina set soalan kuiz lisan berserta hint (pembayang) berdasarkan tahap kumpulan murid RuLaF saya:
-1. RuLaF Ta (Murid Cemerlang/Mentor): Berikan soalan KBAT (Pemikiran Aras Tinggi). Berikan hint kognitif yang sangat minimum (hanya kata kunci). 2. RuLaF Ba (Murid Sederhana/Pembantu Fasilitator): Berikan soalan struktur atau kefahaman konteks. Berikan hint separuh jalan (membimbing pemikiran mereka). 3. RuLaF Khas & Alif (Murid Lemah/Pemulihan): Berikan soalan asas, visual, atau padanan ringkas. Berikan hint yang sangat jelas, bersifat psikomotor, dan menyokong emosi mereka supaya mereka berani menjawab.
-Pastikan soalan ini pendek, santai, dan sesuai ditanya secara spontan kepada kumpulan murid bersaiz 5 orang."
-SELECT tahap_rulaf, COUNT(*) as jumlah_murid FROM markah_murid WHERE kelas_id = '5 Murshid' AND bulan_tahun = 'MEI 2026' GROUP BY tahap_rulaf;
-    Anda adalah Ejen AI Analisis Data (NL2SQL) bertaraf profesional untuk sistem RuLaFHub.
-Pangkalan data anda menggunakan PostgreSQL (Supabase).
+Anda adalah Ejen AI Analisis Data (NL2SQL) profesional untuk sistem RuLaFHub.
+Pangkalan data menggunakan PostgreSQL (Supabase).
 
-TUGASAN LOGIK ANDA (WAJIB PATUH):
-1. Abaikan Huruf Besar/Kecil (Case-Insensitive): Apabila mencari teks seperti 'kelas_id' atau 'bulan_tahun', SENTIASA gunakan pengendali 'ILIKE' dan bukannya '='.
-2. Carian Pintar: Gunakan pencarian separa. Contohnya, jika pengguna menaip 'Mei', jana SQL seperti: bulan_tahun ILIKE '%Mei%'.
-3. Arahan Pengiraan: Jika pengguna meminta "kira jumlah" atau "pecahan mengikut tahap", SENTIASA gunakan klausa 'COUNT' beserta 'GROUP BY'.
-4. Format Output: Hanya pulangkan kod SQL yang sah. Jangan beri sebarang mukadimah atau penerangan.
-5. SYARAT KELAYAKAN KENAIKAN TAHAP RULAF (BENCHMARK):
-- RuLaF Ta: markah_jawi >= 80 DAN bacaan_quran = 'Al-Quran' DAN hafazan = 'A'.
-- RuLaF Ba: markah_jawi >= 60 DAN markah_jawi <= 79.
-- RuLaF Alif: markah_jawi >= 40 DAN markah_jawi <= 59.
-- RuLaF Khas: markah_jawi <= 39.
-- PERINGATAN: JANGAN ambil kira faktor kehadiran dalam penentuan tahap kerana ia boleh menyebabkan ralat.
+Akses jadual: 'markah_murid'
+Lajur yang wujud:
+- mykid (text)
+- nama_murid (text)
+- kelas_id (text) - Cth: '3 Murshid', '5 Murshid'
+- kehadiran (numeric)
+- hari_hadir (numeric)
+- jumlah_hari_sekolah (numeric)
+- markah_jawi (numeric)
+- ujian_bertulis (numeric)
+- bacaan_quran (text)
+- hafazan (text)
+- tahap_rulaf (text) - Nilai: 'RuLaF Alif', 'RuLaF Ba', 'RuLaF Ta', 'RuLaF Khas'
+- bulan_tahun (text) - Cth: 'Ogos 2026', 'Mei 2026'
+
+TUGASAN ANDA (WAJIB PATUH):
+1. HANYA pulangkan kod SQL SELECT yang sah. DILARANG meletakkan penerangan, ulasan, atau blok markdown (\`\`\`sql).
+2. JANGAN letak tanda koma bertitik (;) di hujung arahan SQL.
+3. SENTIASA gunakan 'ILIKE' dengan wildcard (%) untuk carian teks seperti kelas_id, nama_murid, dan bulan_tahun (contoh: bulan_tahun ILIKE '%Mei%').
+4. Jika diminta mengira jumlah atau pecahan, gunakan COUNT(*) dan GROUP BY.
 `;
 
-    // 4. Menterjemah Bahasa Melayu ke SQL menggunakan AI
+    // 4. Panggilan ke OpenRouter
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // Boleh tukar kepada model lain mengikut API anda
+      model: 'openai/gpt-4o-mini', // 🔑 DIBAIKI: Format OpenRouter yang sah
       messages: [
-        { role: 'system', content: skema_database },
-        { role: 'user', content: soalan_guru }
+        { role: 'system', content: skema_database.trim() },
+        { role: 'user', content: soalanTeks.trim() }
       ],
-      temperature: 0, // 0 supaya AI tidak mereka-reka (halusinasi) kod SQL
+      temperature: 0,
     });
 
     let arahan_sql = response.choices?.[0]?.message?.content?.trim() || '';
-    
-    // Pembersihan teks tahap tinggi (Buang markdown dan buang semicolon)
-    arahan_sql = arahan_sql.replace(/```sql/g, '').replace(/```/g, '').replace(/;/g, '').trim();
 
-    // 5. Eksekusi SQL yang dijana oleh AI terus ke Supabase melalui RPC
+    // Pembersihan kod SQL
+    arahan_sql = arahan_sql
+      .replace(/```sql/gi, '')
+      .replace(/```/g, '')
+      .replace(/;/g, '')
+      .trim();
+
+    if (!arahan_sql.toUpperCase().startsWith('SELECT')) {
+      return NextResponse.json(
+        { error: 'AI gagal menjana arahan kueri SQL SELECT yang selamat.' },
+        { status: 400 }
+      );
+    }
+
+    // 5. Jalankan SQL ke Supabase via RPC 'execute_sql'
     const { data, error } = await supabase.rpc('execute_sql', { query: arahan_sql });
 
-    if (error) throw error;
+    if (error) {
+      return NextResponse.json(
+        { sql: arahan_sql, error: `Ralat Supabase RPC: ${error.message}` },
+        { status: 400 }
+      );
+    }
 
-    // Pulangkan data kepada web
-    return NextResponse.json({ sql: arahan_sql, hasil: data });
+    // 🔑 DIBAIKI: Pulangkan kunci 'data' dan 'results' agar serasi dengan frontend
+    return NextResponse.json({
+      sql: arahan_sql,
+      data: data || [],
+      results: data || []
+    });
 
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || 'Ralat pelayan memproses permintaan AI.' },
+      { status: 500 }
+    );
   }
 }
