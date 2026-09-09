@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from './../../../lib/supabaseClient'; // Sesuaikan path mengikut struktur folder anda
+import { supabase } from './../../../lib/supabaseClient';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function PaparanBBMSpesifik() {
   const params = useParams();
@@ -10,12 +11,13 @@ export default function PaparanBBMSpesifik() {
   const idBBM = params.id; 
 
   const [bahan, setBahan] = useState<any>(null);
+  const [bahanBerkaitan, setBahanBerkaitan] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function tarikBBM() {
       setIsLoading(true);
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('rulaf_repo')
         .select('*')
         .eq('id', idBBM)
@@ -23,6 +25,15 @@ export default function PaparanBBMSpesifik() {
       
       if (data) {
         setBahan(data);
+        // Tarik 3 bahan berkaitan dalam subjek & darjah yang sama
+        const { data: related } = await supabase
+          .from('rulaf_repo')
+          .select('id, tajuk, subjek, darjah')
+          .eq('darjah', data.darjah)
+          .eq('subjek', data.subjek)
+          .neq('id', idBBM)
+          .limit(3);
+        if (related) setBahanBerkaitan(related);
       }
       setIsLoading(false);
     }
@@ -31,20 +42,27 @@ export default function PaparanBBMSpesifik() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center transition-colors duration-300">
-        <p className="text-gray-500 dark:text-white font-mono animate-pulse">Menarik fail BBM spesifik dari pangkalan data...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center">
+        <p className="text-gray-500 dark:text-white font-mono animate-pulse text-xs">
+          [ MEMUAT TURUN MAKLUMAT BBM... ]
+        </p>
       </div>
     );
   }
 
   if (!bahan) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex flex-col items-center justify-center p-6 transition-colors duration-300">
-        <div className="max-w-md text-center bg-white dark:bg-[#171A21] border border-red-500/40 p-8 rounded shadow-lg">
-          <p className="text-red-500 font-mono font-bold mb-4">⚠️ Ralat: Fail BBM Tidak Ditemui!</p>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">Kemungkinan bahan ini telah dipadamkan oleh moderator atau pautan telah tamat tempoh.</p>
-          <button onClick={() => router.push('/repo')} className="bg-gray-800 text-white px-4 py-2 rounded text-xs">
-            [ Kembali ke Repositori ]
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex flex-col items-center justify-center p-6 font-mono">
+        <div className="max-w-md text-center bg-white dark:bg-[#171A21] border border-red-500/40 p-8 rounded-xl shadow-lg">
+          <p className="text-red-500 font-bold mb-4">⚠️ Ralat: Fail BBM Tidak Ditemui!</p>
+          <p className="text-gray-400 text-xs mb-6 leading-relaxed">
+            Fail ini mungkin telah dipadamkan atau pautan perkongsian telah tamat tempoh.
+          </p>
+          <button 
+            onClick={() => router.push('/repo')} 
+            className="bg-gray-800 text-white px-5 py-2.5 rounded text-xs font-bold hover:bg-[#1793D1]"
+          >
+            [ Kembali ke Repositori Utama ]
           </button>
         </div>
       </div>
@@ -52,97 +70,105 @@ export default function PaparanBBMSpesifik() {
   }
 
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
-      <div className="max-w-3xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1] rounded-sm p-6 shadow-md dark:shadow-[0_0_15px_rgba(23,147,209,0.3)] transition-all duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10">
+      <div className="max-w-3xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded-xl p-6 sm:p-8 shadow-xl">
         
-        {/* Navigasi Balik */}
-        <div className="flex justify-between items-center mb-8 border-b border-gray-200 dark:border-gray-800 pb-4">
-          <button 
-            onClick={() => router.push('/repo')}
-            className="text-xs text-[#1793D1] hover:underline"
-          >
-            [ &lt;-- Kembali ke Repositori Utama ]
-          </button>
-          <span className="text-xs text-gray-500">ID BBM: #{bahan.id}</span>
+        {/* 🧭 Breadcrumbs Navigasi Hirarki Terperinci */}
+        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-6 pb-4 border-b border-gray-200 dark:border-gray-800 overflow-x-auto whitespace-nowrap">
+          <Link href="/repo" className="hover:text-[#1793D1]">
+            📁 Repositori
+          </Link>
+          <span>/</span>
+          <Link href={`/repo?darjah=${encodeURIComponent(bahan.darjah || 'Semua')}`} className="hover:text-[#1793D1] font-bold text-gray-700 dark:text-gray-300">
+            {bahan.darjah || 'Umum'}
+          </Link>
+          <span>/</span>
+          <Link href={`/repo?darjah=${encodeURIComponent(bahan.darjah || 'Semua')}&subjek=${encodeURIComponent(bahan.subjek || 'Umum')}`} className="hover:text-[#1793D1] font-bold text-[#1793D1]">
+            {bahan.subjek || 'Umum'}
+          </Link>
+          <span>/</span>
+          <span className="text-gray-400 truncate max-w-[200px]">#{bahan.id}</span>
         </div>
 
-        {/* Informasi Utama */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 flex-wrap mb-3">
-            <span className="inline-block bg-[#1793D1]/10 text-[#1793D1] text-xs px-3 py-1 rounded font-bold">
-              {bahan.subjek} - {bahan.darjah}
+        {/* Informasi Utama & Lencana */}
+        <div className="mb-6 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="bg-[#1793D1]/10 text-[#1793D1] text-xs px-3 py-1 rounded font-bold border border-[#1793D1]/30">
+              {bahan.darjah} • {bahan.subjek}
             </span>
             
-            {/* 🔹 STATUS PERAKUAN BADGE */}
             {(!bahan.status || bahan.status === 'approved') && (
-              <span className="inline-flex items-center gap-1 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 text-xs px-3 py-1 rounded font-extrabold border border-blue-200 dark:border-blue-900/50">
-                🔹 Diluluskan (Approved)
+              <span className="bg-emerald-500/10 text-emerald-500 text-xs px-3 py-1 rounded font-bold border border-emerald-500/30">
+                ✓ Disahkan (Approved)
               </span>
             )}
             {bahan.status === 'danger' && (
-              <span className="inline-flex items-center gap-1 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs px-3 py-1 rounded font-extrabold border border-red-200 dark:border-red-900/50">
+              <span className="bg-rose-500/10 text-rose-500 text-xs px-3 py-1 rounded font-bold border border-rose-500/30">
                 🚫 Disekat (Danger)
               </span>
             )}
-            {bahan.status === 'abandoned' && (
-              <span className="inline-flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-xs px-3 py-1 rounded font-extrabold border border-amber-200 dark:border-amber-900/50">
-                ⚠️ Ditinggalkan (Abandoned)
-              </span>
-            )}
           </div>
 
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">{bahan.tajuk}</h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Topik Pembelajaran: {bahan.topik || 'Umum'}
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+            {bahan.tajuk}
+          </h1>
+          <p className="text-xs text-gray-400">
+            Topik / Unit: <strong className="text-gray-700 dark:text-gray-200">{bahan.topik || 'Umum'}</strong>
           </p>
         </div>
 
-        {/* Amaran khas sekiranya dikesan bahaya atau ditinggalkan */}
-        {bahan.status === 'danger' && (
-          <div className="mb-8 p-4 bg-red-100 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 rounded text-sm leading-relaxed">
-            <h4 className="font-bold mb-1">⚠️ AMARAN KESELATAMAN:</h4>
-            Pautan muat turun bagi bahan bantuan mengajar ini telah disekat secara rasmi oleh pentadbir demi menjaga keselamatan data komuniti daripada sebarang unsur perisian berniat jahat (malware) atau phishing.
+        {/* Kotak Penerangan & Metadata */}
+        <div className="bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 rounded-xl p-5 mb-6 text-xs space-y-2.5">
+          <h3 className="font-bold text-gray-900 dark:text-white text-sm">📌 Butiran Bahan:</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-500 dark:text-gray-400">
+            <p>Penyumbang: <span className="text-[#1793D1] font-semibold">{bahan.penyumbang}</span></p>
+            <p>Tarikh Terbit: <span>{new Date(bahan.created_at || Date.now()).toLocaleDateString('ms-MY')}</span></p>
           </div>
-        )}
-
-        {bahan.status === 'abandoned' && (
-          <div className="mb-8 p-4 bg-amber-100 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400 rounded text-sm leading-relaxed">
-            <h4 className="font-bold mb-1">⚠️ NOTA PEMAKLUMAN:</h4>
-            Bahan ini telah ditandakan sebagai <strong>"Ditinggalkan (Abandoned)"</strong>. Ini bermakna bahan ini berkemungkinan mengandungi pautan yang tidak lagi aktif atau sukatan pelajaran lama yang tidak lagi diselenggara secara aktif.
-          </div>
-        )}
-
-        {/* Kotak Penerangan */}
-        <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 rounded p-5 mb-8 transition-colors duration-300">
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2">📌 Maklumat Fail & Arahan:</h3>
-          <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-2 list-disc list-inside">
-            <li>Penyumbang BBM: <span className="text-[#1793D1] font-bold">{bahan.penyumbang}</span></li>
-            <li>Diterbitkan pada: {new Date(bahan.created_at || Date.now()).toLocaleDateString('ms-MY')}</li>
-            <li>Status fail: {bahan.status === 'danger' ? 'Disekat (Tidak Selamat)' : 'Selamat diguna & bebas daripada iklan/scam'}</li>
-            <li>Format pautan: Google Drive, Canva, atau Kod Latihan Kuizizz</li>
-          </ul>
+          {bahan.readme_text && (
+            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 whitespace-pre-line font-sans">
+              {bahan.readme_text}
+            </div>
+          )}
         </div>
 
-        {/* Butang Muat Turun Gergasi */}
-        <div className="text-center sm:text-left">
+        {/* Butang Muat Turun */}
+        <div className="mb-8">
           {bahan.status === 'danger' ? (
-            <button
-              disabled
-              className="inline-block text-center bg-gray-300 dark:bg-gray-800 text-gray-500 dark:text-gray-600 px-8 py-4 rounded font-bold text-sm cursor-not-allowed select-none border border-gray-400 dark:border-gray-700"
-            >
-              📥 MUAT TURUN DISEKAT KEKAL
+            <button disabled className="w-full py-4 bg-gray-800 text-gray-500 rounded-lg font-bold text-xs cursor-not-allowed">
+              ⛔ PAUTAN INI TELAH DISEKAT ATAS SEBAB KESELAMATAN
             </button>
           ) : (
             <a
               href={bahan.pautan}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block text-center bg-[#1793D1] text-[#0F1419] px-8 py-4 rounded font-bold text-sm shadow-[0_0_15px_rgba(23,147,209,0.4)] hover:bg-[#1272ab] hover:scale-[1.02] transition-all"
+              className="block text-center w-full py-4 bg-[#1793D1] hover:bg-blue-600 text-white font-bold rounded-lg text-xs shadow-lg transition-all"
             >
-              📥 [ KLIK DI SINI UNTUK MUAT TURUN / MAIN ]
+              📥 [ BUKA / MUAT TURUN BAHAN BBM ]
             </a>
           )}
         </div>
+
+        {/* Cadangan Bahan Berkaitan */}
+        {bahanBerkaitan.length > 0 && (
+          <div className="pt-6 border-t border-gray-200 dark:border-gray-800">
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+              Bahan Lain Berkaitan ({bahan.darjah} - {bahan.subjek})
+            </h4>
+            <div className="space-y-2">
+              {bahanBerkaitan.map(item => (
+                <Link
+                  key={item.id}
+                  href={`/repo/bbm/${item.id}`}
+                  className="flex justify-between items-center p-3 rounded-lg bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 text-xs hover:border-[#1793D1] transition-all"
+                >
+                  <span className="font-semibold text-gray-800 dark:text-gray-200 truncate pr-2">📄 {item.tajuk}</span>
+                  <span className="text-[#1793D1] font-bold">Lihat ➔</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
