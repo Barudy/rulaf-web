@@ -68,7 +68,23 @@ const semakKelayakanPemain = async () => {
   return true;
 };
 
+const [difficulty, setDifficulty] = useState<'senang' | 'sederhana' | 'sukar'>('sederhana');
+const [timeLeft, setTimeLeft] = useState<number | null>(null);
+
   useEffect(() => {
+    if (difficulty === 'senang' || isAnswered || isGameOver || isVictory) return;
+
+  const timer = setInterval(() => {
+    setTimeLeft(prev => {
+      if (prev === null) return null;
+      if (prev <= 1) {
+        clearInterval(timer);
+        serang('', -1); // Masa tamat dikira sebagai jawapan salah
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
     const temaSediaAda = localStorage.getItem('theme') || 'dark';
     setTema(temaSediaAda);
     tarikDataGame();
@@ -79,13 +95,29 @@ const semakKelayakanPemain = async () => {
       e.preventDefault();
       e.returnValue = 'AMARAN: Meninggalkan permainan sebelum selesai akan menyebabkan markah kerajinan anda ditolak kepada 0!';
     }
-  };
+    
+    return () => clearInterval(timer);
+  }; 
 
   window.addEventListener('beforeunload', handleBeforeUnload);
   return () => {
     window.removeEventListener('beforeunload', handleBeforeUnload);
   };
-  }, [gameId, currentLevel, isVictory, isGameOver, isLoading, userProfile]);
+  }, [gameId, currentLevel, isVictory, isGameOver, isLoading, userProfile, timeLeft, isAnswered, isGameOver, isVictory, difficulty]);
+
+
+// 3. Set semula pemasa setiap pusingan baharu
+const resetTurnWithTimer = () => {
+  setIsAnswered(false);
+  setSelectedOpt(null);
+  if (difficulty === 'sederhana') setTimeLeft(30);
+  else if (difficulty === 'sukar') setTimeLeft(15);
+  else setTimeLeft(null);
+};
+
+// 4. Formula Skor mengikut Pengganda Kesukaran
+const multiplier = difficulty === 'sukar' ? 2.0 : difficulty === 'sederhana' ? 1.5 : 1.0;
+const skorTerkira = Math.max(0, Math.round(((currentLevel * 100) + ((correctAnswers + 1) * 10) - (mistakes * 5)) * multiplier));
 
   const tarikDataGame = async () => {
     setIsLoading(true);
@@ -319,7 +351,25 @@ const semakKelayakanPemain = async () => {
   return (
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-3 sm:p-8">
       <div className="max-w-4xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded-xl shadow-xl overflow-hidden">
-        
+      <div className="flex justify-center gap-2 mb-4">
+  {(['senang', 'sederhana', 'sukar'] as const).map(d => (
+    <button
+      key={d}
+      disabled={isAnswered || currentIdx > 0}
+      onClick={() => {
+        setDifficulty(d);
+        if (d === 'senang') setModeTulisan('rumi');
+        else if (d === 'sukar') setModeTulisan('jawi');
+        else setModeTulisan('dwi');
+      }}
+      className={`px-3 py-1 rounded text-xs font-bold uppercase transition-all ${
+        difficulty === d ? 'bg-amber-500 text-black' : 'bg-gray-800 text-gray-400'
+      }`}
+    >
+      Mod {d} {timeLeft !== null && difficulty === d && `(${timeLeft}s)`}
+    </button>
+  ))}
+</div>  
         {/* Bar Atas Konsol */}
         <div className="bg-[#1793D1] text-white px-5 py-3 flex justify-between items-center text-xs font-bold">
           <span>⚔️ PERTEMPURAN RPG :: {gameMeta?.tajuk?.toUpperCase()}</span>
