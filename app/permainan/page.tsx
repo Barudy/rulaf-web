@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import bankSoalan from './../data/soalan.json';
 import { supabase } from './../lib/supabaseClient';
 import Link from 'next/link';
+import CountDownUpkk from '@/components/CountDownUpkk';
 
 interface Game {
   id: string;
@@ -115,7 +116,7 @@ export default function PermainanMenuPage() {
   return (
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
       <div className="max-w-6xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded shadow-md transition-all duration-300">
-        
+        <CountDownUpkk />
         {/* Header Arked */}
         <div className="bg-[#1793D1] text-white dark:text-[#0F1419] px-6 py-4 flex justify-between items-center font-bold text-sm border-b">
           <div className="flex items-center gap-3">

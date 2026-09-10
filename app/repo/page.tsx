@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import Link from 'next/link';
+import CountDownUpkk from '@/components/CountDownUpkk';
 
 export default function RepositoryPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -246,7 +247,7 @@ export default function RepositoryPage() {
   return (
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
       <div className="max-w-5xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded-sm shadow-md overflow-hidden transition-all duration-300">
-        
+        <CountDownUpkk />
         {/* Banner Atas */}
         <div className="bg-[#1793D1] text-white dark:text-[#0F1419] px-4 py-3 flex justify-between items-center font-bold text-sm">
           <span>📂 RULAF-HUB :: REPOSITORI BERSTRUKTUR (DARJAH & SUBJEK)</span>

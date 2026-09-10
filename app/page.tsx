@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient'; // Sila pastikan laluan ke lib/supabaseClient adalah betul
+import CountDownUpkk from '../components/CountDownUpkk';
 
 export default function HomePage() {
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -69,7 +70,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-sans p-4 sm:p-10 pt-6 selection:bg-[#1793D1] selection:text-white">
       <div className="max-w-5xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1] rounded-sm p-6 shadow-md dark:shadow-[0_0_15px_rgba(23,147,209,0.3)] transition-all duration-300">
-        
+        <CountDownUpkk />
         {/* Pengepala Utama */}
         <div className="border-b border-gray-200 dark:border-gray-800 pb-4 mb-6">
           <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-wide">
