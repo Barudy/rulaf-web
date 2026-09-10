@@ -2,36 +2,51 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const { nama, emel, telefon, jumlah, doa } = await request.json();
-
-    if (!jumlah || jumlah < 2) {
-      return NextResponse.json({ error: 'Jumlah minimum sumbangan adalah RM 2.00' }, { status: 400 });
-    }
-
-    // Tukar RM kepada sen (ToyyibPay menggunakan unit SEN: RM 10 = 1000)
-    const amountInCents = Math.round(Number(jumlah) * 100);
-
-    // Dapatkan pemboleh ubah persekitaran
-    const secretKey = process.env.TOYYIBPAY_SECRET_KEY || 'MASUKKAN_SECRET_KEY_ANDA';
-    const categoryCode = process.env.TOYYIBPAY_CATEGORY_CODE || 'MASUKKAN_CATEGORY_CODE_ANDA';
+    // 1. Ambil kunci secara eksklusif daripada Environment Variables pelayan
+    const secretKey = process.env.TOYYIBPAY_SECRET_KEY;
+    const categoryCode = process.env.TOYYIBPAY_CATEGORY_CODE;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://rulaf-web.vercel.app';
 
+    // 2. Sekatan Keselamatan: Halang proses jika konfigurasi pelayan tidak lengkap
+    if (!secretKey || !categoryCode) {
+      console.error('❌ [KESELAMATAN] Kunci TOYYIBPAY_SECRET_KEY atau TOYYIBPAY_CATEGORY_CODE tiada dalam Environment Variables!');
+      return NextResponse.json(
+        { error: 'Gerbang pembayaran sedang diselenggara. Sila hubungi pihak pentadbir.' },
+        { status: 500 }
+      );
+    }
+
+    const { nama, emel, telefon, jumlah, doa } = await request.json();
+
+    // 3. Pengesahan Had Sumbangan
+    const jumlahNum = parseFloat(jumlah);
+    if (isNaN(jumlahNum) || jumlahNum < 2) {
+      return NextResponse.json(
+        { error: 'Jumlah minimum sumbangan adalah RM 2.00' },
+        { status: 400 }
+      );
+    }
+
+    // ToyyibPay memerlukan nilai dalam unit SEN (Contoh: RM 10.00 = 1000 sen)
+    const amountInCents = Math.round(jumlahNum * 100);
+
+    // 4. Sediakan Payload Rasmi ke ToyyibPay
     const formData = new URLSearchParams();
-    formData.append('userSecretKey', secretKey);
-    formData.append('categoryCode', categoryCode);
+    formData.append('userSecretKey', secretKey.trim());
+    formData.append('categoryCode', categoryCode.trim());
     formData.append('billName', 'Dana Inovasi RuLaFHub');
-    formData.append('billDescription', doa || 'Tajaan Kad NFC & Penyelenggaraan Pelayan RuLaFHub');
-    formData.append('billPriceSetting', '1'); // Tetapan harga tetap
+    formData.append('billDescription', doa ? String(doa).slice(0, 100) : 'Tajaan Kad NFC & Operasi RuLaFHub');
+    formData.append('billPriceSetting', '1'); // 1 = Nilai Bil Tetap
     formData.append('billPayorInfo', '1');
     formData.append('billAmount', amountInCents.toString());
     formData.append('billReturnUrl', `${baseUrl}/dana?status=success`);
     formData.append('billCallbackUrl', `${baseUrl}/api/derma/callback`);
     formData.append('billExternalReferenceNo', `RULAF-${Date.now()}`);
-    formData.append('billTo', nama || 'Hamba Allah');
-    formData.append('billEmail', emel || 'penyumbang@rulafhub.com');
-    formData.append('billPhone', telefon || '0123456789');
+    formData.append('billTo', nama ? String(nama).trim() : 'Hamba Allah');
+    formData.append('billEmail', emel ? String(emel).trim() : 'penyumbang@rulafhub.com');
+    formData.append('billPhone', telefon ? String(telefon).trim() : '0123456789');
 
-    // Hantar permohonan bil ke ToyyibPay
+    // 5. Panggilan API ke Pelayan ToyyibPay
     const toyyibRes = await fetch('https://toyyibpay.com/index.php/api/createBill', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -40,13 +55,17 @@ export async function POST(request: Request) {
 
     const data = await toyyibRes.json();
 
-    if (data && data[0] && data[0].BillCode) {
+    // 6. Pengesahan Kod Bil Berjaya
+    if (Array.isArray(data) && data[0]?.BillCode) {
       const billCode = data[0].BillCode;
       return NextResponse.json({ url: `https://toyyibpay.com/${billCode}` });
     } else {
-      return NextResponse.json({ error: 'Gagal menjana bil ToyyibPay.' }, { status: 500 });
+      const ralatToyyib = Array.isArray(data) && data[0]?.msg ? data[0].msg : 'Gagal menjana bil pembayaran.';
+      console.error('❌ [ToyyibPay Error]:', data);
+      return NextResponse.json({ error: ralatToyyib }, { status: 502 });
     }
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('❌ [Server Error]:', error);
+    return NextResponse.json({ error: 'Ralat dalaman pelayan: ' + error.message }, { status: 500 });
   }
 }
