@@ -14,62 +14,24 @@ export default function DanaPage() {
   const [jumlahKustom, setJumlahKustom] = useState<string>('');
   const [namaPenyumbang, setNamaPenyumbang] = useState<string>('');
   const [emelPenyumbang, setEmelPenyumbang] = useState<string>('');
+  const [telefonPenyumbang, setTelefonPenyumbang] = useState<string>(''); // 📱 INPUT NO TELEFON SEBENAR
   const [doaPenyumbang, setDoaPenyumbang] = useState<string>('');
 
-  // Tambah di bahagian atas useEffect dalam app/dana/page.tsx
-useEffect(() => {
-  tarikDataLejar();
+  useEffect(() => {
+    tarikDataLejar();
 
-  // 🎯 SEMAKAN AUTOPILOT BILA KEMBALI DARIPADA BANK
-  if (typeof window !== 'undefined') {
-    const urlParams = new URLSearchParams(window.location.search);
-    const statusId = urlParams.get('status_id');
-    const billcode = urlParams.get('billcode');
-    const refno = urlParams.get('transaction_id') || urlParams.get('refno');
+    // 🎯 Pengesahan Automatik apabila kembali dari portal ToyyibPay
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const statusId = urlParams.get('status_id');
+      const billcode = urlParams.get('billcode');
+      const refno = urlParams.get('transaction_id') || urlParams.get('refno');
 
-    if (statusId === '1' && billcode) {
-      sahDanRekodTransaksi(billcode, refno);
-    }
-  }
-}, []);
-
-// Fungsi pembantu untuk mengunci rekod terus ke Supabase
-const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
-  try {
-    // 1. Semak sama ada rekod sudah ada
-    const query = supabase.from('rulaf_kewangan').select('id');
-    if (refno) query.eq('ref_no', refno);
-    else query.ilike('butiran', `%${billcode}%`);
-    
-    const { data: ada } = await query.maybeSingle();
-
-    if (!ada) {
-      // 2. Tarik maklumat transaksi terus daripada ToyyibPay
-      const res = await fetch(`https://toyyibpay.com/index.php/api/getBillTransactions?billCode=${billcode}`);
-      const data = await res.json();
-
-      if (Array.isArray(data) && data[0]?.billpaymentStatus === '1') {
-        const bayaran = data[0];
-        await supabase.from('rulaf_kewangan').insert([
-          {
-            tarikh: new Date().toISOString().split('T')[0],
-            jenis: 'masuk',
-            kategori: 'Sumbangan Komuniti (FPX)',
-            butiran: `Sumbangan FPX melalui ToyyibPay (Bil: ${billcode})`,
-            jumlah: parseFloat(bayaran.billpaymentAmount),
-            penyumbang_atau_penerima: bayaran.billPaidBy || 'Hamba Allah',
-            ref_no: bayaran.billpaymentInvoiceNo || refno || `MANUAL-${billcode}`,
-            status: 'selesai'
-          }
-        ]);
-        // Segerakkan lejar serta-merta
-        tarikDataLejar();
+      if (statusId === '1' && billcode) {
+        sahDanRekodTransaksi(billcode, refno);
       }
     }
-  } catch (e) {
-    console.error('Ralat pengesahan automatik:', e);
-  }
-};
+  }, []);
 
   const tarikDataLejar = async () => {
     setIsLoading(true);
@@ -83,7 +45,40 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
     setIsLoading(false);
   };
 
-  // Kiraan Ringkasan Kewangan
+  const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
+    try {
+      const query = supabase.from('rulaf_kewangan').select('id');
+      if (refno) query.eq('ref_no', refno);
+      else query.ilike('butiran', `%${billcode}%`);
+      
+      const { data: ada } = await query.maybeSingle();
+
+      if (!ada) {
+        const res = await fetch(`https://toyyibpay.com/index.php/api/getBillTransactions?billCode=${billcode}`);
+        const data = await res.json();
+
+        if (Array.isArray(data) && data[0]?.billpaymentStatus === '1') {
+          const bayaran = data[0];
+          await supabase.from('rulaf_kewangan').insert([
+            {
+              tarikh: new Date().toISOString().split('T')[0],
+              jenis: 'masuk',
+              kategori: 'Sumbangan Komuniti (FPX)',
+              butiran: `Sumbangan FPX melalui ToyyibPay (Bil: ${billcode})`,
+              jumlah: parseFloat(bayaran.billpaymentAmount),
+              penyumbang_atau_penerima: bayaran.billPaidBy || 'Hamba Allah',
+              ref_no: bayaran.billpaymentInvoiceNo || refno || `BIL-${billcode}`,
+              status: 'selesai'
+            }
+          ]);
+          tarikDataLejar();
+        }
+      }
+    } catch (e) {
+      console.error('Ralat pengesahan automatik:', e);
+    }
+  };
+
   const totalMasuk = lejar
     .filter((item) => item.jenis === 'masuk')
     .reduce((acc, curr) => acc + Number(curr.jumlah), 0);
@@ -103,6 +98,11 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
       return;
     }
 
+    if (!telefonPenyumbang || telefonPenyumbang.trim().length < 9) {
+      alert('Sila masukkan nombor telefon yang sah untuk rujukan resit SMS/WhatsApp ToyyibPay.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/derma', {
@@ -111,6 +111,7 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
         body: JSON.stringify({
           nama: namaPenyumbang || 'Hamba Allah',
           emel: emelPenyumbang || 'penyumbang@rulafhub.com',
+          telefon: telefonPenyumbang.trim(),
           jumlah: jumlahAkhir,
           doa: doaPenyumbang
         })
@@ -118,7 +119,7 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
 
       const data = await res.json();
       if (data.url) {
-        window.location.href = data.url; // Alih terus ke FPX ToyyibPay
+        window.location.href = data.url;
       } else {
         alert(data.error || 'Ralat memulakan pembayaran.');
       }
@@ -133,7 +134,7 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
     <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white transition-colors duration-300">
       <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* Navigasi Utama */}
+        {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-800">
           <Link href="/" className="text-xs text-[#1793D1] hover:underline font-bold">
             [ &lt;-- Kembali ke Laman Utama ]
@@ -141,7 +142,7 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
           <span className="text-xs text-gray-500">RULAF-FINANCIAL-CORE :: v1.0</span>
         </div>
 
-        {/* Pengenalan & Prinsip Ketelusan */}
+        {/* Penerangan */}
         <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded-xl p-6 sm:p-8 shadow-md">
           <span className="text-xs font-bold text-[#1793D1] uppercase tracking-widest block mb-2">
             TABUNG INOVASI & OPERASI DIGITAL
@@ -150,11 +151,11 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
             Ketelusan Kewangan Komuniti RuLaFHub
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-            RuLaFHub dibina sebagai inisiatif perisian pendidikan terbuka tanpa keuntungan komersial. Kami tidak meletakkan iklan mahupun mengenakan yuran langganan kepada murid dan guru. Setiap ringgit sumbangan anda dialirkan secara berdisiplin untuk menampung kos teknologi dan peralatan bilik darjah.
+            RuLaFHub dibina sebagai inisiatif perisian pendidikan terbuka tanpa keuntungan komersial. Setiap ringgit sumbangan anda dialirkan untuk menampung kos pelayan pangkalan data dan penyediaan peralatan murid di bilik darjah.
           </p>
         </div>
 
-        {/* 📊 Kad Metrik Aliran Tunai (Real-time Ledger Stats) */}
+        {/* Kad Metrik */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white dark:bg-[#171A21] border border-emerald-500/30 rounded-xl p-5 shadow-sm">
             <span className="text-[11px] font-bold text-emerald-500 uppercase block mb-1">
@@ -187,7 +188,7 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
           </div>
         </div>
 
-        {/* 💳 Borang Sumbangan FPX ToyyibPay */}
+        {/* Borang Sumbangan */}
         <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-xl p-6 sm:p-8 shadow-md">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
             <span>🎁</span>
@@ -195,7 +196,6 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
           </h2>
 
           <form onSubmit={hantarSumbangan} className="space-y-4 text-xs">
-            {/* Pilihan Nilai Pantas */}
             <div>
               <label className="block text-gray-500 mb-2 font-bold">Pilih Nilai Sumbangan:</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -219,7 +219,6 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
               </div>
             </div>
 
-            {/* Nilai Kustom */}
             <div>
               <label className="block text-gray-500 mb-1">Atau Masukkan Nilai Lain (RM):</label>
               <input
@@ -233,9 +232,10 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Nama, E-mel & Nombor Telefon */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-gray-500 mb-1">Nama / Nama Samaran (Pilihan):</label>
+                <label className="block text-gray-500 mb-1">Nama / Samaran (Pilihan):</label>
                 <input
                   type="text"
                   placeholder="Hamba Allah"
@@ -245,12 +245,25 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
                 />
               </div>
               <div>
-                <label className="block text-gray-500 mb-1">E-mel (Untuk Resit ToyyibPay):</label>
+                <label className="block text-gray-500 mb-1">E-mel (Untuk Resit):</label>
                 <input
                   type="email"
                   placeholder="emel@anda.com"
                   value={emelPenyumbang}
                   onChange={(e) => setEmelPenyumbang(e.target.value)}
+                  className="w-full bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-500 mb-1 font-bold text-gray-700 dark:text-gray-300">
+                  No. Telefon (Wajib):
+                </label>
+                <input
+                  type="tel"
+                  placeholder="Contoh: 0123456789"
+                  required
+                  value={telefonPenyumbang}
+                  onChange={(e) => setTelefonPenyumbang(e.target.value)}
                   className="w-full bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none"
                 />
               </div>
@@ -260,7 +273,7 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
               <label className="block text-gray-500 mb-1">Doa / Pesanan Santai (Pilihan):</label>
               <input
                 type="text"
-                placeholder="Moga bermanfaat untuk asatizah & anak-anak murid..."
+                placeholder="Semoga projek inovasi ini dapat membantu guru dan murid..."
                 value={doaPenyumbang}
                 onChange={(e) => setDoaPenyumbang(e.target.value)}
                 className="w-full bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none"
@@ -277,7 +290,7 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
           </form>
         </div>
 
-        {/* 📑 Lejar Kewangan Terbuka (Public Audit Trail) */}
+        {/* Jadual Audit Lejar */}
         <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-xl p-6 sm:p-8 shadow-md">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -286,7 +299,7 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
             </h2>
             <button
               onClick={tarikDataLejar}
-              className="text-xs text-[#1793D1] hover:underline"
+              className="text-xs text-[#1793D1] hover:underline font-bold"
             >
               [ Segerakkan Semula ]
             </button>
@@ -310,7 +323,7 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
                     <th className="py-3 px-2">Butiran</th>
                     <th className="py-3 px-2">Penyumbang / Penerima</th>
                     <th className="py-3 px-2 text-right">Jumlah</th>
-                    <th className="py-3 px-2 text-center">Bukti Resit</th>
+                    <th className="py-3 px-2 text-center">Rujukan</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -337,19 +350,8 @@ const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
                       >
                         {item.jenis === 'masuk' ? '+' : '-'} RM {Number(item.jumlah).toFixed(2)}
                       </td>
-                      <td className="py-3 px-2 text-center whitespace-nowrap">
-                        {item.pautan_resit ? (
-                          <a
-                            href={item.pautan_resit}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[#1793D1] hover:underline font-bold text-[11px]"
-                          >
-                            [ Lihat Resit ]
-                          </a>
-                        ) : (
-                          <span className="text-gray-400 text-[10px]">-</span>
-                        )}
+                      <td className="py-3 px-2 text-center whitespace-nowrap text-gray-400 text-[10px] font-mono">
+                        {item.ref_no || '-'}
                       </td>
                     </tr>
                   ))}
