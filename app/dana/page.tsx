@@ -147,7 +147,6 @@ export default function DanaPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white transition-colors duration-300">
       <div className="max-w-5xl mx-auto space-y-8">
-        <CountDownUpkk />
         {/* Header */}
         <div className="flex justify-between items-center pb-4 border-b border-gray-200 dark:border-gray-800">
           <span className="text-xs text-gray-500">RULAF-FINANCIAL-CORE :: v1.0</span>
