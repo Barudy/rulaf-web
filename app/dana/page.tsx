@@ -16,9 +16,60 @@ export default function DanaPage() {
   const [emelPenyumbang, setEmelPenyumbang] = useState<string>('');
   const [doaPenyumbang, setDoaPenyumbang] = useState<string>('');
 
-  useEffect(() => {
-    tarikDataLejar();
-  }, []);
+  // Tambah di bahagian atas useEffect dalam app/dana/page.tsx
+useEffect(() => {
+  tarikDataLejar();
+
+  // 🎯 SEMAKAN AUTOPILOT BILA KEMBALI DARIPADA BANK
+  if (typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const statusId = urlParams.get('status_id');
+    const billcode = urlParams.get('billcode');
+    const refno = urlParams.get('transaction_id') || urlParams.get('refno');
+
+    if (statusId === '1' && billcode) {
+      sahDanRekodTransaksi(billcode, refno);
+    }
+  }
+}, []);
+
+// Fungsi pembantu untuk mengunci rekod terus ke Supabase
+const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
+  try {
+    // 1. Semak sama ada rekod sudah ada
+    const query = supabase.from('rulaf_kewangan').select('id');
+    if (refno) query.eq('ref_no', refno);
+    else query.ilike('butiran', `%${billcode}%`);
+    
+    const { data: ada } = await query.maybeSingle();
+
+    if (!ada) {
+      // 2. Tarik maklumat transaksi terus daripada ToyyibPay
+      const res = await fetch(`https://toyyibpay.com/index.php/api/getBillTransactions?billCode=${billcode}`);
+      const data = await res.json();
+
+      if (Array.isArray(data) && data[0]?.billpaymentStatus === '1') {
+        const bayaran = data[0];
+        await supabase.from('rulaf_kewangan').insert([
+          {
+            tarikh: new Date().toISOString().split('T')[0],
+            jenis: 'masuk',
+            kategori: 'Sumbangan Komuniti (FPX)',
+            butiran: `Sumbangan FPX melalui ToyyibPay (Bil: ${billcode})`,
+            jumlah: parseFloat(bayaran.billpaymentAmount),
+            penyumbang_atau_penerima: bayaran.billPaidBy || 'Hamba Allah',
+            ref_no: bayaran.billpaymentInvoiceNo || refno || `MANUAL-${billcode}`,
+            status: 'selesai'
+          }
+        ]);
+        // Segerakkan lejar serta-merta
+        tarikDataLejar();
+      }
+    }
+  } catch (e) {
+    console.error('Ralat pengesahan automatik:', e);
+  }
+};
 
   const tarikDataLejar = async () => {
     setIsLoading(true);
