@@ -14,10 +14,7 @@ export async function POST(request: Request) {
     const billcode = (formData.get('billcode') as string) || '';
     const amount = (formData.get('amount') as string) || '0';
 
-    console.log('🔔 [TOYYIBPAY CALLBACK DITERIMA]:', { refno, status, billcode, amount });
-
     if (status === '1') {
-      // Semak jika transaksi ini telah sedia direkodkan
       const { data: sediaAda } = await supabaseAdmin
         .from('rulaf_kewangan')
         .select('id')
@@ -25,9 +22,13 @@ export async function POST(request: Request) {
         .maybeSingle();
 
       if (!sediaAda) {
+        const tarikhKini = new Date().toISOString().split('T')[0];
+
+        // 💥 Suntik Rekod Sumbangan & Potongan RM1.00 Serentak
         const { error: ralatInsert } = await supabaseAdmin.from('rulaf_kewangan').insert([
+          // Rekod 1: Duit Masuk (Gross)
           {
-            tarikh: new Date().toISOString().split('T')[0],
+            tarikh: tarikhKini,
             jenis: 'masuk',
             kategori: 'Sumbangan Komuniti (FPX)',
             butiran: `Sumbangan FPX melalui ToyyibPay (Bil: ${billcode})`,
@@ -35,20 +36,28 @@ export async function POST(request: Request) {
             penyumbang_atau_penerima: 'Hamba Allah',
             ref_no: refno,
             status: 'selesai'
+          },
+          // Rekod 2: Duit Keluar Automatik (Caj Gerbang FPX ToyyibPay)
+          {
+            tarikh: tarikhKini,
+            jenis: 'keluar',
+            kategori: 'Caj Gerbang Pembayaran',
+            butiran: `Caj transaksi gerbang pembayaran FPX ToyyibPay (Ref: ${refno})`,
+            jumlah: 1.00,
+            penyumbang_atau_penerima: 'ToyyibPay / PayNet',
+            ref_no: `FEE-${refno}`,
+            status: 'selesai'
           }
         ]);
 
         if (ralatInsert) {
-          console.error('❌ Gagal simpan ke Supabase:', ralatInsert.message);
-        } else {
-          console.log('✅ Sumbangan berjaya direkodkan ke Supabase!');
+          console.error('❌ Gagal simpan lejar:', ralatInsert.message);
         }
       }
     }
 
     return new Response('OK', { status: 200 });
   } catch (err: any) {
-    console.error('❌ Ralat Callback:', err.message);
     return new Response(`Error: ${err.message}`, { status: 500 });
   }
 }

@@ -46,38 +46,51 @@ export default function DanaPage() {
   };
 
   const sahDanRekodTransaksi = async (billcode: string, refno: string | null) => {
-    try {
-      const query = supabase.from('rulaf_kewangan').select('id');
-      if (refno) query.eq('ref_no', refno);
-      else query.ilike('butiran', `%${billcode}%`);
-      
-      const { data: ada } = await query.maybeSingle();
+  try {
+    const query = supabase.from('rulaf_kewangan').select('id');
+    if (refno) query.eq('ref_no', refno);
+    else query.ilike('butiran', `%${billcode}%`);
+    
+    const { data: ada } = await query.maybeSingle();
 
-      if (!ada) {
-        const res = await fetch(`https://toyyibpay.com/index.php/api/getBillTransactions?billCode=${billcode}`);
-        const data = await res.json();
+    if (!ada) {
+      const res = await fetch(`https://toyyibpay.com/index.php/api/getBillTransactions?billCode=${billcode}`);
+      const data = await res.json();
 
-        if (Array.isArray(data) && data[0]?.billpaymentStatus === '1') {
-          const bayaran = data[0];
-          await supabase.from('rulaf_kewangan').insert([
-            {
-              tarikh: new Date().toISOString().split('T')[0],
-              jenis: 'masuk',
-              kategori: 'Sumbangan Komuniti (FPX)',
-              butiran: `Sumbangan FPX melalui ToyyibPay (Bil: ${billcode})`,
-              jumlah: parseFloat(bayaran.billpaymentAmount),
-              penyumbang_atau_penerima: bayaran.billPaidBy || 'Hamba Allah',
-              ref_no: bayaran.billpaymentInvoiceNo || refno || `BIL-${billcode}`,
-              status: 'selesai'
-            }
-          ]);
-          tarikDataLejar();
-        }
+      if (Array.isArray(data) && data[0]?.billpaymentStatus === '1') {
+        const bayaran = data[0];
+        const tarikhKini = new Date().toISOString().split('T')[0];
+        const invoiceRef = bayaran.billpaymentInvoiceNo || refno || `BIL-${billcode}`;
+
+        await supabase.from('rulaf_kewangan').insert([
+          {
+            tarikh: tarikhKini,
+            jenis: 'masuk',
+            kategori: 'Sumbangan Komuniti (FPX)',
+            butiran: `Sumbangan FPX melalui ToyyibPay (Bil: ${billcode})`,
+            jumlah: parseFloat(bayaran.billpaymentAmount),
+            penyumbang_atau_penerima: bayaran.billPaidBy || 'Hamba Allah',
+            ref_no: invoiceRef,
+            status: 'selesai'
+          },
+          {
+            tarikh: tarikhKini,
+            jenis: 'keluar',
+            kategori: 'Caj Gerbang Pembayaran',
+            butiran: `Caj transaksi gerbang pembayaran FPX ToyyibPay (Bil: ${billcode})`,
+            jumlah: 1.00,
+            penyumbang_atau_penerima: 'ToyyibPay / PayNet',
+            ref_no: `FEE-${invoiceRef}`,
+            status: 'selesai'
+          }
+        ]);
+        tarikDataLejar();
       }
-    } catch (e) {
-      console.error('Ralat pengesahan automatik:', e);
     }
-  };
+  } catch (e) {
+    console.error('Ralat pengesahan automatik:', e);
+  }
+};
 
   const totalMasuk = lejar
     .filter((item) => item.jenis === 'masuk')
