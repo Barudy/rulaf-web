@@ -82,7 +82,7 @@ export default function Navbar() {
                   : 'text-gray-600 dark:text-gray-300 hover:text-[#1793D1] hover:bg-gray-100 dark:hover:bg-gray-800/40'
               }`}
             >
-              Halaman Utama
+              Blog
             </a>
             <a
               href="/permainan"
@@ -92,7 +92,7 @@ export default function Navbar() {
                   : 'text-gray-600 dark:text-gray-300 hover:text-[#1793D1] hover:bg-gray-100 dark:hover:bg-gray-800/40'
               }`}
             >
-              Arked
+              Permainan
             </a>
             <a
               href="/semakan"
@@ -133,6 +133,16 @@ export default function Navbar() {
               }`}
             >
               Docs
+            </a>
+            <a
+              href="/dana"
+              className={`px-3 py-2 rounded-md text-sm font-semibold tracking-wide transition-all duration-300 ${
+                pathname === '/dana' 
+                  ? 'text-[#1793D1] bg-[#1793D1]/10' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-[#1793D1] hover:bg-gray-100 dark:hover:bg-gray-800/40'
+              }`}
+            >
+              Dana
             </a>
 
             <div className="h-5 w-[1px] bg-gray-300 dark:bg-gray-700/60 mx-2" />
