@@ -166,6 +166,37 @@ export default function DanaPage() {
           </p>
         </div>
 
+        {/* Kiraan Sasaran Bulanan */}
+{(() => {
+  const targetBulanan = 100.0;
+  const peratusTercapai = Math.min(Math.round((totalMasuk / targetBulanan) * 100), 100);
+
+  return (
+    <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-xl p-5 shadow-sm space-y-3">
+      <div className="flex justify-between items-center text-xs">
+        <span className="font-bold text-gray-700 dark:text-gray-300">
+          🎯 Sasaran Dana Operasi Bulan Ini:
+        </span>
+        <span className="font-black text-[#1793D1]">
+          RM {totalMasuk.toFixed(2)} / RM {targetBulanan.toFixed(2)} ({peratusTercapai}%)
+        </span>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
+        <div
+          className="bg-[#1793D1] h-3 rounded-full transition-all duration-500 ease-out"
+          style={{ width: `${peratusTercapai}%` }}
+        ></div>
+      </div>
+
+      <p className="text-[10px] text-gray-500 dark:text-gray-400">
+        *Sasaran RM100/bulan ini dikhususkan bagi membiayai pelayan pangkalan data Supabase & penyediaan cip kad NFC murid rintis.
+      </p>
+    </div>
+  );
+})()}
+
         {/* Kad Metrik */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-white dark:bg-[#171A21] border border-emerald-500/30 rounded-xl p-5 shadow-sm">
