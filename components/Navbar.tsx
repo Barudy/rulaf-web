@@ -223,7 +223,7 @@ export default function Navbar() {
                 pathname === '/' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40'
               }`}
             >
-              Halaman Utama
+              Blog
             </a>
             <a
               href="/permainan"
@@ -232,7 +232,7 @@ export default function Navbar() {
                 pathname === '/permainan' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40'
               }`}
             >
-              Arked
+              Permainan
             </a>
             <a
               href="/semakan"
@@ -269,6 +269,15 @@ export default function Navbar() {
               }`}
             >
               Docs
+            </a>
+            <a
+              href="/dana"
+              onClick={() => setIsOpen(false)}
+              className={`block px-3 py-2.5 rounded-md text-base font-semibold transition-colors ${
+                pathname === '/dana' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40'
+              }`}
+            >
+              Dana
             </a>
 
             <div className="h-[1px] bg-gray-200 dark:bg-gray-800 my-3" />
