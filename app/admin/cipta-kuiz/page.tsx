@@ -128,13 +128,13 @@ export default function BinaKuizGuru() {
       const filePath = `soalan-visual/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('bbm-storage')
+        .from('modul-rulaf')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('bbm-storage')
+        .from('modul-rulaf')
         .getPublicUrl(filePath);
 
       handleQuestionChange(index, 'imageUrl', publicUrl);
