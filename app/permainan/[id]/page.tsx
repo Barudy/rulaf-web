@@ -118,7 +118,25 @@ export default function PermainanKonsolRPGPage() {
     setBattleLog(isBoss ? '⚠️ AMARAN: Bos Akhir muncul! Kesilapan memulihkan nyawa Bos!' : `Tahap ${currentLevel} bermula! Bersedia menyerang.`);
   }, [currentLevel, gameMeta, maxLevel]);
 
-  // Inisialisasi Cebisan Perkataan Bila Bertukar Soalan
+  // 🎲 Fungsi Fisher-Yates Shuffle dengan Jaminan Tidak Mengikut Turutan Asal
+  const rawakkanCebisan = (arrayAsal: string[]): string[] => {
+    if (arrayAsal.length <= 1) return arrayAsal;
+    let hasil = [...arrayAsal];
+    let percubaan = 0;
+
+    // Ulang rawakan jika susunan masih sama dengan jawapan asal
+    do {
+      for (let i = hasil.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [hasil[i], hasil[j]] = [hasil[j], hasil[i]];
+      }
+      percubaan++;
+    } while (hasil.join(' ') === arrayAsal.join(' ') && percubaan < 15);
+
+    return hasil;
+  };
+
+  // Inisialisasi semula susun atur bila bertukar soalan
   useEffect(() => {
     if (!soalanSemasa) return;
     setSusunWords([]);
@@ -128,13 +146,19 @@ export default function PermainanKonsolRPGPage() {
       : modeTulisan === 'rumi' 
         ? soalanSemasa.rumi 
         : (soalanSemasa.jawi || soalanSemasa.rumi);
+        
     const rawChips = targetObj?.options || [];
 
-    const shuffled = [...rawChips]
-      .sort(() => Math.random() - 0.5)
-      .map((word: string, i: number) => ({ id: i, word, used: false }));
+    // 🎯 Rawak menggunakan Fisher-Yates yang dijamin berterabur
+    const chipsBerterabur = rawakkanCebisan(rawChips);
 
-    setAvailableChips(shuffled);
+    setAvailableChips(
+      chipsBerterabur.map((word: string, i: number) => ({
+        id: i,
+        word,
+        used: false
+      }))
+    );
   }, [currentIdx, currentLevel, soalanSemasa, modeTulisan]);
 
   // Kawalan Pemasa
