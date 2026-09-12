@@ -8,6 +8,7 @@ import Link from 'next/link';
 interface DynamicQuestion {
   level: 1 | 2 | 3;
   type: 'pilihan' | 'susun_atur' | 'suara' | 'tulis';
+  imageUrl?: string; // 🖼️ Ciri baru soalan bergambar
   rumiQ: string;
   rumiOptions: string[];
   rumiA: string;
@@ -27,11 +28,12 @@ export default function BinaKuizGuru() {
   const [darjah, setDarjah] = useState('Darjah 3');
   const [deskripsi, setDeskripsi] = useState('');
 
-  // 🚀 STAT DYNAMIC QUESTIONS (GOOGLE FORMS STYLE!)
+  // 🚀 Senarai Soalan Dinamik
   const [questions, setQuestions] = useState<DynamicQuestion[]>([
     {
       level: 1,
       type: 'pilihan',
+      imageUrl: '',
       rumiQ: '',
       rumiOptions: ['', '', ''],
       rumiA: '',
@@ -42,6 +44,7 @@ export default function BinaKuizGuru() {
   ]);
 
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     semakSesiAkses();
@@ -57,7 +60,7 @@ export default function BinaKuizGuru() {
         .eq('email', session.user.email)
         .single();
       
-      if (profil && profil.peranan === 'Guru') {
+      if (profil && (profil.peranan === 'Guru' || profil.peranan === 'admin')) {
         setIsTeacher(true);
       } else {
         alert('Ralat Akses: Seksyen ini hanya untuk Guru bertauliah.');
@@ -68,13 +71,13 @@ export default function BinaKuizGuru() {
     }
   };
 
-  // Tambah baris soalan baru (Form Row)
   const tambahSoalanBaru = () => {
     setQuestions(prev => [
       ...prev,
       {
         level: 1,
         type: 'pilihan',
+        imageUrl: '',
         rumiQ: '',
         rumiOptions: ['', '', ''],
         rumiA: '',
@@ -85,10 +88,9 @@ export default function BinaKuizGuru() {
     ]);
   };
 
-  // Buang soalan tertentu
   const buangSoalan = (index: number) => {
     if (questions.length === 1) {
-      return alert('Misi permainan mestilah sekurang-kurangnya mempunyai satu (1) soalan!');
+      return alert('Misi permainan mestilah mempunyai sekurang-kurangnya satu (1) soalan!');
     }
     setQuestions(prev => prev.filter((_, idx) => idx !== index));
   };
@@ -117,6 +119,32 @@ export default function BinaKuizGuru() {
     });
   };
 
+  // Muat naik fail gambar ke Supabase Storage
+  const handleImageUpload = async (index: number, file: File) => {
+    try {
+      setUploadingIndex(index);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `kuiz_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+      const filePath = `soalan-visual/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('bbm-storage')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('bbm-storage')
+        .getPublicUrl(filePath);
+
+      handleQuestionChange(index, 'imageUrl', publicUrl);
+    } catch (err: any) {
+      alert('Gagal memuat naik gambar: ' + err.message);
+    } finally {
+      setUploadingIndex(null);
+    }
+  };
+
   const simpanKuizBaru = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tajuk) {
@@ -125,16 +153,13 @@ export default function BinaKuizGuru() {
 
     setIsSaving(true);
 
-    // Filter soalan mengikut tahap
     const level1: any[] = [];
     const level2: any[] = [];
     const level3: any[] = [];
 
     questions.forEach((q) => {
-      // Pembinaan Payload
       const formatted: any = {};
       
-      // Pembina soalan mengikut jenis interaktiviti
       let jawiQText = q.jawiQ;
       let rumiQText = q.rumiQ;
 
@@ -147,6 +172,11 @@ export default function BinaKuizGuru() {
       } else if (q.type === 'susun_atur') {
         jawiQText = `[Susun Atur] ${q.jawiQ}`;
         rumiQText = `[Susun Atur] ${q.rumiQ}`;
+      }
+
+      // 🖼️ Sertakan URL gambar jika ada
+      if (q.imageUrl && q.imageUrl.trim() !== '') {
+        formatted.img = q.imageUrl.trim();
       }
 
       formatted.jawi = {
@@ -184,7 +214,7 @@ export default function BinaKuizGuru() {
     if (error) {
       alert('Ralat menyimpan kuiz: ' + error.message);
     } else {
-      alert('🎉 Tahniah! Misi permainan Google Forms-style berjaya diterbitkan pada portal!');
+      alert('🎉 Tahniah! Misi permainan bergambar berjaya diterbitkan!');
       router.push('/permainan');
     }
   };
@@ -202,50 +232,52 @@ export default function BinaKuizGuru() {
       <div className="max-w-4xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1] rounded shadow-lg overflow-hidden transition-all duration-300">
         
         <div className="bg-[#1793D1] text-[#0F1419] px-6 py-4 flex justify-between items-center font-bold text-sm">
-          <span>🛠️ BINA MISI PERMAINAN BARU (MOD DYNAMIC GOOGLE FORMS)</span>
+          <span>🛠️ BINA MISI PERMAINAN (SOALAN BERGAMBAR & TEKS)</span>
           <Link href="/admin" className="text-white hover:underline">[ cd ~/ Admin ]</Link>
         </div>
 
         <form onSubmit={simpanKuizBaru} className="p-6 sm:p-10 space-y-8">
           
           {/* Metadata */}
-          <div className="space-y-4 bg-gray-50 dark:bg-[#11141b]/50 p-6 rounded border">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white border-b pb-2">1. Maklumat Utama Permainan</h2>
+          <div className="space-y-4 bg-gray-50 dark:bg-[#11141b]/50 p-6 rounded border border-gray-200 dark:border-gray-800">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-800 pb-2">1. Maklumat Utama Permainan</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Tajuk Misi</label>
-                <input type="text" required value={tajuk} onChange={(e)=>setTajuk(e.target.value)} placeholder="Cth: Niat Solat Jumaat" className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-850 p-2 rounded text-sm focus:outline-none focus:border-[#1793D1] text-gray-900 dark:text-white" />
+                <label className="block text-xs text-gray-500 mb-1 font-bold">Tajuk Misi</label>
+                <input type="text" required value={tajuk} onChange={(e)=>setTajuk(e.target.value)} placeholder="Cth: Eja Objek Jawi Bergambar" className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 p-2 rounded text-sm focus:outline-none focus:border-[#1793D1] text-gray-900 dark:text-white" />
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Subjek</label>
-                <select value={subjek} onChange={(e)=>setSubjek(e.target.value)} className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-850 p-2.5 rounded text-sm focus:outline-none focus:border-[#1793D1] text-gray-900 dark:text-white">
+                <label className="block text-xs text-gray-500 mb-1 font-bold">Subjek</label>
+                <select value={subjek} onChange={(e)=>setSubjek(e.target.value)} className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 p-2.5 rounded text-sm focus:outline-none focus:border-[#1793D1] text-gray-900 dark:text-white">
                   <option value="Jawi">Jawi</option>
                   <option value="Ibadah">Ibadah</option>
                   <option value="Tauhid">Tauhid</option>
+                  <option value="Sirah">Sirah</option>
+                  <option value="Adab">Adab</option>
                   <option value="Bahasa Arab">Bahasa Arab</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-1">Peringkat Sasaran</label>
-                <select value={darjah} onChange={(e)=>setDarjah(e.target.value)} className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-850 p-2.5 rounded text-sm focus:outline-none focus:border-[#1793D1] text-gray-900 dark:text-white">
+                <label className="block text-xs text-gray-500 mb-1 font-bold">Peringkat Sasaran</label>
+                <select value={darjah} onChange={(e)=>setDarjah(e.target.value)} className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 p-2.5 rounded text-sm focus:outline-none focus:border-[#1793D1] text-gray-900 dark:text-white">
                   <option value="Darjah 1">Darjah 1</option>
                   <option value="Darjah 2">Darjah 2</option>
                   <option value="Darjah 3">Darjah 3</option>
                   <option value="Darjah 4">Darjah 4</option>
                   <option value="Darjah 5">Darjah 5</option>
-                  <option value="Darjah 6">Darjah 6</option>
+                  <option value="UPKK">UPKK</option>
                 </select>
               </div>
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-1 font-bold">Deskripsi Misi</label>
-              <textarea rows={2} required value={deskripsi} onChange={(e)=>setDeskripsi(e.target.value)} placeholder="Tuliskan penerangan ringkas tentang objektif siri kuiz ini..." className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-850 p-2 rounded text-sm focus:outline-none focus:border-[#1793D1] text-gray-900 dark:text-white" />
+              <textarea rows={2} required value={deskripsi} onChange={(e)=>setDeskripsi(e.target.value)} placeholder="Tuliskan penerangan ringkas tentang objektif siri kuiz ini..." className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 p-2 rounded text-sm focus:outline-none focus:border-[#1793D1] text-gray-900 dark:text-white" />
             </div>
           </div>
 
-          {/* 🚀 FORM BUILDER SOALAN LIST (DASHBOARD) */}
+          {/* Form Builder Soalan */}
           <div className="space-y-6">
-            <div className="flex justify-between items-center border-b pb-2">
+            <div className="flex justify-between items-center border-b border-gray-200 dark:border-gray-800 pb-2">
               <h2 className="text-lg font-black text-gray-900 dark:text-white">📝 2. Set Soalan Misi ({questions.length})</h2>
               <button
                 type="button"
@@ -280,7 +312,7 @@ export default function BinaKuizGuru() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1 font-bold">Jenis Interaktiviti (Pedagogi PPKI)</label>
+                    <label className="block text-xs text-gray-500 mb-1 font-bold">Jenis Interaktiviti</label>
                     <select
                       value={q.type}
                       onChange={(e) => handleQuestionChange(idx, 'type', e.target.value)}
@@ -291,6 +323,56 @@ export default function BinaKuizGuru() {
                       <option value="suara">Sebutan Suara (TTS Pembaca Arab)</option>
                       <option value="tulis">Lakar Jawi Kanvas (Canvas Writing)</option>
                     </select>
+                  </div>
+                </div>
+
+                {/* 🖼️ MODUL GAMBAR SOALAN */}
+                <div className="bg-blue-50/50 dark:bg-[#1793D1]/5 border border-[#1793D1]/30 p-3.5 rounded-lg space-y-2">
+                  <span className="text-xs font-bold text-[#1793D1] flex items-center gap-2">
+                    🖼️ Gambar Rangsangan Soalan (Pilihan / Visual Scaffolding)
+                  </span>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                    <div>
+                      <input
+                        type="url"
+                        placeholder="Tampal Pautan Gambar (cth: https://...)"
+                        value={q.imageUrl || ''}
+                        onChange={(e) => handleQuestionChange(idx, 'imageUrl', e.target.value)}
+                        className="w-full bg-white dark:bg-[#171A21] border p-2 text-xs rounded text-gray-900 dark:text-white focus:outline-none mb-1.5"
+                      />
+                      <label className="text-[11px] text-gray-500 block mb-1">Atau muat naik imej (.jpg/.png):</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={uploadingIndex === idx}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleImageUpload(idx, e.target.files[0]);
+                          }
+                        }}
+                        className="text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-[#1793D1] file:text-white hover:file:opacity-80"
+                      />
+                      {uploadingIndex === idx && <span className="text-[10px] text-orange-500 ml-2 animate-pulse">Memuat naik imej...</span>}
+                    </div>
+
+                    {/* Pratonton Gambar */}
+                    {q.imageUrl && (
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={q.imageUrl}
+                          alt={`Visual Soalan ${idx + 1}`}
+                          className="h-24 w-36 object-contain rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-black p-1 shadow-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleQuestionChange(idx, 'imageUrl', '')}
+                          className="text-[10px] text-red-500 hover:underline font-bold"
+                        >
+                          [ Buang Imej ]
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -307,7 +389,7 @@ export default function BinaKuizGuru() {
                         required
                         value={q.jawiQ}
                         onChange={(e) => handleQuestionChange(idx, 'jawiQ', e.target.value)}
-                        placeholder="Cth: اڤاکه ڤڠرتين صلاة جمعة؟"
+                        placeholder="Cth: اڤاکه نام بواه دالم ݢامبر دأتس؟"
                         className="w-full bg-white dark:bg-[#171A21] border p-2 text-xs text-right rounded text-gray-900 dark:text-white focus:outline-none"
                       />
                     </div>
@@ -342,7 +424,7 @@ export default function BinaKuizGuru() {
                         required={q.level === 1}
                         value={q.rumiQ}
                         onChange={(e) => handleQuestionChange(idx, 'rumiQ', e.target.value)}
-                        placeholder="Cth: Apakah pengertian solat Jumaat?"
+                        placeholder="Cth: Apakah nama buah dalam gambar di atas?"
                         className="w-full bg-white dark:bg-[#171A21] border p-2 text-xs rounded text-gray-900 dark:text-white focus:outline-none"
                       />
                     </div>
@@ -373,7 +455,6 @@ export default function BinaKuizGuru() {
             ))}
           </div>
 
-          {/* Butang Submit */}
           <div className="pt-4 flex justify-end">
             <button
               type="submit"
