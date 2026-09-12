@@ -40,7 +40,7 @@ export default function PermainanKonsolRPGPage() {
   const [senaraiLeaderboard, setSenaraiLeaderboard] = useState<any[]>([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
-  // 📝 Mod Tulisan & Jawapan
+  // 📝 Mod Tulisan & Pilihan
   const [modeTulisan, setModeTulisan] = useState<'dwi' | 'jawi' | 'rumi'>('dwi');
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -48,6 +48,24 @@ export default function PermainanKonsolRPGPage() {
 
   const [userProfile, setUserProfile] = useState<{ mykid: string; nama: string; peranan: string } | null>(null);
   const [isAccessDenied, setIsAccessDenied] = useState(false);
+
+  // 🧩 State Khas Susun Atur
+  const [susunWords, setSusunWords] = useState<string[]>([]);
+  const [availableChips, setAvailableChips] = useState<{ id: number; word: string; used: boolean }[]>([]);
+
+  // =========================================================================
+  // 🎯 KUNCI PENYELESAIAN TS(2448): DIISYTIHARKAN DI ATAS SEBELUM DIGUNAKAN
+  // =========================================================================
+  const soalanSemasa = soalanList[currentIdx];
+  const objSoalan = modeTulisan === 'jawi' 
+    ? soalanSemasa?.jawi 
+    : modeTulisan === 'rumi' 
+      ? soalanSemasa?.rumi 
+      : (soalanSemasa?.jawi || soalanSemasa?.rumi);
+
+  const senaraiPilihan = (objSoalan?.options && objSoalan.options.length > 0)
+    ? objSoalan.options
+    : (objSoalan?.a ? [objSoalan.a] : []);
 
   // Semakan Akses Murid
   const semakKelayakanPemain = async () => {
@@ -81,7 +99,7 @@ export default function PermainanKonsolRPGPage() {
     });
   }, [gameId]);
 
-  // 🔄 KEMAS KINI TAHAP SECARA DINAMIK (Fix Utama: Muat Soalan & Reset HP Mengikut Aras)
+  // Kemas kini Tahap Dinamik & Reset HP Musuh
   useEffect(() => {
     if (!gameMeta) return;
 
@@ -99,6 +117,25 @@ export default function PermainanKonsolRPGPage() {
     setMaxEnemyHp(hpMusuhBaru);
     setBattleLog(isBoss ? '⚠️ AMARAN: Bos Akhir muncul! Kesilapan memulihkan nyawa Bos!' : `Tahap ${currentLevel} bermula! Bersedia menyerang.`);
   }, [currentLevel, gameMeta, maxLevel]);
+
+  // Inisialisasi Cebisan Perkataan Bila Bertukar Soalan
+  useEffect(() => {
+    if (!soalanSemasa) return;
+    setSusunWords([]);
+
+    const targetObj = modeTulisan === 'jawi' 
+      ? soalanSemasa.jawi 
+      : modeTulisan === 'rumi' 
+        ? soalanSemasa.rumi 
+        : (soalanSemasa.jawi || soalanSemasa.rumi);
+    const rawChips = targetObj?.options || [];
+
+    const shuffled = [...rawChips]
+      .sort(() => Math.random() - 0.5)
+      .map((word: string, i: number) => ({ id: i, word, used: false }));
+
+    setAvailableChips(shuffled);
+  }, [currentIdx, currentLevel, soalanSemasa, modeTulisan]);
 
   // Kawalan Pemasa
   useEffect(() => {
@@ -211,14 +248,31 @@ export default function PermainanKonsolRPGPage() {
     }, { onConflict: 'tarikh,mykid' });
   };
 
+  const handleChipClick = (chipId: number, word: string) => {
+    if (isAnswered) return;
+    setSusunWords((prev) => [...prev, word]);
+    setAvailableChips((prev) =>
+      prev.map((c) => (c.id === chipId ? { ...c, used: true } : c))
+    );
+  };
+
+  const resetSusunWords = () => {
+    if (isAnswered) return;
+    setSusunWords([]);
+    setAvailableChips((prev) => prev.map((c) => ({ ...c, used: false })));
+  };
+
   const serang = (jawapanDipilih: string, idx: number) => {
     if (isAnswered || isGameOver || isVictory) return;
 
     setSelectedOpt(idx);
     setIsAnswered(true);
 
-    const soalan = soalanList[currentIdx];
-    const targetObj = modeTulisan === 'jawi' ? soalan.jawi : modeTulisan === 'rumi' ? soalan.rumi : (soalan.jawi || soalan.rumi);
+    const targetObj = modeTulisan === 'jawi' 
+      ? soalanSemasa?.jawi 
+      : modeTulisan === 'rumi' 
+        ? soalanSemasa?.rumi 
+        : (soalanSemasa?.jawi || soalanSemasa?.rumi);
     const jawapanBetul = targetObj?.a || '';
     const isCorrect = jawapanDipilih.trim() === jawapanBetul.trim() && jawapanDipilih !== '[MASA TAMAT]';
     const damageDealt = Math.ceil(maxEnemyHp / Math.max(soalanList.length, 1));
@@ -251,7 +305,6 @@ export default function PermainanKonsolRPGPage() {
     }
   };
 
-  // 🎯 Fix: Memastikan SEMUA soalan dalam tahap semasa dijawab sebelum mara ke tahap seterusnya
   const maraPusingan = () => {
     if (currentIdx + 1 < soalanList.length) {
       setCurrentIdx((prev) => prev + 1);
@@ -345,6 +398,9 @@ export default function PermainanKonsolRPGPage() {
     );
   }
 
+  // ==============================================================
+  // 🌟 SKRIN 1: LOBI PRA-PERTEMPURAN
+  // ==============================================================
   if (!isGameStarted) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-8 flex items-center justify-center">
@@ -437,18 +493,14 @@ export default function PermainanKonsolRPGPage() {
     );
   }
 
-  const soalanSemasa = soalanList[currentIdx];
-  const objSoalan = modeTulisan === 'jawi' ? soalanSemasa?.jawi : modeTulisan === 'rumi' ? soalanSemasa?.rumi : (soalanSemasa?.jawi || soalanSemasa?.rumi);
-
-  // 🛡️ Fallback: Jika options kosong (seperti soalan susun atur), sediakan jawapan sebagai butang serang
-  const senaraiPilihan = (objSoalan?.options && objSoalan.options.length > 0)
-    ? objSoalan.options
-    : (objSoalan?.a ? [objSoalan.a] : []);
-
+  // ==============================================================
+  // ⚔️ SKRIN 2: ARENA PERTEMPURAN RPG
+  // ==============================================================
   return (
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-3 sm:p-8">
       <div className="max-w-4xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded-xl shadow-xl overflow-hidden">
         
+        {/* Bar Atas Konsol */}
         <div className="bg-[#1793D1] text-white px-5 py-3 flex justify-between items-center text-xs font-bold">
           <div className="flex items-center gap-2">
             <span>⚔️ {gameMeta?.tajuk?.toUpperCase()}</span>
@@ -523,7 +575,7 @@ export default function PermainanKonsolRPGPage() {
             </p>
           </div>
 
-          {/* Kotak Soalan */}
+          {/* Kotak Soalan & Jawapan */}
           {!isGameOver && !isVictory && objSoalan && (
             <div className="space-y-6">
               <div className="flex justify-between items-center text-xs">
@@ -538,7 +590,6 @@ export default function PermainanKonsolRPGPage() {
               </div>
 
               <div className="bg-gray-50 dark:bg-[#11141b]/60 border border-gray-200 dark:border-gray-800 p-6 rounded-xl text-center space-y-4">
-                {/* Paparan Gambar Soalan */}
                 {(soalanSemasa?.img || soalanSemasa?.gambar_url || soalanSemasa?.gambarUrl) && (
                   <div className="my-3 flex justify-center">
                     <img 
@@ -551,39 +602,100 @@ export default function PermainanKonsolRPGPage() {
 
                 {modeTulisan === 'dwi' ? (
                   <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white font-sans">{soalanSemasa.jawi?.q}</h2>
-                    <p className="text-sm text-gray-500 italic">({soalanSemasa.rumi?.q})</p>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white font-sans">{soalanSemasa?.jawi?.q}</h2>
+                    <p className="text-sm text-gray-500 italic">({soalanSemasa?.rumi?.q})</p>
                   </div>
                 ) : (
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white leading-relaxed">{objSoalan.q}</h2>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {senaraiPilihan.map((opt: string, idx: number) => {
-                  const isCorrect = opt.trim() === objSoalan.a.trim();
-                  return (
-                    <button
-                      key={idx}
-                      disabled={isAnswered}
-                      onClick={() => serang(opt, idx)}
-                      className={`p-4 rounded-xl border text-sm font-semibold transition-all text-left flex justify-between items-center ${
-                        isAnswered
-                          ? isCorrect
-                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400'
-                            : selectedOpt === idx
-                              ? 'bg-rose-500/20 border-rose-500 text-rose-600 dark:text-rose-400'
-                              : 'opacity-40 border-gray-200 dark:border-gray-800'
-                          : 'bg-white dark:bg-[#171A21] border-gray-200 dark:border-gray-800 hover:border-[#1793D1]'
-                      }`}
-                    >
-                      <span>{opt}</span>
-                      <span className="text-xs text-gray-400 font-mono">[SERANG]</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {/* 🎯 KAWASAN JAWAPAN TUNGGAL (PILIHAN ATAU SUSUN ATUR) */}
+              {soalanSemasa?.type === 'susun_atur' ? (
+                <div className="space-y-4">
+                  {/* Kotak Ayat Terbina */}
+                  <div className="min-h-[60px] p-4 bg-white dark:bg-[#11141b] border-2 border-dashed border-[#1793D1]/50 rounded-xl flex flex-wrap items-center justify-center gap-2">
+                    {susunWords.length === 0 ? (
+                      <span className="text-xs text-gray-400 italic">Tekan perkataan di bawah untuk menyusun ayat...</span>
+                    ) : (
+                      susunWords.map((w, idx) => (
+                        <span key={idx} className="bg-[#1793D1] text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm">
+                          {w}
+                        </span>
+                      ))
+                    )}
+                  </div>
 
+                  {/* Cebisan Perkataan (Word Chips) */}
+                  <div className="flex flex-wrap justify-center gap-2 pt-2">
+                    {availableChips.map((chip) => (
+                      <button
+                        key={chip.id}
+                        type="button"
+                        disabled={chip.used || isAnswered}
+                        onClick={() => handleChipClick(chip.id, chip.word)}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold border transition-all ${
+                          chip.used
+                            ? 'opacity-20 bg-gray-200 dark:bg-gray-800 cursor-not-allowed'
+                            : 'bg-white dark:bg-[#171A21] border-gray-300 dark:border-gray-700 hover:border-[#1793D1] text-gray-800 dark:text-gray-200 active:scale-95 shadow-sm'
+                        }`}
+                      >
+                        {chip.word}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-center gap-3 pt-2">
+                    <button
+                      type="button"
+                      disabled={isAnswered || susunWords.length === 0}
+                      onClick={resetSusunWords}
+                      className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-red-500 border border-gray-300 dark:border-gray-700 rounded-lg"
+                    >
+                      [ ↺ Set Semula ]
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isAnswered || susunWords.length === 0}
+                      onClick={() => {
+                        const jawapanLengkap = susunWords.join(' ');
+                        serang(jawapanLengkap, 0);
+                      }}
+                      className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-md disabled:opacity-50"
+                    >
+                      ⚔️ [ SAHKAN AYAT & SERANG ]
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Render Pilihan Standard 3 Butang */
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {senaraiPilihan.map((opt: string, idx: number) => {
+                    const isCorrect = opt.trim() === objSoalan.a.trim();
+                    return (
+                      <button
+                        key={idx}
+                        disabled={isAnswered}
+                        onClick={() => serang(opt, idx)}
+                        className={`p-4 rounded-xl border text-sm font-semibold transition-all text-left flex justify-between items-center ${
+                          isAnswered
+                            ? isCorrect
+                              ? 'bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400'
+                              : selectedOpt === idx
+                                ? 'bg-rose-500/20 border-rose-500 text-rose-600 dark:text-rose-400'
+                                : 'opacity-40 border-gray-200 dark:border-gray-800'
+                            : 'bg-white dark:bg-[#171A21] border-gray-200 dark:border-gray-800 hover:border-[#1793D1]'
+                        }`}
+                      >
+                        <span>{opt}</span>
+                        <span className="text-xs text-gray-400 font-mono">[SERANG]</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Butang Mara Pusingan Seterusnya */}
               {isAnswered && (
                 <div className="pt-2 text-center">
                   <button
