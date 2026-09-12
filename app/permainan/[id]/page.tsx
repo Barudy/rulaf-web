@@ -19,7 +19,7 @@ export default function PermainanKonsolRPGPage() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 🔒 Kunci Pra-Permainan (Splash / Lobi Pemilihan)
+  // 🔒 Kunci Pra-Permainan
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [difficulty, setDifficulty] = useState<'senang' | 'sederhana' | 'sukar'>('sederhana');
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
@@ -33,14 +33,14 @@ export default function PermainanKonsolRPGPage() {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isVictory, setIsVictory] = useState(false);
 
-  // 📊 Statistik Jawapan & Leaderboard
+  // 📊 Statistik & Leaderboard
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
   const [senaraiLeaderboard, setSenaraiLeaderboard] = useState<any[]>([]);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
-  // 📝 Mod Tulisan & Soalan (Dikunci mengikut Difficulty)
+  // 📝 Mod Tulisan & Jawapan
   const [modeTulisan, setModeTulisan] = useState<'dwi' | 'jawi' | 'rumi'>('dwi');
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -49,7 +49,7 @@ export default function PermainanKonsolRPGPage() {
   const [userProfile, setUserProfile] = useState<{ mykid: string; nama: string; peranan: string } | null>(null);
   const [isAccessDenied, setIsAccessDenied] = useState(false);
 
-  // Semakan Kelayakan Murid Berdaftar
+  // Semakan Akses Murid
   const semakKelayakanPemain = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -81,7 +81,26 @@ export default function PermainanKonsolRPGPage() {
     });
   }, [gameId]);
 
-  // Kawalan Pemasa Soalan
+  // 🔄 KEMAS KINI TAHAP SECARA DINAMIK (Fix Utama: Muat Soalan & Reset HP Mengikut Aras)
+  useEffect(() => {
+    if (!gameMeta) return;
+
+    const keyLevel = `level${currentLevel}`;
+    const soalanArasSemasa = gameMeta[keyLevel] || [];
+    setSoalanList(soalanArasSemasa);
+    setCurrentIdx(0);
+    setIsAnswered(false);
+    setSelectedOpt(null);
+
+    const isBoss = currentLevel === maxLevel;
+    setIsBossLevel(isBoss);
+    const hpMusuhBaru = isBoss ? 150 : 100;
+    setEnemyHp(hpMusuhBaru);
+    setMaxEnemyHp(hpMusuhBaru);
+    setBattleLog(isBoss ? '⚠️ AMARAN: Bos Akhir muncul! Kesilapan memulihkan nyawa Bos!' : `Tahap ${currentLevel} bermula! Bersedia menyerang.`);
+  }, [currentLevel, gameMeta, maxLevel]);
+
+  // Kawalan Pemasa
   useEffect(() => {
     if (!isGameStarted || difficulty === 'senang' || isAnswered || isGameOver || isVictory) return;
 
@@ -100,13 +119,13 @@ export default function PermainanKonsolRPGPage() {
     return () => clearInterval(timer);
   }, [isGameStarted, currentIdx, currentLevel, isAnswered, isGameOver, isVictory, difficulty]);
 
-  // Kawalan Penalti Keluar
+  // Penalti Keluar
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isGameStarted && !isVictory && !isGameOver && !isLoading) {
         rekodPenaltiKeluar();
         e.preventDefault();
-        e.returnValue = 'AMARAN: Keluar sekarang akan membatalkan markah kerajinan anda!';
+        e.returnValue = 'AMARAN: Keluar sekarang membatalkan markah kerajinan anda!';
       }
     };
 
@@ -152,16 +171,6 @@ export default function PermainanKonsolRPGPage() {
       if (meta.level3 && meta.level3.length > 0) calculatedMax = 3;
       else if (meta.level2 && meta.level2.length > 0) calculatedMax = 2;
       setMaxLevel(calculatedMax);
-
-      const soalanSemasa = meta[`level${currentLevel}`] || [];
-      setSoalanList(soalanSemasa);
-
-      const isBoss = currentLevel === calculatedMax;
-      setIsBossLevel(isBoss);
-      const enemyBaseHp = isBoss ? 150 : 100;
-      setEnemyHp(enemyBaseHp);
-      setMaxEnemyHp(enemyBaseHp);
-      setBattleLog(isBoss ? '⚠️ AMARAN: Bos muncul! Kesilapan memulihkan nyawa Bos!' : 'Pertarungan bermula! Serang musuh.');
     }
     setIsLoading(false);
   };
@@ -220,17 +229,17 @@ export default function PermainanKonsolRPGPage() {
       const nextEnemyHp = Math.max(0, enemyHp - damageDealt);
       setEnemyHp(nextEnemyHp);
       setBattleLog(`💥 SERANGAN BERJAYA! Musuh menerima ${damageDealt} kerosakan!`);
-      if (nextEnemyHp <= 0) setBattleLog('🎉 MUSUH TEWAS! Sedia untuk fasa seterusnya.');
+      if (nextEnemyHp <= 0) setBattleLog('🎉 MUSUH TUMBANG! Bersedia untuk pusingan seterusnya.');
     } else {
       setMistakes((prev) => prev + 1);
       const nextPlayerHp = Math.max(0, playerHp - damageTaken);
       setPlayerHp(nextPlayerHp);
 
       if (jawapanDipilih === '[MASA TAMAT]') {
-        setBattleLog(`⏰ MASA TAMAT! Hero diserang musuh (${damageTaken} kerosakan)!`);
+        setBattleLog(`⏰ MASA TAMAT! Hero menerima ${damageTaken} kerosakan balas!`);
       } else if (isBossLevel) {
         setEnemyHp(maxEnemyHp);
-        setBattleLog(`❌ SALAH! Bos serang balas (${damageTaken} kerosakan) & pulihkan HP penuh!`);
+        setBattleLog(`❌ SALAH! Bos serang balas (${damageTaken} dmg) & memulihkan nyawa penuh!`);
       } else {
         setBattleLog(`❌ JAWAPAN SALAH! Hero menerima ${damageTaken} kerosakan!`);
       }
@@ -242,14 +251,14 @@ export default function PermainanKonsolRPGPage() {
     }
   };
 
+  // 🎯 Fix: Memastikan SEMUA soalan dalam tahap semasa dijawab sebelum mara ke tahap seterusnya
   const maraPusingan = () => {
-    if (currentIdx + 1 < soalanList.length && enemyHp > 0) {
+    if (currentIdx + 1 < soalanList.length) {
       setCurrentIdx((prev) => prev + 1);
       resetTurnWithTimer();
     } else {
       if (currentLevel < maxLevel && !isGameOver) {
         setCurrentLevel((prev) => prev + 1);
-        setCurrentIdx(0);
         setPlayerHp((prev) => Math.min(maxPlayerHp, prev + 30));
         resetTurnWithTimer();
       } else if (!isGameOver) {
@@ -336,9 +345,6 @@ export default function PermainanKonsolRPGPage() {
     );
   }
 
-  // ==============================================================
-  // 🌟 SKRIN 1: LOBI PRA-PERTEMPURAN (PILIHAN KESUKARAN DIKUNCI)
-  // ==============================================================
   if (!isGameStarted) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-8 flex items-center justify-center">
@@ -355,11 +361,10 @@ export default function PermainanKonsolRPGPage() {
 
           <div className="space-y-3 pt-2">
             <label className="text-xs font-bold text-[#1793D1] uppercase tracking-wider block text-center">
-              — PILIH TAHAP KESUKARAN (DIKUNCI SEPANJANG SESI) —
+              — PILIH TAHAP KESUKARAN —
             </label>
 
             <div className="grid grid-cols-1 gap-3">
-              {/* Senang */}
               <div
                 onClick={() => setDifficulty('senang')}
                 className={`p-4 rounded-lg border cursor-pointer transition-all ${
@@ -373,11 +378,10 @@ export default function PermainanKonsolRPGPage() {
                   <span className="text-xs font-mono font-bold bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-500">1.0x SKOR</span>
                 </div>
                 <p className="text-[11px] text-gray-500 mt-1 font-sans">
-                  Tiada had masa soalan. Tulisan Rumi sepenuhnya. Sesuai untuk latihan permulaan.
+                  Tiada had masa soalan. Tulisan Rumi sepenuhnya.
                 </p>
               </div>
 
-              {/* Sederhana */}
               <div
                 onClick={() => setDifficulty('sederhana')}
                 className={`p-4 rounded-lg border cursor-pointer transition-all ${
@@ -391,11 +395,10 @@ export default function PermainanKonsolRPGPage() {
                   <span className="text-xs font-mono font-bold bg-[#1793D1]/20 px-2 py-0.5 rounded text-[#1793D1]">1.5x SKOR</span>
                 </div>
                 <p className="text-[11px] text-gray-500 mt-1 font-sans">
-                  Had masa 30 saat setiap soalan. Dwi-Tulisan (Jawi & Rumi). Pilihan jawapan dirawakkan.
+                  Had masa 30 saat setiap soalan. Dwi-Tulisan (Jawi & Rumi).
                 </p>
               </div>
 
-              {/* Sukar */}
               <div
                 onClick={() => setDifficulty('sukar')}
                 className={`p-4 rounded-lg border cursor-pointer transition-all ${
@@ -409,7 +412,7 @@ export default function PermainanKonsolRPGPage() {
                   <span className="text-xs font-mono font-bold bg-rose-500/20 px-2 py-0.5 rounded text-rose-500">2.0x SKOR</span>
                 </div>
                 <p className="text-[11px] text-gray-500 mt-1 font-sans">
-                  Had masa 15 saat setiap soalan. Tulisan Jawi sahaja. Pilihan dirawakkan penuh.
+                  Had masa 15 saat setiap soalan. Tulisan Jawi sahaja.
                 </p>
               </div>
             </div>
@@ -418,7 +421,7 @@ export default function PermainanKonsolRPGPage() {
           <div className="space-y-2 pt-4">
             <button
               onClick={mulakanMisi}
-              className="w-full py-3.5 bg-[#1793D1] hover:bg-blue-600 text-white font-black rounded-lg text-xs tracking-wider transition-all shadow-lg shadow-blue-500/20"
+              className="w-full py-3.5 bg-[#1793D1] hover:bg-blue-600 text-white font-black rounded-lg text-xs tracking-wider transition-all shadow-lg"
             >
               [ ⚔️ MULAKAN PERTEMPURAN SEKARANG ]
             </button>
@@ -434,17 +437,18 @@ export default function PermainanKonsolRPGPage() {
     );
   }
 
-  // ==============================================================
-  // ⚔️ SKRIN 2: ARENA PERTEMPURAN RPG AKTIF
-  // ==============================================================
   const soalanSemasa = soalanList[currentIdx];
   const objSoalan = modeTulisan === 'jawi' ? soalanSemasa?.jawi : modeTulisan === 'rumi' ? soalanSemasa?.rumi : (soalanSemasa?.jawi || soalanSemasa?.rumi);
+
+  // 🛡️ Fallback: Jika options kosong (seperti soalan susun atur), sediakan jawapan sebagai butang serang
+  const senaraiPilihan = (objSoalan?.options && objSoalan.options.length > 0)
+    ? objSoalan.options
+    : (objSoalan?.a ? [objSoalan.a] : []);
 
   return (
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-3 sm:p-8">
       <div className="max-w-4xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded-xl shadow-xl overflow-hidden">
         
-        {/* Bar Atas Konsol (Status Terkunci) */}
         <div className="bg-[#1793D1] text-white px-5 py-3 flex justify-between items-center text-xs font-bold">
           <div className="flex items-center gap-2">
             <span>⚔️ {gameMeta?.tajuk?.toUpperCase()}</span>
@@ -455,7 +459,7 @@ export default function PermainanKonsolRPGPage() {
           <button
             onClick={async () => {
               if (!isVictory && !isGameOver) {
-                const pasti = window.confirm('⚠️ AMARAN: Jika anda keluar sekarang, markah kerajinan hari ini akan DIBATALKAN (Penalti 0). Pasti keluar?');
+                const pasti = window.confirm('⚠️ AMARAN: Jika keluar sekarang, markah kerajinan hari ini akan DIBATALKAN (Penalti 0).');
                 if (pasti) {
                   await rekodPenaltiKeluar();
                   router.push('/permainan');
@@ -473,11 +477,11 @@ export default function PermainanKonsolRPGPage() {
         <div className="p-4 sm:p-8 space-y-6">
           {isBossLevel && (
             <div className="bg-red-950/40 border border-red-600/80 text-red-400 p-3 rounded-lg text-xs font-bold text-center animate-pulse">
-              ⚠️ TAHAP BOS AKHIR — Kesilapan jawapan akan memulihkan nyawa Bos ke tahap maksimum!
+              ⚠️ TAHAP BOS AKHIR (TAHAP {currentLevel}) — Kesilapan jawapan memulihkan nyawa Bos!
             </div>
           )}
 
-          {/* Arena HP Bar */}
+          {/* Bar Nyawa RPG */}
           <div className="bg-gray-100 dark:bg-[#0F1419] border border-gray-200 dark:border-gray-800 rounded-xl p-4 sm:p-6 shadow-inner">
             <div className="flex justify-between items-center gap-4">
               <div className="flex-1">
@@ -494,7 +498,7 @@ export default function PermainanKonsolRPGPage() {
               </div>
 
               <div className="text-center px-2">
-                <span className="text-[10px] font-bold text-[#1793D1] block uppercase tracking-wider">Tahap {currentLevel}</span>
+                <span className="text-[10px] font-bold text-[#1793D1] block uppercase tracking-wider">Tahap {currentLevel} / {maxLevel}</span>
                 <span className="text-xs font-black text-amber-500">VS</span>
               </div>
 
@@ -502,7 +506,7 @@ export default function PermainanKonsolRPGPage() {
                 <div className="flex items-center justify-end gap-2 mb-1.5">
                   <div>
                     <span className="text-xs font-bold text-gray-900 dark:text-white block">
-                      {isBossLevel ? 'Naga Ifrit (Bos)' : 'Pendekar Bayang'}
+                      {isBossLevel ? 'Naga Ifrit (Bos)' : `Musuh Aras ${currentLevel}`}
                     </span>
                     <span className="text-[10px] text-gray-400">{enemyHp}/{maxEnemyHp} HP</span>
                   </div>
@@ -519,12 +523,12 @@ export default function PermainanKonsolRPGPage() {
             </p>
           </div>
 
-          {/* Kotak Soalan & Jawapan */}
+          {/* Kotak Soalan */}
           {!isGameOver && !isVictory && objSoalan && (
             <div className="space-y-6">
               <div className="flex justify-between items-center text-xs">
                 <span className="bg-[#1793D1]/10 text-[#1793D1] px-2.5 py-1 rounded font-bold">
-                  Soalan {currentIdx + 1} / {soalanList.length}
+                  Tahap {currentLevel} • Soalan {currentIdx + 1} / {soalanList.length}
                 </span>
                 {timeLeft !== null && (
                   <span className={`font-mono font-bold px-2.5 py-1 rounded ${timeLeft <= 5 ? 'bg-rose-500 text-white animate-bounce' : 'bg-amber-500/20 text-amber-500'}`}>
@@ -534,16 +538,16 @@ export default function PermainanKonsolRPGPage() {
               </div>
 
               <div className="bg-gray-50 dark:bg-[#11141b]/60 border border-gray-200 dark:border-gray-800 p-6 rounded-xl text-center space-y-4">
-                {/* 🖼️ Sokongan Dwi-Kunci Gambar (img / gambar_url / gambarUrl) */}
-{(soalanSemasa?.img || soalanSemasa?.gambar_url || soalanSemasa?.gambarUrl) && (
-  <div className="my-3 flex justify-center">
-    <img 
-      src={soalanSemasa.img || soalanSemasa.gambar_url || soalanSemasa.gambarUrl} 
-      alt="Ilustrasi Soalan" 
-      className="max-h-56 rounded-lg border border-gray-300 dark:border-gray-700 object-contain shadow-md bg-white/50 dark:bg-black/40 p-1.5" 
-    />
-  </div>
-)}
+                {/* Paparan Gambar Soalan */}
+                {(soalanSemasa?.img || soalanSemasa?.gambar_url || soalanSemasa?.gambarUrl) && (
+                  <div className="my-3 flex justify-center">
+                    <img 
+                      src={soalanSemasa.img || soalanSemasa.gambar_url || soalanSemasa.gambarUrl} 
+                      alt="Visual Soalan" 
+                      className="max-h-56 rounded-lg border border-gray-300 dark:border-gray-700 object-contain shadow-md bg-white/50 dark:bg-black/40 p-1.5" 
+                    />
+                  </div>
+                )}
 
                 {modeTulisan === 'dwi' ? (
                   <div className="space-y-2">
@@ -556,7 +560,7 @@ export default function PermainanKonsolRPGPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {objSoalan.options?.map((opt: string, idx: number) => {
+                {senaraiPilihan.map((opt: string, idx: number) => {
                   const isCorrect = opt.trim() === objSoalan.a.trim();
                   return (
                     <button
@@ -586,7 +590,7 @@ export default function PermainanKonsolRPGPage() {
                     onClick={maraPusingan}
                     className="w-full sm:w-auto px-8 py-3 bg-[#1793D1] text-white font-bold rounded-lg text-xs shadow hover:bg-blue-600 transition-colors"
                   >
-                    [ PUSINGAN SETERUSNYA ➡️ ]
+                    [ {currentIdx + 1 < soalanList.length ? 'SOALAN SETERUSNYA ➡️' : `MARA KE TAHAP ${currentLevel + 1 <= maxLevel ? currentLevel + 1 : 'SELESAI'} 🏆`} ]
                   </button>
                 </div>
               )}
@@ -605,13 +609,14 @@ export default function PermainanKonsolRPGPage() {
                 onClick={() => {
                   setPlayerHp(100);
                   setIsGameOver(false);
+                  setCurrentLevel(1);
                   setCurrentIdx(0);
                   resetTurnWithTimer();
                   tarikDataGame();
                 }}
                 className="px-6 py-2.5 bg-gray-700 text-white rounded font-bold text-xs hover:bg-gray-600"
               >
-                [ CUBA SEMULA ]
+                [ CUBA SEMULA DARI AWAL ]
               </button>
             </div>
           )}
@@ -622,7 +627,7 @@ export default function PermainanKonsolRPGPage() {
               <span className="text-6xl block select-none">🏆</span>
               <h2 className="text-3xl font-black text-emerald-500">MISI PERTEMPURAN SELESAI!</h2>
               <div className="inline-block bg-[#1793D1]/10 border border-[#1793D1] p-5 rounded-xl text-center space-y-1">
-                <span className="text-xs text-gray-400 font-bold block">JUMLAH MATA RPG (GANDAAN {difficulty.toUpperCase()})</span>
+                <span className="text-xs text-gray-400 font-bold block">JUMLAH MATA RPG (MOD {difficulty.toUpperCase()})</span>
                 <span className="text-3xl font-black text-[#1793D1]">{finalScore} PTS</span>
                 <span className="text-[10px] text-emerald-500 font-bold block mt-1">
                   ✓ Ganjaran +3 Markah Kerajinan Direkodkan
