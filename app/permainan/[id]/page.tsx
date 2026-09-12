@@ -534,11 +534,16 @@ export default function PermainanKonsolRPGPage() {
               </div>
 
               <div className="bg-gray-50 dark:bg-[#11141b]/60 border border-gray-200 dark:border-gray-800 p-6 rounded-xl text-center space-y-4">
-                {soalanSemasa.gambar_url && (
-                  <div className="my-3 flex justify-center">
-                    <img src={soalanSemasa.gambar_url} alt="Ilustrasi Soalan" className="max-h-48 rounded-lg border border-gray-300 dark:border-gray-700 object-contain shadow-md" />
-                  </div>
-                )}
+                {/* 🖼️ Sokongan Dwi-Kunci Gambar (img / gambar_url / gambarUrl) */}
+{(soalanSemasa?.img || soalanSemasa?.gambar_url || soalanSemasa?.gambarUrl) && (
+  <div className="my-3 flex justify-center">
+    <img 
+      src={soalanSemasa.img || soalanSemasa.gambar_url || soalanSemasa.gambarUrl} 
+      alt="Ilustrasi Soalan" 
+      className="max-h-56 rounded-lg border border-gray-300 dark:border-gray-700 object-contain shadow-md bg-white/50 dark:bg-black/40 p-1.5" 
+    />
+  </div>
+)}
 
                 {modeTulisan === 'dwi' ? (
                   <div className="space-y-2">

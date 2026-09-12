@@ -40,71 +40,41 @@ export default function PermainanMenuPage() {
     }
   };
 
-  const tukarTema = () => {
-    const temaBaharu = tema === 'dark' ? 'light' : 'dark';
-    setTema(temaBaharu);
-    localStorage.setItem('theme', temaBaharu);
-    if (temaBaharu === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
+  // 🚀 PEMBACAAN DINAMIK 100% DARI soalan.json (Sama Seperti Kod Kotlin)
+  const senaraiSiriGame: Game[] = Object.entries(bankSoalan).map(([key, data]: [string, any]) => {
+    const subjekLower = (data.subjek || '').toLowerCase();
+    
+    // Auto-tetap ikon mengikut subjek jika tiada ikon khusus
+    let defaultIkon = '⚔️';
+    if (subjekLower.includes('ibadah')) defaultIkon = '🕌';
+    else if (subjekLower.includes('jawi')) defaultIkon = '📝';
+    else if (subjekLower.includes('arab')) defaultIkon = '📖';
 
-  // Memisahkan setiap bahagian permainan mengikut lesson plan pratikum yang betul dan tersusun
-  const senaraiSiriGame: Game[] = [
-    {
-      id: "ibadah_solat_Jumaat",
-      tajuk: "Misi Solat Jumaat (Bahagian 1)",
-      subjek: bankSoalan.ibadah_solat_Jumaat?.subjek || "Ibadah",
-      deskripsi: bankSoalan.ibadah_solat_Jumaat?.deskripsi || "Pengertian, Dalil Pensyariatan, Hikmah serta Syarat Wajib & Sah Solat Jumaat.",
-      ikon: "🕌",
-      kesukaran: "Sederhana"
-    },
-    {
-      id: "ibadah_solat_Jumaat2",
-      tajuk: "Misi Solat Jumaat (Bahagian 2)",
-      subjek: bankSoalan.ibadah_solat_Jumaat2?.subjek || "Ibadah",
-      deskripsi: bankSoalan.ibadah_solat_Jumaat2?.deskripsi || "Uji kefahaman mengenai Rukun Khutbah dan Syarat 2 Khutbah Solat Jumaat.",
-      ikon: "📜",
-      kesukaran: "Tinggi"
-    },
-    {
-      id: "ibadah_solat_Jumaat3",
-      tajuk: "Misi Solat Jumaat (Bahagian 3)",
-      subjek: bankSoalan.ibadah_solat_Jumaat3?.subjek || "Ibadah",
-      deskripsi: bankSoalan.ibadah_solat_Jumaat3?.deskripsi || "Ulangkaji Rukun Khutbah, Perkara Sunat Hari Jumaat, & Hukum Solat ketika Khutbah.",
-      ikon: "⚔️",
-      kesukaran: "Tinggi"
-    },
-    {
-      id: "ibadah_solat_istisqa1",
-      tajuk: "Misi Solat Istisqa' (Bahagian 1)",
-      subjek: bankSoalan.ibadah_solat_istisqa1?.subjek || "Ibadah",
-      deskripsi: bankSoalan.ibadah_solat_istisqa1?.deskripsi || "Pengertian Solat Istisqa', Dalilnya, Hukumnya, & Cara Memohon Hujan.",
-      ikon: "🌧️",
-      kesukaran: "Sederhana"
-    },
-    {
-      id: "ibadah_solat_Istisqa'2",
-      tajuk: "Misi Solat Istisqa' (Bahagian 2)",
-      subjek: (bankSoalan as any)["ibadah_solat_Istisqa'2"]?.subjek || "Ibadah",
-      deskripsi: (bankSoalan as any)["ibadah_solat_Istisqa'2"]?.deskripsi || "Lafaz Niat, Waktu Solat dan Kaifiat Pelaksanaan Solat Istisqa'.",
-      ikon: "🤲",
-      kesukaran: "Mudah"
-    }
-  ];
+    // Auto-tetap kesukaran mengikut aras level
+    let defaultKesukaran = 'Sederhana';
+    if (data.level3 && data.level3.length > 0) defaultKesukaran = 'Tinggi';
+    else if (!data.level2 || data.level2.length === 0) defaultKesukaran = 'Mudah';
 
-  // Gabungkan dengan kuiz custom binaan guru di pangkalan data Supabase
+    return {
+      id: key,
+      tajuk: data.tajuk || key,
+      subjek: data.subjek || 'Umum',
+      deskripsi: data.deskripsi || 'Misi latih tubi pentaksiran interaktif.',
+      ikon: data.ikon || defaultIkon,
+      kesukaran: data.kesukaran || defaultKesukaran
+    };
+  });
+
+  // Gabungkan soalan JSON bersama kuiz guru dari Supabase
   const semuaPermainan = [
     ...senaraiSiriGame,
     ...dbQuizzes.map(q => ({
       id: q.id.toString(),
       tajuk: q.tajuk,
       subjek: q.subjek,
-      deskripsi: q.deskripsi || "Kuiz interaktif dinamik yang diterbitkan oleh Guru.",
-      ikon: "📝",
-      kesukaran: q.darjah || "Sederhana"
+      deskripsi: q.deskripsi || 'Kuiz interaktif dinamik yang diterbitkan oleh Guru.',
+      ikon: q.subjek?.toLowerCase().includes('ibadah') ? '🕌' : '📝',
+      kesukaran: q.darjah || 'Sederhana'
     }))
   ];
 
@@ -116,7 +86,9 @@ export default function PermainanMenuPage() {
   return (
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
       <div className="max-w-6xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded shadow-md transition-all duration-300">
+        
         <CountDownUpkk />
+
         {/* Header Arked */}
         <div className="bg-[#1793D1] text-white dark:text-[#0F1419] px-6 py-4 flex justify-between items-center font-bold text-sm border-b">
           <div className="flex items-center gap-3">
@@ -130,13 +102,12 @@ export default function PermainanMenuPage() {
 
         <div className="p-6 sm:p-10">
           
-          {/* Hebahan */}
           <div className="mb-10 text-center max-w-3xl mx-auto">
             <h1 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-3">
               Arked Didaktik RuLaF
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              Misi permainan interaktif berasaskan modular (Bahagian) yang menyokong penaksiran formatif praktikum anda.
+              Misi permainan interaktif berasaskan modular yang menyokong pentaksiran formatif.
               Siri permainan ini dibina secara asli berdasarkan prinsip <strong>Tadrij (Pembelajaran Bertahap)</strong>.
             </p>
           </div>
@@ -152,7 +123,7 @@ export default function PermainanMenuPage() {
             />
           </div>
 
-          {/* Grid Game */}
+          {/* Grid Permainan */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {ditapis.map((game) => (
               <div
@@ -165,9 +136,9 @@ export default function PermainanMenuPage() {
                       {game.ikon}
                     </span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                      game.kesukaran === "Mudah"
-                        ? "bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-900/40"
-                        : "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/40"
+                      game.kesukaran === 'Mudah'
+                        ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-900/40'
+                        : 'bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/40'
                     }`}>
                       Kesukaran: {game.kesukaran}
                     </span>
