@@ -191,43 +191,55 @@
       }
     ]
   },
-"UPKK | IBADAH: PERKARA ASAS": {
+"UPKK_IBADAH_PERKARA_ASAS": {
     "subjek": "Ibadah",
-    "tajuk": "Misi Solat Istisqa' Bahagian 2",
-    "deskripsi": "Ulangkaji Tentang Lafaz Niat, Waktu Solat dan Kaifiat Solat Istisqa'",
+    "tajuk": "UPKK 02 (IBADAH) | PERKARA ASAS IBADAH (Bahagian 1)",
+    "deskripsi": "Ulangkaji Tentang Perkara Asas Ibadah, Rukun Ibadah, Syarat Sah Ibadah dan Hukum Ibadah",
     "level1": [
       {
-        "rumi": { "q": "Pilih lafaz niat solat istisqa' dengan betul", "options": ["Sahaja aku solat sunat hajat", "Sahaja aku solat sunat hari raya aidil fitri", "Sahaja aku solat sunat istisqa'"], "a": "Sahaja aku solat sunat istisqa'" },
-        "jawi": { "q": "ڤيليه لفظ نية صلاة استسقاء دڠن بتول", "options": ["سهاج اکو صلاة سنة حاجت", "سهاج اکو صلاة سنة هاري راي عيد الفطري", "سهاج اکو صلاة سنة استستقاء"], "a": "سهاج اکو صلاة سنة استستقاء" }
+        "rumi": { "q": "Apakah maksud wuduk?", "options": ["Meratakan air ke seluruh badan", "Meratakan air ke anggota wuduk", "Meratakan air ke muka sahaja"], "a": "Meratakan air ke anggota wuduk" },
+        "jawi": { "q": "اڤاکه مقصود وضوء؟", "options": ["مراتاکن اءير کسلوروه بادن", " مراتاکن اءير کأڠݢوتا وضوء", "مراتاکن اءير کموک سهاج"], "a": " مراتاکن اءير کأڠݢوتا وضوء" }
       },
       {
-        "rumi": { "q": "Bilakah masa sesuai untuk melakukan solat istisqa'?", "options": ["Masa tidur", "Masa tengah malam sahaja", "Masa tidak ditentukan"], "a": "Masa tidak ditentukan" },
-        "jawi": { "q": "بيلاکه ماس سسواي اونتوق ملاکوکن صلاة استسقاء؟", "options": ["ماس تيدور", "ماس تڠه مالم سهاج", "ماس تيدق دتنتوکن"], "a": "ماس تيدق دتنتوکن" }
+        "rumi": { "q": "Berapakah rukun wuduk?", "options": ["6", "5", "4"], "a": "6" },
+        "jawi": { "q": "براڤکه رکن/روکون وضوء؟", "options": ["6", "5", "4"], "a": "6" }
       },
       {
-        "rumi": { "q": "Cara memohon hujan ialah:", "options": ["Doa kepada Allah", "Doa kepada Rasul", "Doa kepada Malaikat"], "a": "Doa kepada Allah" },
-        "jawi": { "q": "چارا مموهون هوجن اياله:", "options": ["دعاء کڤد الله", "دعاء کڤد رسول", "دعاء کڤد ملائکة"], "a": "دعاء کڤد الله" }
+        "rumi": { "q": "Pilih lafaz niat wuduk", "options": ["Sahaja aku solat", "Sahaja aku wuduk", "Sahaja aku mandi wajib"], "a": "Sahaja aku wuduk" },
+        "jawi": { "q": "ڤيليه لفظ نية وضوء", "options": ["سهاج اکو صلاة", "سهاج اکو وضوء", "سهاج اکو ماندي واجب"], "a": "سهاج اکو وضوء" }
+      },
+      {
+        "rumi": { "q": "Rukun pertama wuduk ialah", "options": ["Niat", "Doa", "Tertib"], "a": "Niat" },
+        "jawi": { "q": "رکن/روکون ڤرتام وضوء اياله", "options": ["نية", "دعاء", "ترتيب"], "a": "نية" }
       }
 
     ],
     "level2": [
       {
-        "rumi": { "q": "ڤيليه لفظ نية صلاة استسقاء دڠن بتول", "options": ["أصلي سنة تهجد ركتين لله تعالى", "أصلي سنة استسقاء ركتين لله تعالى", "أصلي فرض الصبح ركتين لله تعالى"], "a": "أصلي سنة استسقاء ركتين لله تعالى" },
-        "jawi": { "q": "ڤيليه لفظ نية صلاة استسقاء دڠن بتول", "options": ["أصلي سنة تهجد ركتين لله تعالى", "أصلي سنة استسقاء ركتين لله تعالى", "أصلي فرض الصبح ركتين لله تعالى"], "a": "أصلي سنة استسقاء ركتين لله تعالى" }
+        "rumi": { "q": "Rukun terakhir wuduk ialah", "options": ["Niat", "Doa", "Tertib"], "a": "Tertib" },
+        "jawi": { "q": "رکن/روکون تراخير وضوء اياله", "options": ["نية", "دعاء", "ترتيب"], "a": "ترتيب" }
       },
       {
-        "rumi": { "q": "ڤڠݢنتي تکبير سماس ممباچ خطبة صلاة استسقاء", "options": ["اللهُ أَكْبَرُ", "لَااِلٰهَ اِلَّا اللَّهُ", "أَسْتَغْفِرُ اللهَ الْعَظِيمَ"], "a": "أَسْتَغْفِرُ اللهَ الْعَظِيمَ" },
-        "jawi": { "q": "ڤڠݢنتي تکبير سماس ممباچ خطبة صلاة استسقاء", "options": ["اللهُ أَكْبَرُ", "لَااِلٰهَ اِلَّا اللَّهُ", "أَسْتَغْفِرُ اللهَ الْعَظِيمَ"], "a": "أَسْتَغْفِرُ اللهَ الْعَظِيمَ" }
+        "rumi": { "q": "Berikut adalah senarai rukun wuduk KECUALI", "options": ["Membasuh Muka", "Membaca Bismillah", "Membasuh kedua-dua tangan hingga ke siku"], "a": "Membaca Bismillah" },
+        "jawi": { "q": "برايکوت اداله سناراي رکن/روکون وضوء کچوالي", "options": ["ممباسوه موک", "ممباچ بسم الله", "ممباسوه کدوا-دوا تاڠن هيڠݢ کسيکو"], "a": "أَممباچ بسم الله" }
+      },
+      {
+        "rumi": { "q": "Apakah maksud tertib?", "options": ["Mengikut orang tua", "Mengikut turutan", "Mengikut imam"], "a": "Mengikut turutan" },
+        "jawi": { "q": "اڤاکه مقصود ترتيب؟", "options": ["مڠيکوت اورڠ توا", "مڠيکوت توروتن", "مڠيکوت امام"], "a": "مڠيکوت توروتن" }
       }
     ],
     "level3": [
       {
-        "rumi": { "q": "دعاء سماس هوجن تورون:", "options": ["اللَّهُمَّ صَيِّبًا نَافِعًا", "اللَّهُمَّ حَوَالَيْنَا وَلاَ عَلَيْنَا", "اللَّهُمَّ عَلَى الآكَامِ وَالظِّرَابِ"], "a": "اللَّهُمَّ صَيِّبًا نَافِعًا" },
-        "jawi": { "q": "دعاء سماس هوجن تورون:", "options": ["اللَّهُمَّ صَيِّبًا نَافِعًا", "اللَّهُمَّ حَوَالَيْنَا وَلاَ عَلَيْنَا", "اللَّهُمَّ عَلَى الآكَامِ وَالظِّرَابِ"], "a": "اللَّهُمَّ صَيِّبًا نَافِعًا" }
+        "rumi": { "q": "Abu mengambil wuduk tanpa niat, apakah hukum wuduk Abu?", "options": ["Sah", "Batal", "Tidak Tahu"], "a": "Batal" },
+        "jawi": { "q": "ابو مڠمبيل وضوء تنڤا نية، اڤاکه حکوم وضوء ابو؟", "options": ["صح", "بطل", "تيدق تاهو"], "a": "بطل" }
       },
       {
-            "rumi": { "q": "براڤ کالي تکبير صلاة استسقاء ڤد رکعة ڤرتام؟", "options": ["5", "9", "7"], "a": "7" },
-            "jawi": { "q": "براڤ کالي تکبير صلاة استسقاء ڤد رکعة ڤرتام؟", "options": ["5", "9", "7"], "a": "7" }
+        "rumi": { "q": "Mengapakah wuduk Abu tidak sah?", "options": ["Kerana niat adalah rukun wuduk", "Kerana Abu terlupa niat", "Kerana Abu sengaja wuduk tanpa niat"], "a": "Kerana niat adalah rukun wuduk" },
+        "jawi": { "q": "مڠاڤکه وضوء ابو تيدق صح؟", "options": ["کران نية اداله رکن/روکون وضوء", "کران ابو ترلوڤا نية", "کران ابو سڠاج وضوء تنڤا نية"], "a": "کران نية اداله رکن/روکون وضوء" }
+      },
+      {
+        "rumi": { "q": "Membasuh muka adalah sebahagian daripada rukun ______", "options": ["Solat", "Mandi Wajib", "Wuduk"], "a": "Wuduk" },
+        "jawi": { "q": "ممباسوه موک اداله سبهاݢين درڤد رکن/روکون ______", "options": ["صلاة", "مندي واجب", "وضوء"], "a": "وضوء" }
       }
     ]
   }
