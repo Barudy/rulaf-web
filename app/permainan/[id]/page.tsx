@@ -612,62 +612,76 @@ export default function PermainanKonsolRPGPage() {
 
               {/* 🎯 KAWASAN JAWAPAN TUNGGAL (PILIHAN ATAU SUSUN ATUR) */}
               {soalanSemasa?.type === 'susun_atur' ? (
-                <div className="space-y-4">
-                  {/* Kotak Ayat Terbina */}
-                  <div className="min-h-[60px] p-4 bg-white dark:bg-[#11141b] border-2 border-dashed border-[#1793D1]/50 rounded-xl flex flex-wrap items-center justify-center gap-2">
-                    {susunWords.length === 0 ? (
-                      <span className="text-xs text-gray-400 italic">Tekan perkataan di bawah untuk menyusun ayat...</span>
-                    ) : (
-                      susunWords.map((w, idx) => (
-                        <span key={idx} className="bg-[#1793D1] text-white px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm">
-                          {w}
-                        </span>
-                      ))
-                    )}
-                  </div>
+  <div className="space-y-4">
+    {/* 1. Kotak Ayat Terbina - Diberikan sokongan RTL dinamik */}
+    <div 
+      dir={modeTulisan === 'rumi' ? 'ltr' : 'rtl'}
+      className="min-h-[70px] p-4 bg-white dark:bg-[#11141b] border-2 border-dashed border-[#1793D1]/50 rounded-xl flex flex-wrap items-center justify-start gap-2.5"
+    >
+      {susunWords.length === 0 ? (
+        <span className="w-full text-center text-xs text-gray-400 italic">
+          {modeTulisan === 'rumi' 
+            ? 'Tekan perkataan di bawah untuk menyusun ayat...' 
+            : 'تکن کلمه دباوه اونتوق مڽوسون ايات...'}
+        </span>
+      ) : (
+        susunWords.map((w, idx) => (
+          <span 
+            key={idx} 
+            className="bg-[#1793D1] text-white px-3.5 py-1.5 rounded-lg text-base font-bold shadow-sm animate-fadeIn"
+          >
+            {w}
+          </span>
+        ))
+      )}
+    </div>
 
-                  {/* Cebisan Perkataan (Word Chips) */}
-                  <div className="flex flex-wrap justify-center gap-2 pt-2">
-                    {availableChips.map((chip) => (
-                      <button
-                        key={chip.id}
-                        type="button"
-                        disabled={chip.used || isAnswered}
-                        onClick={() => handleChipClick(chip.id, chip.word)}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold border transition-all ${
-                          chip.used
-                            ? 'opacity-20 bg-gray-200 dark:bg-gray-800 cursor-not-allowed'
-                            : 'bg-white dark:bg-[#171A21] border-gray-300 dark:border-gray-700 hover:border-[#1793D1] text-gray-800 dark:text-gray-200 active:scale-95 shadow-sm'
-                        }`}
-                      >
-                        {chip.word}
-                      </button>
-                    ))}
-                  </div>
+    {/* 2. Cebisan Perkataan (Word Chips) - Diselaraskan mengikut arah bacaan */}
+    <div 
+      dir={modeTulisan === 'rumi' ? 'ltr' : 'rtl'}
+      className="flex flex-wrap justify-center gap-2 pt-2"
+    >
+      {availableChips.map((chip) => (
+        <button
+          key={chip.id}
+          type="button"
+          disabled={chip.used || isAnswered}
+          onClick={() => handleChipClick(chip.id, chip.word)}
+          className={`px-4 py-2.5 rounded-lg text-sm font-bold border transition-all ${
+            chip.used
+              ? 'opacity-20 bg-gray-200 dark:bg-gray-800 cursor-not-allowed'
+              : 'bg-white dark:bg-[#171A21] border-gray-300 dark:border-gray-700 hover:border-[#1793D1] text-gray-800 dark:text-gray-200 active:scale-95 shadow-sm'
+          }`}
+        >
+          {chip.word}
+        </button>
+      ))}
+    </div>
 
-                  <div className="flex justify-center gap-3 pt-2">
-                    <button
-                      type="button"
-                      disabled={isAnswered || susunWords.length === 0}
-                      onClick={resetSusunWords}
-                      className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-red-500 border border-gray-300 dark:border-gray-700 rounded-lg"
-                    >
-                      [ ↺ Set Semula ]
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isAnswered || susunWords.length === 0}
-                      onClick={() => {
-                        const jawapanLengkap = susunWords.join(' ');
-                        serang(jawapanLengkap, 0);
-                      }}
-                      className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-md disabled:opacity-50"
-                    >
-                      ⚔️ [ SAHKAN AYAT & SERANG ]
-                    </button>
-                  </div>
-                </div>
-              ) : (
+    {/* 3. Butang Kawalan */}
+    <div className="flex justify-center gap-3 pt-2">
+      <button
+        type="button"
+        disabled={isAnswered || susunWords.length === 0}
+        onClick={resetSusunWords}
+        className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-red-500 border border-gray-300 dark:border-gray-700 rounded-lg"
+      >
+        [ ↺ Set Semula ]
+      </button>
+      <button
+        type="button"
+        disabled={isAnswered || susunWords.length === 0}
+        onClick={() => {
+          const jawapanLengkap = susunWords.join(' ');
+          serang(jawapanLengkap, 0);
+        }}
+        className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-md disabled:opacity-50"
+      >
+        ⚔️ [ SAHKAN AYAT & SERANG ]
+      </button>
+    </div>
+  </div>
+) : (
                 /* Render Pilihan Standard 3 Butang */
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {senaraiPilihan.map((opt: string, idx: number) => {
