@@ -266,7 +266,7 @@ export default function PermainanKonsolRPGPage() {
       mykid: userProfile.mykid,
       subjek: gameMeta?.subjek || 'Jawi',
       tugasan_siap: 0,
-      status_hadir: true,
+      status_hadir: false,
       status_kehadiran: 'lewat',
       catatan: 'PENALTI DISIPLIN: Keluar sebelum tamat pertempuran RPG.'
     }, { onConflict: 'tarikh,mykid' });
@@ -373,7 +373,7 @@ export default function PermainanKonsolRPGPage() {
           mykid: mykidMurid,
           subjek: gameMeta?.subjek || 'Jawi',
           tugasan_siap: 3,
-          status_hadir: true,
+          status_hadir: false,
           status_kehadiran: 'hadir',
           catatan: `Arked RPG [Mod ${difficulty.toUpperCase()}] (+3 Kerajinan: Skor ${skorTerkira})`
         }, { onConflict: 'tarikh,mykid' });

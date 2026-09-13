@@ -82,8 +82,6 @@ export default function HomePage() {
           </p>
         </div>
 
-        <NotifikasiBanner />
-
         {/* Bahagian Kandungan */}
         {isLoading ? (
           <p className="text-gray-400 dark:text-gray-500 font-mono animate-pulse">Menghubungi pangkalan data Supabase...</p>
