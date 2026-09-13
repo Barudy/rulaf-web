@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './lib/supabaseClient'; // Sila pastikan laluan ke lib/supabaseClient adalah betul
 import CountDownUpkk from '../components/CountDownUpkk';
+import NotifikasiBanner from '@/components/NotifikasiBanner';
 
 export default function HomePage() {
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -80,6 +81,8 @@ export default function HomePage() {
             [ Dokumentasi perjalanan RuLaF dan REDF ]
           </p>
         </div>
+
+        <NotifikasiBanner />
 
         {/* Bahagian Kandungan */}
         {isLoading ? (
