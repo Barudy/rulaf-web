@@ -75,9 +75,9 @@ export default function Navbar() {
           {/* Navigasi Kanan (Desktop) */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-2">
             <a
-              href="/"
+              href="/blog"
               className={`px-3 py-2 rounded-md text-sm font-semibold tracking-wide transition-all duration-300 ${
-                pathname === '/' 
+                pathname === '/blog' 
                   ? 'text-[#1793D1] bg-[#1793D1]/10' 
                   : 'text-gray-600 dark:text-gray-300 hover:text-[#1793D1] hover:bg-gray-100 dark:hover:bg-gray-800/40'
               }`}
@@ -147,13 +147,13 @@ export default function Navbar() {
 
             <div className="h-5 w-[1px] bg-gray-300 dark:bg-gray-700/60 mx-2" />
 
-            {/* Butang Log Masuk / Profil */}
+            {/* Butang Log Masuk / Dashboard */}
             {isLoggedIn ? (
               <a
-                href="/profil"
+                href="/dashboard"
                 className="px-4 py-1.5 rounded text-sm font-bold text-[#0F1419] bg-[#1793D1] border border-[#1793D1] hover:bg-transparent hover:text-[#1793D1] transition-all duration-300 shadow-[0_0_12px_rgba(23,147,209,0.3)]"
               >
-                [ Profil ]
+                Dashboard
               </a>
             ) : (
               <a
@@ -294,11 +294,11 @@ export default function Navbar() {
 
             {isLoggedIn ? (
               <a
-                href="/profil"
+                href="/dashboard"
                 onClick={() => setIsOpen(false)}
                 className="block text-center w-full py-2.5 rounded-md text-base font-bold text-[#0F1419] bg-[#1793D1] border border-[#1793D1] shadow-md"
               >
-                [ Profil ]
+                Dashboard
               </a>
             ) : (
               <a

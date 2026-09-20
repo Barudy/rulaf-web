@@ -23,9 +23,10 @@ export default function LoginPage() {
     if (error) {
       setErrorMsg('[!] Akses Ditolak: E-mel atau kata laluan tidak tepat.');
       setIsLoggingIn(false);
-    } else {
-      // Jika berjaya, sistem akan terus bawa pengguna ke halaman Repositori
-      router.push('/repo');
+    } else if (data.session) {
+      // Jika berjaya, arahkan terus ke Papan Pemuka Utama (Dashboard)
+      // Papan pemuka akan mengasingkan paparan mengikut peranan (Guru/Murid/Admin).
+      router.push('/dashboard');
     }
   };
 
@@ -34,7 +35,7 @@ export default function LoginPage() {
     <div className="w-full max-w-md bg-white dark:bg-[#171A21] p-8 border border-gray-200 dark:border-[#1793D1] shadow-md dark:shadow-[0_0_15px_rgba(23,147,209,0.3)] rounded-sm transition-all duration-300">
         {/* Header Ala Terminal */}
         <div className="border-b border-gray-700 pb-4 mb-6">
-          <h1 className="text-2xltext-2xl font-black text-gray-900 dark:text-white text-center mb-6">🔑 LOG MASUK RULAFHUB</h1>
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white text-center mb-6">🔑 LOG MASUK RULAFHUB</h1>
           <p className="text-gray-900 dark:text-gray-400 text-sm mt-1">Sistem Pengesahan Komuniti RuLaF</p>
         </div>
 

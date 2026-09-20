@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ambilPeranan } from '../lib/akses';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -64,6 +65,12 @@ export default function AdminDashboardPage() {
   const semakSesi = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
+      // 🔒 Pengasingan Peranan: Hanya Guru / Admin dibenarkan memasuki panel ini
+      const peranan = await ambilPeranan(session.user.email || '');
+      if (peranan !== 'Guru' && peranan !== 'admin') {
+        router.push('/dashboard');
+        return;
+      }
       setIsLocked(false);
       setUserEmail(session.user.email || 'Pentadbir RuLaFHub');
     }
@@ -83,6 +90,12 @@ export default function AdminDashboardPage() {
     if (error) {
       setErrorMsg('[!] Ralat: Kata laluan atau e-mel salah! Cubaan ditumpaskan.');
     } else if (data.session) {
+      // 🔒 Pengasingan Peranan selepas log masuk
+      const peranan = await ambilPeranan(data.session.user.email || '');
+      if (peranan !== 'Guru' && peranan !== 'admin') {
+        router.push('/dashboard');
+        return;
+      }
       setIsLocked(false);
       setUserEmail(data.session.user.email || 'Pentadbir RuLaFHub');
     }

@@ -305,7 +305,7 @@ export default function PengurusanMuridPage() {
     value={borangMarkah[m.mykid]?.tahap_rulaf || ''} 
     // 2. Tembak fungsi handleInput apabila pilihan ditukar
     onChange={(e) => handleInput(m.mykid, 'tahap_rulaf', e.target.value)}
-    className="w-12 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1 text-center p-2 rounded w-full"
+    className="w-24 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1 text-center text-xs"
   >
     <option value="">- Pilih Tahap -</option>
     <option value="RuLaF Khas">RuLaF Khas</option>
