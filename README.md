@@ -1,4 +1,4 @@
-# 💻 RuLaFHub (v1.5-stable)
+# 💻 RuLaFHub (v1.7-stable)
 **"Membetulkan yang biasa dan membiasakan yang betul" — Memacu Pendidikan Jawi ke Era Digital.**
 
 RuLaFHub adalah sebuah sistem repositori Ekosistem Pendidikan Sumber Terbuka (*Open Educational Ecosystem*) dan portal pengurusan pendidikan masa nyata (*real-time*) yang dibina khusus untuk mengintegrasikan pendekatan **Pembelajaran Teradun (*Blended Learning*)**, **Gamifikasi**, dan **Kecerdasan Buatan (AI)** dalam bilik darjah. Sistem ini direka dengan antara muka (*UI*) berkonsepkan terminal minimalis ala Arch Linux bagi mencerminkan anjakan paradigma pendidikan ke arah pendigitalan era Revolusi Industri 4.0.
