@@ -28,7 +28,7 @@ const CIRI = [
   { id: 'repo', ikon: '📂', nama: 'BBM Repository', href: '/repo', ringkas: 'Bahan Bantu Mengajar terbuka.', detail: 'Koleksi PDF, pautan dan folder guru — boleh kongsi dan muat turun.' },
   { id: 'forum', ikon: '💬', nama: 'Forum', href: '/forum', ringkas: 'Perbincangan komuniti PAK21.', detail: 'Topik, balasan dan perkongsian amalan bilik darjah sesama guru.' },
   { id: 'rbox', ikon: '🔒', nama: 'RBox NFC/QR', href: '/docs', ringkas: 'Privacy-first, disambung via NFC/QR.', detail: 'Reka bentuk privacy-first: data murid terkawal, akses mengikut peranan, disambung melalui RBox.' },
-  { id: 'ejen', ikon: '🤖', nama: 'AI Agent', href: '/admin', ringkas: 'Analisis prestasi NL2SQL (Guru).', detail: 'Tanya dalam Bahasa Melayu — Ejen AI menjana SQL ke atas data prestasi.' },
+  { id: 'ejen', ikon: '🤖', nama: 'AI Agent', href: '/admin', ringkas: 'Analisis prestasi NL2SQL (khusus Admin).', detail: 'Tanya dalam Bahasa Melayu — Ejen AI menjana SQL ke atas data prestasi. Akses terkunci untuk admin@rulafhub.com sahaja.' },
 ];
 
 const NILAI = [

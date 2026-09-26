@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ambilPeranan } from '../lib/akses';
+import { ambilPeranan, bolehAksesAI, bolehUrusBlog } from '../lib/akses';
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function AdminDashboardPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [perananPengguna, setPerananPengguna] = useState('');
 
   // --- CMS BLOG / JURNAL ---
   const [tajukBlog, setTajukBlog] = useState('');
@@ -61,6 +62,9 @@ export default function AdminDashboardPage() {
     if (!isLocked) {
       tarikMetriksSistem();
       tarikArtikelTerbaru();
+      tarikLaporanBbm();
+      tarikForum();
+      tarikBug();
     }
   }, [isLocked]);
 
@@ -75,6 +79,7 @@ export default function AdminDashboardPage() {
       }
       setIsLocked(false);
       setUserEmail(session.user.email || 'Pentadbir RuLaFHub');
+      setPerananPengguna(peranan || '');
     }
   };
 
@@ -100,6 +105,7 @@ export default function AdminDashboardPage() {
       }
       setIsLocked(false);
       setUserEmail(data.session.user.email || 'Pentadbir RuLaFHub');
+      setPerananPengguna(peranan || '');
     }
   };
 
@@ -164,9 +170,86 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // --- CMS: MUAT NAIK BLOG/JURNAL BARU ---
+  // --- ADMIN: LAPORAN BBM (skop sistem, baca sahaja + lulus/tolak) ---
+  const [bbmLaporan, setBbmLaporan] = useState({ jumlah: 0, menunggu: 0, lulus: 0 });
+  const [bbmPending, setBbmPending] = useState<any[]>([]);
+
+  const tarikLaporanBbm = async () => {
+    const { data } = await supabase.from('rulaf_repo').select('id,status,subjek').eq('is_folder', false);
+    const semua = data || [];
+    setBbmLaporan({
+      jumlah: semua.length,
+      menunggu: semua.filter((r: any) => (r.status || '') !== 'approved').length,
+      lulus: semua.filter((r: any) => r.status === 'approved').length,
+    });
+    const { data: pend } = await supabase.from('rulaf_repo').select('id,tajuk,subjek,penyumbang,status,created_at').neq('status', 'approved').order('created_at', { ascending: false }).limit(10);
+    setBbmPending(pend || []);
+  };
+
+  const tetapkanStatusBbm = async (id: number, status: string) => {
+    const { error } = await supabase.from('rulaf_repo').update({ status }).eq('id', id);
+    if (error) alert('Ralat: ' + error.message); else tarikLaporanBbm();
+  };
+
+  // --- ADMIN: MODERASI FORUM (padam pos & komen) ---
+  const [forumPos, setForumPos] = useState<any[]>([]);
+  const [forumKomen, setForumKomen] = useState<any[]>([]);
+
+  const tarikForum = async () => {
+    const { data: p } = await supabase.from('rulaf_forum').select('id,tajuk,penulis,kategori,created_at').order('created_at', { ascending: false }).limit(10);
+    setForumPos(p || []);
+    const { data: k } = await supabase.from('rulaf_komen').select('id,forum_id,komen,penulis,created_at').order('created_at', { ascending: false }).limit(10);
+    setForumKomen(k || []);
+  };
+
+  const padamPos = async (id: number) => {
+    if (!window.confirm('Padam topik forum ini beserta semua komennya?')) return;
+    await supabase.from('rulaf_komen').delete().eq('forum_id', id);
+    const { error } = await supabase.from('rulaf_forum').delete().eq('id', id);
+    if (error) alert('Ralat: ' + error.message); else tarikForum();
+  };
+
+  const padamKomen = async (id: number) => {
+    if (!window.confirm('Padam komen ini?')) return;
+    const { error } = await supabase.from('rulaf_komen').delete().eq('id', id);
+    if (error) alert('Ralat: ' + error.message); else tarikForum();
+  };
+
+  // --- ADMIN: LAPORAN BUG (terima + selesaikan) ---
+  const [senaraiBug, setSenaraiBug] = useState<any[]>([]);
+  const [tajukBug, setTajukBug] = useState('');
+  const [perihalBug, setPerihalBug] = useState('');
+
+  const tarikBug = async () => {
+    const { data } = await supabase.from('rulaf_bug').select('*').order('created_at', { ascending: false }).limit(20);
+    if (data) setSenaraiBug(data);
+  };
+
+  const hantarBug = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tajukBug.trim() || !perihalBug.trim()) return alert('[!] Tajuk & perihal diperlukan.');
+    const { error } = await supabase.from('rulaf_bug').insert([{ email: userEmail, tajuk: tajukBug.trim(), perihal: perihalBug.trim(), status: 'baru' }]);
+    if (error) {
+      if (/relation|42P01/i.test(`${error.message} ${error.code || ''}`)) alert('[!] Jadual rulaf_bug belum wujud. Jalankan supabase/migrasi-admin-modul.sql.');
+      else alert('Ralat: ' + error.message);
+    } else { setTajukBug(''); setPerihalBug(''); tarikBug(); }
+  };
+
+  const selesaiBug = async (id: number, status: string) => {
+    const { error } = await supabase.from('rulaf_bug').update({ status }).eq('id', id);
+    if (error) alert('Ralat: ' + error.message); else tarikBug();
+  };
+
+  const padamBug = async (id: number) => {
+    if (!window.confirm('Padam laporan ini?')) return;
+    const { error } = await supabase.from('rulaf_bug').delete().eq('id', id);
+    if (error) alert('Ralat: ' + error.message); else tarikBug();
+  };
+
+  // --- CMS: MUAT NAIK BLOG/JURNAL BARU (KHUSUS ADMIN) ---
   const muatNaikBlog = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!bolehUrusBlog(userEmail, perananPengguna)) return alert("[!] Akses Ditolak: Hanya Admin dibenarkan menerbitkan blog.");
     if (!tajukBlog || !kandunganBlog) return alert("Sila isi semua maklumat artikel!");
     
     setStatusBlog('Sedang menerbitkan artikel ke awan...');
@@ -189,9 +272,10 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // --- EJEN AI: NL2SQL DIALIRKAN SECARA INTEGRATIF ---
+  // --- EJEN AI: NL2SQL DIALIRKAN SECARA INTEGRATIF (KHUSUS ADMIN UTAMA) ---
   const tanyaAI = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!bolehAksesAI(userEmail)) return alert('[!] Akses Ditolak: Ejen AI hanya untuk Admin (admin@rulafhub.com).');
     if (!soalanAI) return;
     
     setIsThinking(true);
@@ -407,8 +491,9 @@ export default function AdminDashboardPage() {
           {/* ================= SEKSYEN 3: REKA BENTUK GRID BELAH KIRI & KANAN ================= */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            {/* BELAH KIRI (8 KOLUM): EJEN AI ANALISIS PRESTASI (NL2SQL) */}
+            {/* BELAH KIRI (8 KOLUM): EJEN AI ANALISIS PRESTASI (NL2SQL) — KHUSUS ADMIN */}
             <div className="lg:col-span-7 space-y-6">
+              {bolehAksesAI(userEmail) ? (
               <div className="bg-white dark:bg-[#171A21] border border-[#1793D1]/30 rounded-2xl p-6 relative shadow-sm">
                 
                 <div className="flex items-center gap-2.5 mb-4">
@@ -487,12 +572,19 @@ export default function AdminDashboardPage() {
                 )}
 
               </div>
+              ) : (
+              <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm text-center">
+                <p className="text-3xl mb-2">🔒</p>
+                <p className="text-xs font-bold text-gray-700 dark:text-gray-300">Ejen AI dikunci untuk Admin (admin@rulafhub.com) sahaja.</p>
+              </div>
+              )}
             </div>
 
             {/* BELAH KANAN (4 KOLUM): CMS JOURNAL & NEWS PUBLISHER */}
             <div className="lg:col-span-5 space-y-6">
               
-              {/* Borang Publish Jurnal */}
+              {/* Borang Publish Jurnal (KHUSUS ADMIN — senarai kekal bacaan sahaja) */}
+              {bolehUrusBlog(userEmail, perananPengguna) ? (
               <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
                 <h3 className="text-gray-900 dark:text-white font-bold text-sm mb-4 flex items-center gap-2">
                   <span>📝</span> Muat Naik Jurnal Inovasi & Blog
@@ -533,6 +625,12 @@ export default function AdminDashboardPage() {
                   </button>
                 </form>
               </div>
+              ) : (
+              <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm text-center">
+                <p className="text-3xl mb-2">🔒</p>
+                <p className="text-xs font-bold text-gray-700 dark:text-gray-300">Penerbitan blog khusus untuk Admin sahaja.</p>
+              </div>
+              )}
 
               {/* Artikel Terkini */}
               <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
@@ -557,6 +655,93 @@ export default function AdminDashboardPage() {
 
             </div>
 
+          </div>
+
+          {/* ================= SEKSYEN 4: LAPORAN BBM (SKOP SISTEM) ================= */}
+          <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2 mb-1">
+              <span>🛠️</span> Laporan BBM
+            </h2>
+            <p className="text-[11px] text-gray-500 mb-4">Jumlah: <b>{bbmLaporan.jumlah}</b> · Lulus: <b className="text-green-600">{bbmLaporan.lulus}</b> · Menunggu: <b className="text-amber-600">{bbmLaporan.menunggu}</b></p>
+            {bbmPending.length === 0 ? (
+              <p className="text-xs text-gray-400">Tiada bahan menunggu kelulusan. 🎉</p>
+            ) : (
+              <div className="overflow-x-auto border border-gray-200 dark:border-gray-800 rounded-xl">
+                <table className="w-full text-left text-xs min-w-[560px]">
+                  <thead><tr className="bg-gray-100 dark:bg-[#11141b] text-gray-500 uppercase text-[10px]"><th className="p-2">Tajuk</th><th className="p-2">Subjek</th><th className="p-2">Penyumbang</th><th className="p-2">Status</th><th className="p-2">Tindakan</th></tr></thead>
+                  <tbody>
+                    {bbmPending.map((b: any) => (
+                      <tr key={b.id} className="border-t border-gray-100 dark:border-gray-800">
+                        <td className="p-2 font-bold">{b.tajuk}</td>
+                        <td className="p-2">{b.subjek || '—'}</td>
+                        <td className="p-2 font-mono text-[10px]">{b.penyumbang || '—'}</td>
+                        <td className="p-2"><span className="bg-amber-500/15 text-amber-600 px-2 py-0.5 rounded-full text-[10px] font-black">{b.status || 'baru'}</span></td>
+                        <td className="p-2 whitespace-nowrap">
+                          <button onClick={() => tetapkanStatusBbm(b.id, 'approved')} className="text-green-600 font-black mr-2 hover:underline">Lulus</button>
+                          <button onClick={() => tetapkanStatusBbm(b.id, 'rejected')} className="text-red-500 font-black hover:underline">Tolak</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* ================= SEKSYEN 5: MODERASI FORUM ================= */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+              <h2 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2 mb-3"><span>💬</span> Moderasi Topik (10 terkini)</h2>
+              {forumPos.length === 0 ? <p className="text-xs text-gray-400">Tiada topik.</p> : (
+                <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {forumPos.map((f: any) => (
+                    <li key={f.id} className="py-2 flex items-center gap-2 text-xs">
+                      <span className="font-bold flex-1">{f.tajuk} <span className="block text-[10px] text-gray-400 font-normal">oleh {f.penulis || '?'} · {f.kategori || ''}</span></span>
+                      <button onClick={() => padamPos(f.id)} className="text-red-500 font-black hover:underline">Padam</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+              <h2 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2 mb-3"><span>🗨️</span> Moderasi Komen (10 terkini)</h2>
+              {forumKomen.length === 0 ? <p className="text-xs text-gray-400">Tiada komen.</p> : (
+                <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {forumKomen.map((k: any) => (
+                    <li key={k.id} className="py-2 flex items-center gap-2 text-xs">
+                      <span className="flex-1 truncate">{k.komen} <span className="block text-[10px] text-gray-400 font-normal">oleh {k.penulis || '?'} · topik #{k.forum_id}</span></span>
+                      <button onClick={() => padamKomen(k.id)} className="text-red-500 font-black hover:underline shrink-0">Padam</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          {/* ================= SEKSYEN 6: LAPORAN BUG ================= */}
+          <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2 mb-3"><span>🐞</span> Laporan Bug</h2>
+            <form onSubmit={hantarBug} className="grid sm:grid-cols-[1fr_2fr_auto] gap-2 mb-4">
+              <input value={tajukBug} onChange={(e) => setTajukBug(e.target.value)} placeholder="Tajuk isu" className="bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded-lg px-3 py-2 text-xs focus:border-[#1793D1] focus:outline-none" />
+              <input value={perihalBug} onChange={(e) => setPerihalBug(e.target.value)} placeholder="Perihal / langkah ulangan" className="bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded-lg px-3 py-2 text-xs focus:border-[#1793D1] focus:outline-none" />
+              <button className="bg-[#1793D1] text-white px-4 py-2 rounded-lg text-xs font-black hover:bg-[#1272ab]">Hantar</button>
+            </form>
+            {senaraiBug.length === 0 ? <p className="text-xs text-gray-400">Tiada laporan. 🎉</p> : (
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                {senaraiBug.map((b: any) => (
+                  <li key={b.id} className="py-2 flex items-center gap-2 text-xs">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${b.status === 'selesai' ? 'bg-green-500/15 text-green-600' : 'bg-amber-500/15 text-amber-600'}`}>{b.status}</span>
+                    <span className="flex-1"><b>{b.tajuk}</b> <span className="block text-[10px] text-gray-400 font-normal">{b.perihal} · {b.email || 'anon'}</span></span>
+                    {bolehUrusBlog(userEmail, perananPengguna) && (
+                      <>
+                        {b.status !== 'selesai' && <button onClick={() => selesaiBug(b.id, 'selesai')} className="text-green-600 font-black hover:underline shrink-0">Selesai</button>}
+                        <button onClick={() => padamBug(b.id)} className="text-red-500 font-black hover:underline shrink-0">Padam</button>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
       </div>
     </div>

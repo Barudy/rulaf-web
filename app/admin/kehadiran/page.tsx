@@ -35,6 +35,10 @@ export default function AuditKehadiranPage() {
 
   // Data Murid & Rekod
   const [senaraiMurid, setSenaraiMurid] = useState<Murid[]>([]);
+  // 🔒 Skop privasi: kelas terhad kepada kelas guru sendiri (admin: semua)
+  const [senaraiKelas, setSenaraiKelas] = useState<string[]>([]);
+  const [notaSkop, setNotaSkop] = useState('');
+  const [aksesTolak, setAksesTolak] = useState(false);
   const [selectedMyKid, setSelectedMyKid] = useState<string>('');
   const [rekodBulan, setRekodBulan] = useState<RekodHarian[]>([]);
   const [isLoadingRekod, setIsLoadingRekod] = useState(false);
@@ -62,14 +66,43 @@ export default function AuditKehadiranPage() {
     else document.documentElement.classList.remove('dark');
   }, []);
 
-  // 2. Semakan Keselamatan Guru / Admin
+  // 2. Semakan Keselamatan Guru / Admin + skop kelas sendiri
   useEffect(() => {
     const semakAkses = async () => {
       setIsCheckingAuth(true);
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setIsLoggedIn(true);
-        setUserEmail(session.user.email || '');
+      if (!session?.user?.email) {
+        setAksesTolak(true);
+        setIsCheckingAuth(false);
+        return;
+      }
+      setIsLoggedIn(true);
+      setUserEmail(session.user.email || '');
+      const { data: p } = await supabase.from('profil_pengguna').select('peranan').eq('email', session.user.email).maybeSingle();
+      const per = (p?.peranan || '').toLowerCase();
+      if (per !== 'guru' && per !== 'admin') {
+        setAksesTolak(true);
+        setIsCheckingAuth(false);
+        return;
+      }
+      if (per === 'admin') {
+        const { data: semua } = await supabase.from('data_murid').select('kelas_id');
+        const unik = [...new Set((semua || []).map((r: any) => r.kelas_id).filter(Boolean))];
+        const sen = unik.length > 0 ? unik : ['3 Murshid', '5 Murshid'];
+        setSenaraiKelas(sen);
+        setKelas(sen[0]);
+      } else {
+        const { data: kl, error } = await supabase.from('rulaf_kelas').select('nama_kelas').eq('email_guru', session.user.email).order('nama_kelas');
+        if (error || !kl || kl.length === 0) {
+          setNotaSkop(error
+            ? 'Jadual kelas belum sedia — jalankan supabase/migrasi-multitenan.sql, kemudian daftar kelas di Daftar Murid.'
+            : 'Tiada kelas didaftarkan. Daftar kelas anda dahulu di halaman Daftar Murid.');
+          setSenaraiKelas([]);
+        } else {
+          const nama = kl.map((k: any) => k.nama_kelas);
+          setSenaraiKelas(nama);
+          setKelas(nama[0]);
+        }
       }
       setIsCheckingAuth(false);
     };
@@ -274,6 +307,19 @@ const simpanStatusKehadiran = async () => {
     );
   }
 
+  if (aksesTolak || !isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center p-6 font-mono">
+        <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-8 max-w-sm w-full text-center">
+          <p className="text-4xl mb-3">🔒</p>
+          <p className="text-sm font-black">Akses Ditolak</p>
+          <p className="text-xs text-gray-500 mt-1">Halaman ini khusus untuk Guru & Admin yang log masuk.</p>
+          <Link href="/dashboard" className="inline-block mt-4 text-xs font-black text-[#1793D1] hover:underline">← Kembali ke Dashboard</Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-8">
       <div className="max-w-6xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded-xl shadow-xl overflow-hidden">
@@ -301,9 +347,13 @@ const simpanStatusKehadiran = async () => {
                 onChange={(e) => setKelas(e.target.value)}
                 className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-xs font-bold text-gray-900 dark:text-white"
               >
-                <option value="3 Murshid">Darjah 3 Murshid (10 Subjek)</option>
-                <option value="5 Murshid">Darjah 5 Murshid (4 Subjek)</option>
+                {senaraiKelas.length === 0 ? (
+                  <option value="">— Tiada kelas —</option>
+                ) : (
+                  senaraiKelas.map((k) => <option key={k} value={k}>{k}</option>)
+                )}
               </select>
+              {notaSkop && <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-bold">⚠️ {notaSkop}</p>}
             </div>
 
             <div>

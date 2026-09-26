@@ -22,6 +22,98 @@ export default function BorangDaftarMurid({ email, onChanged }: { email: string;
   const [hasilDaftar, setHasilDaftar] = useState<{ nama: string; token: string; qr: string } | null>(null);
   const [sibuk, setSibuk] = useState(false);
 
+  // 📤 BULK UPLOAD CSV (nama,mykid,jantina,alamat — satu kelas bagi setiap import)
+  const [csvKelasId, setCsvKelasId] = useState('');
+  const [csvRows, setCsvRows] = useState<any[]>([]);
+  const [csvHasil, setCsvHasil] = useState<any[]>([]);
+  const [csvSibuk, setCsvSibuk] = useState(false);
+
+  const parseCSV = (teks: string): string[][] => {
+    const baris: string[][] = [];
+    let medan = '', dalam = false;
+    let rekod: string[] = [];
+    const tolak = () => { rekod.push(medan.trim()); medan = ''; };
+    for (let i = 0; i < teks.length; i++) {
+      const c = teks[i];
+      if (dalam) {
+        if (c === '"') {
+          if (teks[i + 1] === '"') { medan += '"'; i++; }
+          else dalam = false;
+        } else medan += c;
+      } else if (c === '"') dalam = true;
+      else if (c === ',') tolak();
+      else if (c === '\n') { tolak(); if (rekod.some((x) => x !== '')) baris.push(rekod); rekod = []; }
+      else if (c !== '\r') medan += c;
+    }
+    tolak();
+    if (rekod.some((x) => x !== '')) baris.push(rekod);
+    return baris;
+  };
+
+  const muatTemplateCsv = () => {
+    const csv = 'nama,mykid,jantina,alamat\nAhmad bin Ali,100101010101,Lelaki,No 1 Jalan Melur\nSiti binti Abu,100202020202,Perempuan,No 2 Jalan Mawar\n';
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'template-murid.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const bacaFailCsv = async (fail: File | undefined) => {
+    if (!fail) return;
+    setCsvHasil([]);
+    const teks = await fail.text();
+    const baris = parseCSV(teks);
+    if (baris.length < 2) { alert('[!] CSV kosong atau tiada baris data.'); return; }
+    const kepala = baris[0].map((h) => h.toLowerCase());
+    const idx = (names: string[]) => kepala.findIndex((h) => names.includes(h));
+    const iNama = idx(['nama', 'nama_murid', 'nama penuh', 'name']);
+    const iMykid = idx(['mykid', 'my kid', 'no mykid', 'id']);
+    const iJan = idx(['jantina', 'gender', 'jantina murid']);
+    const iAlm = idx(['alamat', 'address', 'alamat murid']);
+    if (iNama < 0 || iMykid < 0) { alert('[!] Pengepala CSV mesti ada lajur "nama" dan "mykid".'); return; }
+    const data = baris.slice(1).map((r) => ({
+      nama: (r[iNama] || '').trim(),
+      mykid: (r[iMykid] || '').replace(/\D/g, '').slice(0, 12),
+      jantina: /perempuan/i.test(r[iJan] || '') ? 'Perempuan' : 'Lelaki',
+      alamat: iAlm >= 0 ? (r[iAlm] || '').trim() : '',
+    })).filter((r) => r.nama && r.mykid);
+    if (data.length === 0) { alert('[!] Tiada baris sah (nama + mykid diperlukan).'); return; }
+    setCsvRows(data);
+  };
+
+  const sahkanImportCsv = async () => {
+    if (!csvKelasId) return alert('[!] Pilih kelas untuk semua murid dalam CSV.');
+    if (csvRows.length === 0) return;
+    const kelasDipilih = kelas.find((k: any) => String(k.id) === String(csvKelasId));
+    if (!kelasDipilih) return alert('[!] Kelas tidak sah.');
+    setCsvSibuk(true);
+    const hasil: any[] = [];
+    for (const r of csvRows) {
+      try {
+        let token = janaTokenId();
+        for (let i = 0; i < 5; i++) {
+          const { data } = await supabase.from('data_murid').select('mykid').eq('token_id', token).maybeSingle();
+          if (!data) break;
+          token = janaTokenId();
+        }
+        const { error } = await supabase.from('data_murid').insert([{
+          mykid: r.mykid, nama_murid: r.nama, jantina: r.jantina,
+          kelas_id: kelasDipilih.nama_kelas, alamat: r.alamat,
+          token_id: token, status_akaun: 'aktif', sekolah_id: kelasDipilih.sekolah_id,
+        }]);
+        if (error) throw error;
+        const qr = await janaQrDataUrl(token);
+        hasil.push({ ...r, ok: true, token, qr });
+      } catch (err: any) {
+        hasil.push({ ...r, ok: false, ralat: err.message || 'Gagal' });
+      }
+    }
+    setCsvHasil(hasil);
+    setCsvRows([]);
+    setCsvSibuk(false);
+    onChanged();
+  };
+
   const muat = async () => {
     const { data: s } = await supabase.from('rulaf_sekolah').select('*').eq('email_guru', email).order('nama_sekolah');
     if (s) setSekolah(s);
@@ -144,6 +236,74 @@ export default function BorangDaftarMurid({ email, onChanged }: { email: string;
           </div>
         </div>
       )}
+
+      {/* 📤 BULK UPLOAD CSV */}
+      <div className="bg-white dark:bg-[#171A21] border border-dashed border-gray-300 dark:border-gray-700 rounded-2xl p-5 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-sm font-black mr-auto">📤 Bulk Upload via CSV</h3>
+          <button onClick={muatTemplateCsv} className="text-[11px] font-bold text-[#1793D1] hover:underline">⬇ Muat turun template CSV</button>
+        </div>
+        <p className="text-[11px] text-gray-500">Format: <span className="font-mono">nama,mykid,jantina,alamat</span> — token & QR dijana automatik setiap baris.</p>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <select value={csvKelasId} onChange={(e) => setCsvKelasId(e.target.value)} className={inputCls}>
+            <option value="">— Kelas untuk semua baris —</option>
+            {kelas.map((k: any) => <option key={k.id} value={k.id}>{k.nama_kelas}</option>)}
+          </select>
+          <label className="cursor-pointer bg-gray-100 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs font-bold text-center hover:border-[#1793D1]">
+            📁 Pilih fail CSV…
+            <input type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { bacaFailCsv(e.target.files?.[0]); e.target.value = ''; }} />
+          </label>
+        </div>
+        {csvRows.length > 0 && (
+          <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+            <div className="max-h-48 overflow-y-auto">
+              <table className="w-full text-left text-[11px]">
+                <thead className="bg-gray-100 dark:bg-[#11141b] text-gray-500 sticky top-0">
+                  <tr><th className="p-2">#</th><th className="p-2">Nama</th><th className="p-2">MyKid</th><th className="p-2">Jantina</th><th className="p-2">Alamat</th></tr>
+                </thead>
+                <tbody>
+                  {csvRows.map((r, i) => (
+                    <tr key={i} className="border-t border-gray-100 dark:border-gray-800">
+                      <td className="p-2 text-gray-400">{i + 1}</td><td className="p-2 font-bold">{r.nama}</td>
+                      <td className="p-2 font-mono">{r.mykid}</td><td className="p-2">{r.jantina}</td><td className="p-2 truncate max-w-[140px]">{r.alamat || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <button onClick={sahkanImportCsv} disabled={csvSibuk} className="w-full bg-green-600 text-white py-2.5 text-xs font-black hover:bg-green-500 disabled:opacity-50">
+              {csvSibuk ? '⏳ Mengimport…' : `✅ Sahkan & Import ${csvRows.length} Murid`}
+            </button>
+          </div>
+        )}
+        {csvHasil.length > 0 && (
+          <div className="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+            <div className="bg-gray-100 dark:bg-[#11141b] px-3 py-2 text-[11px] font-black">
+              Hasil import: {csvHasil.filter((r) => r.ok).length} berjaya · {csvHasil.filter((r) => !r.ok).length} gagal
+            </div>
+            <div className="max-h-48 overflow-y-auto">
+              <table className="w-full text-left text-[11px]">
+                <tbody>
+                  {csvHasil.map((r, i) => (
+                    <tr key={i} className="border-t border-gray-100 dark:border-gray-800">
+                      <td className="p-2 font-bold">{r.nama}</td>
+                      <td className="p-2 font-mono">{r.mykid}</td>
+                      {r.ok ? (
+                        <>
+                          <td className="p-2 font-mono text-[#1793D1]">{r.token}</td>
+                          <td className="p-2"><button onClick={() => muatTurunPng(r.qr, `QR-${r.token}-${r.mykid}.png`)} className="text-[#1793D1] font-black hover:underline">⬇ QR</button></td>
+                        </>
+                      ) : (
+                        <td colSpan={2} className="p-2 text-red-500">❌ {r.ralat}</td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

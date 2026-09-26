@@ -292,10 +292,12 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
               <span className="text-2xl">✍️</span>
               <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Cipta Kuiz</span>
             </Link>
+            {isAdmin && (
             <Link href="/blog" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
               <span className="text-2xl">✍️</span>
               <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Tulis Blog</span>
             </Link>
+            )}
             <Link href="/forum" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
               <span className="text-2xl">💬</span>
               <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Forum Komuniti</span>

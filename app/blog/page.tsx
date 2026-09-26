@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabaseClient';
 export default function HalamanBlog() {
   const [posts, setPosts] = useState<any[]>([]);
   const [memuat, setMemuat] = useState(true);
+  const [bolehTulis, setBolehTulis] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -23,6 +24,15 @@ export default function HalamanBlog() {
         setPosts(susun);
       }
       setMemuat(false);
+    })();
+    // Blog CMS khusus Admin — sorok pautan tulis untuk orang lain
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const emel = session?.user?.email || '';
+      if (!emel) return;
+      if (emel.toLowerCase() === 'admin@rulafhub.com') { setBolehTulis(true); return; }
+      const { data: p } = await supabase.from('profil_pengguna').select('peranan').eq('email', emel).maybeSingle();
+      if ((p?.peranan || '').toLowerCase() === 'admin') setBolehTulis(true);
     })();
   }, []);
 
@@ -51,9 +61,11 @@ export default function HalamanBlog() {
           <div className="bg-white dark:bg-[#161b22] border border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-10 text-center">
             <p className="text-4xl mb-2">📝</p>
             <p className="text-sm font-bold">Tiada catatan buat masa ini.</p>
+            {bolehTulis && (
             <Link href="/admin" className="inline-block mt-3 text-xs font-black text-[#1793D1] hover:underline">
               Tulis catatan pertama →
             </Link>
+            )}
           </div>
         ) : (
           <ol className="relative border-l-2 border-gray-200 dark:border-gray-800 ml-3 space-y-6">

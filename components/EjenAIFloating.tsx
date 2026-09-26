@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../app/lib/supabaseClient';
+import { bolehAksesAI } from '../app/lib/akses';
 
 /**
  * 🤖 EJEN AI ANALISIS PRESTASI (NL2SQL) — WIDGET TERAPUNG
@@ -23,6 +24,12 @@ export function EjenAIFloating({ label = 'Tanya Ejen AI' }: EjenAIFloatingProps)
   const tanya = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!soalan.trim()) return;
+    // 🔒 Ejen AI dikunci: hanya admin@rulafhub.com
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!bolehAksesAI(session?.user?.email || '')) {
+      setRalat('Akses Ditolak: Ejen AI hanya untuk Admin (admin@rulafhub.com).');
+      return;
+    }
     setMemikir(true);
     setHasil(null);
     setSql('');

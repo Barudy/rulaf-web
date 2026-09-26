@@ -629,7 +629,16 @@ export default function ProfilPage() {
                 <div className="flex flex-wrap gap-1.5">
                   {dataKerajinan.map((hari, idx) => {
                     const warna = getWarnaKotak(hari);
-                    return (
+  // Inisial untuk avatar fallback (elak ReferenceError ketika tiada gambar)
+  const inisial = (profil.nama || 'R')
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
                       <div
                         key={idx}
                         title={`${hari.tarikh} | Selesai: ${hari.tugasanSiap}/${hari.tugasanDiberi}`}

@@ -13,6 +13,42 @@ export default function PengurusanMuridPage() {
   const [borangMarkah, setBorangMarkah] = useState<any>({});
   const [isPushing, setIsPushing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  // 🔒 Skop privasi: hanya Guru/Admin; guru terhad kepada kelas sendiri
+  const [akses, setAkses] = useState<'semak' | 'guru' | 'admin' | 'tolak'>('semak');
+  const [senaraiKelas, setSenaraiKelas] = useState<string[]>([]);
+  const [notaSkop, setNotaSkop] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const emel = session?.user?.email || '';
+      if (!emel) { setAkses('tolak'); return; }
+      const { data: p } = await supabase.from('profil_pengguna').select('peranan').eq('email', emel).maybeSingle();
+      const per = (p?.peranan || '').toLowerCase();
+      if (per !== 'guru' && per !== 'admin') { setAkses('tolak'); return; }
+      if (per === 'admin') {
+        setAkses('admin');
+        const { data: semua } = await supabase.from('data_murid').select('kelas_id');
+        const unik = [...new Set((semua || []).map((r: any) => r.kelas_id).filter(Boolean))];
+        setSenaraiKelas(unik.length > 0 ? unik : ['3 Murshid', '5 Murshid']);
+        if (unik.length > 0) setKelas(unik[0]);
+      } else {
+        setAkses('guru');
+        const { data: kl, error } = await supabase.from('rulaf_kelas').select('nama_kelas').eq('email_guru', emel).order('nama_kelas');
+        if (error) {
+          setNotaSkop('Jadual kelas belum sedia — jalankan supabase/migrasi-multitenan.sql, kemudian daftar kelas di Daftar Murid.');
+          setSenaraiKelas([]);
+        } else if (!kl || kl.length === 0) {
+          setNotaSkop('Tiada kelas didaftarkan. Daftar kelas anda dahulu di halaman Daftar Murid.');
+          setSenaraiKelas([]);
+        } else {
+          const nama = kl.map((k: any) => k.nama_kelas);
+          setSenaraiKelas(nama);
+          setKelas(nama[0]);
+        }
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const temaSediaAda = localStorage.getItem('theme') || 'dark';
@@ -159,9 +195,13 @@ export default function PengurusanMuridPage() {
               onChange={(e) => setKelas(e.target.value)}
               className="w-full bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none"
             >
-              <option value="3 Murshid">3 Murshid</option>
-              <option value="5 Murshid">5 Murshid</option>
+              {senaraiKelas.length === 0 ? (
+                <option value="">— Tiada kelas —</option>
+              ) : (
+                senaraiKelas.map((k) => <option key={k} value={k}>{k}</option>)
+              )}
             </select>
+            {notaSkop && <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1 font-bold">⚠️ {notaSkop}</p>}
           </div>
           <div>
             <label className="block text-xs text-gray-500 mb-1">Bulan & Tahun Penggredan</label>
@@ -306,7 +346,21 @@ export default function PengurusanMuridPage() {
                         {(() => {
                           const fr = borangMarkah[m.mykid] || {};
                           const { peratus, tahap } = kiraKomposit6040(fr.markah_jawi, fr.ujian_bertulis);
-                          return (
+  // 🔒 Penafian akses untuk bukan Guru/Admin
+  if (akses === 'tolak') {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center p-6 font-mono">
+        <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-8 max-w-sm w-full text-center">
+          <p className="text-4xl mb-3">🔒</p>
+          <p className="text-sm font-black">Akses Ditolak</p>
+          <p className="text-xs text-gray-500 mt-1">Halaman ini khusus untuk Guru & Admin.</p>
+          <Link href="/dashboard" className="inline-block mt-4 text-xs font-black text-[#1793D1] hover:underline">← Kembali ke Dashboard</Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
                             <span title={`Auto 60:40 — ${peratus}%`} className="inline-block bg-[#1793D1]/10 text-[#1793D1] font-black px-2 py-1 rounded-full text-[10px] whitespace-nowrap">
                               {tahap} · {peratus}%
                             </span>
