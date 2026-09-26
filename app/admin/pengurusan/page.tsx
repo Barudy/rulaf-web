@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { kiraKomposit6040 } from '../../lib/rulafTenant';
 import Link from 'next/link';
 
 export default function PengurusanMuridPage() {
@@ -92,8 +93,10 @@ export default function PengurusanMuridPage() {
     setIsPushing(true);
 
     // Jalankan operasi upsert data komposit 60/40 ke Supabase
+    // Tahap RuLaF DIHITUNG AUTOMATIK (0-39 Khas, 40-59 Alif, 60-79 Ba, 80-100 Ta)
     const entries = senaraiMurid.map((student) => {
       const form = borangMarkah[student.mykid] || {};
+      const { tahap } = kiraKomposit6040(form.markah_jawi, form.ujian_bertulis);
       return {
         mykid: student.mykid,
         nama_murid: student.nama_murid,
@@ -108,7 +111,7 @@ export default function PengurusanMuridPage() {
         kerajinan_usaha: parseInt(form.kerajinan_usaha) || 0,
         kerjasama_kumpulan: parseInt(form.kerjasama_kumpulan) || 0,
         akhlak: parseInt(form.akhlak) || 0,
-        tahap_rulaf: borangMarkah[student.mykid].tahap_rulaf
+        tahap_rulaf: tahap
       };
     });
 
@@ -195,7 +198,7 @@ export default function PengurusanMuridPage() {
                     <th className="p-3 border-b border-gray-200 dark:border-gray-800 w-[130px]">Quran</th>
                     <th className="p-3 border-b border-gray-200 dark:border-gray-800 w-[130px]">Hafazan</th>
                     <th className="p-3 border-b border-gray-200 dark:border-gray-800">Sikap (Rjn, Kjsm, Adb) / 10</th>
-                    <th className="p-3 border-b border-gray-200 dark:border-gray-800">Tahap RuLaF</th>
+                    <th className="p-3 border-b border-gray-200 dark:border-gray-800">Tahap RuLaF (Auto)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -299,21 +302,17 @@ export default function PengurusanMuridPage() {
                           />
                         </div>
                       </td>
-                      <td>
-  <select
-    // 1. Tangkap nilai sedia ada atau jadikan kosong
-    value={borangMarkah[m.mykid]?.tahap_rulaf || ''} 
-    // 2. Tembak fungsi handleInput apabila pilihan ditukar
-    onChange={(e) => handleInput(m.mykid, 'tahap_rulaf', e.target.value)}
-    className="w-24 bg-white dark:bg-[#11141b] border border-gray-300 dark:border-gray-800 rounded px-1.5 py-1 text-center text-xs"
-  >
-    <option value="">- Pilih Tahap -</option>
-    <option value="RuLaF Khas">RuLaF Khas</option>
-    <option value="RuLaF Alif">RuLaF Alif</option>
-    <option value="RuLaF Ba">RuLaF Ba</option>
-    <option value="RuLaF Ta">RuLaF Ta</option>
-  </select>
-</td>
+                      <td className="p-3 border-b border-gray-200 dark:border-gray-800">
+                        {(() => {
+                          const fr = borangMarkah[m.mykid] || {};
+                          const { peratus, tahap } = kiraKomposit6040(fr.markah_jawi, fr.ujian_bertulis);
+                          return (
+                            <span title={`Auto 60:40 — ${peratus}%`} className="inline-block bg-[#1793D1]/10 text-[#1793D1] font-black px-2 py-1 rounded-full text-[10px] whitespace-nowrap">
+                              {tahap} · {peratus}%
+                            </span>
+                          );
+                        })()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

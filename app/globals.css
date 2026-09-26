@@ -41,3 +41,16 @@ html, body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* ──────────────────────────────────────────────────────────
+   Cetakan Laporan Akademik E-Profil: hanya #laporan-akademik
+   ────────────────────────────────────────────────────────── */
+@media print {
+  body * { visibility: hidden; }
+  #laporan-akademik, #laporan-akademik * { visibility: visible; }
+  #laporan-akademik {
+    position: absolute; left: 0; top: 0; width: 100%;
+    color: #000; background: #fff;
+  }
+  .no-print { display: none !important; }
+}
+

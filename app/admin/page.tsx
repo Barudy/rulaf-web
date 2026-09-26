@@ -32,9 +32,11 @@ export default function AdminDashboardPage() {
   const [isThinking, setIsThinking] = useState(false);
   const [sqlGenerated, setSqlGenerated] = useState('');
 
-  // --- METRIKS DASHBOARD (REAL-TIME ANALYTICS) ---
+  // --- METRIKS DASHBOARD (SKOP PENUH ADMIN: semua guru & murid semua sekolah) ---
   const [stats, setStats] = useState({
     jumlahMurid: 58, // Default 58 murid dari CSV (3 Murshid + 5 Murshid)
+    jumlahGuru: 0,   // Jumlah guru + admin berdaftar (skop sistem)
+    jumlahSekolah: 0, // Jumlah sekolah berdaftar (skop sistem)
     aktifPengguna: 3,  // Bilangan aktif pengguna (simulasi/real-time)
     jumlahKuiz: 0,
     jumlahBBM: 0,
@@ -120,11 +122,15 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // --- TARIK METRIKS SISTEM SECARA DINAMIK ---
+  // --- TARIK METRIKS SISTEM SECARA DINAMIK (SKOP PENUH: semua sekolah) ---
   const tarikMetriksSistem = async () => {
     try {
-      // Bilangan murid dalam Supabase (Fallback 58 murid dari CSV)
+      // Bilangan murid KESELURUHAN dalam Supabase (semua sekolah)
       const { count: muridCount } = await supabase.from('data_murid').select('*', { count: 'exact', head: true });
+      // Jumlah guru + admin berdaftar (skop sistem, bukan per guru)
+      const { count: guruCount } = await supabase.from('profil_pengguna').select('*', { count: 'exact', head: true }).in('peranan', ['Guru', 'admin']);
+      // Jumlah sekolah berdaftar
+      const { data: sk } = await supabase.from('rulaf_sekolah').select('id');
       // Bilangan kuiz terbina
       const { count: kuizCount } = await supabase.from('rulaf_kuiz').select('*', { count: 'exact', head: true });
       // Bilangan BBM dalam repositori
@@ -135,6 +141,8 @@ export default function AdminDashboardPage() {
 
       setStats({
         jumlahMurid: muridCount || 58,
+        jumlahGuru: guruCount || 0,
+        jumlahSekolah: sk?.length || 0,
         aktifPengguna: simulasiAktif,
         jumlahKuiz: kuizCount || 5, // Fallback ke count asas
         jumlahBBM: bbmCount || 8,
@@ -274,117 +282,124 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // 2. PAPARAN DASHBOARD ADMIN PROFESIONAL
+  // 2. PAPARAN DASHBOARD ADMIN (ESTETIK DISATUKAN DENGAN DASHBOARD GURU)
   return (
-    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-8 selection:bg-[#1793D1] selection:text-white">
-      <div className="max-w-6xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded-sm shadow-md dark:shadow-[0_0_15px_rgba(23,147,209,0.2)] overflow-hidden transition-all duration-300">
-        
-        {/* ================= BAR ATAS UTAMA (HEADER) ================= */}
-        <div className="bg-gray-100 dark:bg-[#11141b] border-b border-gray-200 dark:border-gray-850 px-6 py-4 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 transition-colors">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xl">🛠️</span>
-              <h1 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">
-                PAPAN KAWALAN PENTADBIR :: RULAFHUB
-              </h1>
-            </div>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
-              Log Masuk Sebagai: <span className="text-[#1793D1] font-bold">{userEmail}</span>
-            </p>
-          </div>
+    <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-sans p-3 sm:p-8 selection:bg-[#1793D1] selection:text-white">
+      <div className="max-w-6xl mx-auto space-y-6">
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={logKeluar}
-              className="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 text-xs font-bold rounded-sm transition-colors"
-            >
-              [ sudo logout ]
-            </button>
+        {/* ================= HEADER PROFIL PENTADBIR (GAYA DASHBOARD) ================= */}
+        <div className="bg-gradient-to-r from-[#0F2027] via-[#1793D1]/90 to-[#0F2027] dark:from-[#0a0e14] dark:via-[#0e4a6b] dark:to-[#0a0e14] rounded-2xl p-6 sm:p-8 text-white shadow-xl border border-[#1793D1]/30 relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/5 blur-xl" />
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center text-2xl font-black shadow-lg border border-white/20 overflow-hidden">
+                <span>🛡️</span>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-widest text-sky-200/80 font-bold">Papan Pemuka Pentadbir</p>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight">Panel Pentadbir RuLaFHub</h1>
+                <p className="text-xs text-sky-200/70 font-mono mt-1 truncate">{userEmail}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/dashboard" className="px-4 py-2 bg-white/95 text-[#0e4a6b] rounded-lg text-xs font-black hover:bg-white transition-all">
+                [ Papan Guru ]
+              </Link>
+              <Link href="/profil" className="px-4 py-2 bg-white/15 hover:bg-white/25 border border-white/30 rounded-lg text-xs font-bold transition-all">
+                [ Profil & Tetapan ]
+              </Link>
+              <button
+                onClick={logKeluar}
+                className="px-4 py-2 bg-red-600/90 hover:bg-red-500 rounded-lg text-xs font-bold transition-all"
+              >
+                [ Log Keluar ]
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+          {/* ================= SEKSYEN 1: METRIKS SKOP SISTEM (GAYA DASHBOARD) ================= */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-          {/* ================= SEKSYEN 1: METRIKS & ANALYTICS WIDGETS ================= */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            {/* Kad 1: Murid Berdaftar */}
-            <div className="bg-gray-50 dark:bg-[#11141b]/40 border border-gray-200 dark:border-gray-850 p-4 rounded-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-bold block uppercase">Murid Berdaftar</span>
-                  <span className="text-2xl font-black text-gray-900 dark:text-white mt-1 block">
-                    {stats.jumlahMurid} <span className="text-xs font-normal text-gray-500">Orang</span>
-                  </span>
-                </div>
-                <span className="text-2xl">👨‍🎓</span>
-              </div>
-              <p className="text-[10px] text-gray-400 mt-2">Darjah 3 & Darjah 5 (Active)</p>
+            {/* Kad: Guru Berdaftar (skop sistem) */}
+            <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+              <span className="text-[11px] font-bold text-gray-400 uppercase">🛡️ Guru Berdaftar</span>
+              <span className="text-3xl font-black text-gray-900 dark:text-white block mt-1">{stats.jumlahGuru}</span>
+              <span className="text-[10px] text-gray-400">Guru + admin · semua sekolah</span>
             </div>
 
-            {/* Kad 2: Pengguna Aktif (REAL-TIME) */}
-            <div className="bg-gray-50 dark:bg-[#11141b]/40 border border-gray-200 dark:border-gray-850 p-4 rounded-sm relative overflow-hidden">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-bold block uppercase">Pengguna Aktif</span>
-                  <span className="text-2xl font-black text-[#1793D1] mt-1 block flex items-center gap-2">
-                    {stats.aktifPengguna}
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                    </span>
-                  </span>
-                </div>
-                <span className="text-2xl">🟢</span>
-              </div>
-              <p className="text-[10px] text-gray-400 mt-2">Sedang memantau & menguji</p>
+            {/* Kad: Murid Keseluruhan (semua sekolah) */}
+            <div className="bg-white dark:bg-[#171A21] border border-[#1793D1]/40 rounded-2xl p-5 shadow-sm">
+              <span className="text-[11px] font-bold text-gray-400 uppercase">🎓 Murid Keseluruhan</span>
+              <span className="text-3xl font-black text-[#1793D1] block mt-1">{stats.jumlahMurid}</span>
+              <span className="text-[10px] text-gray-400">Semua murid · semua sekolah</span>
             </div>
 
-            {/* Kad 3: Misi Permainan (Kuiz) */}
-            <div className="bg-gray-50 dark:bg-[#11141b]/40 border border-gray-200 dark:border-gray-850 p-4 rounded-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-bold block uppercase">Siri Permainan</span>
-                  <span className="text-2xl font-black text-gray-900 dark:text-white mt-1 block">
-                    {stats.jumlahKuiz} <span className="text-xs font-normal text-gray-500">Kuiz</span>
-                  </span>
-                </div>
-                <span className="text-2xl">🎮</span>
-              </div>
-              <p className="text-[10px] text-gray-400 mt-2">Modular Tadrij (Active)</p>
+            {/* Kad: Sekolah Berdaftar */}
+            <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+              <span className="text-[11px] font-bold text-gray-400 uppercase">🏫 Sekolah Berdaftar</span>
+              <span className="text-3xl font-black text-gray-900 dark:text-white block mt-1">{stats.jumlahSekolah}</span>
+              <span className="text-[10px] text-gray-400">Dalam ekosistem RuLaFHub</span>
             </div>
 
-            {/* Kad 4: Sumbangan BBM */}
-            <div className="bg-gray-50 dark:bg-[#11141b]/40 border border-gray-200 dark:border-gray-850 p-4 rounded-sm">
-              <div className="flex justify-between items-start">
-                <div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-bold block uppercase">Sumbangan BBM</span>
-                  <span className="text-2xl font-black text-gray-900 dark:text-white mt-1 block">
-                    {stats.jumlahBBM} <span className="text-xs font-normal text-gray-500">Bahan</span>
-                  </span>
-                </div>
-                <span className="text-2xl">📁</span>
-              </div>
-              <p className="text-[10px] text-gray-400 mt-2">Bahan sokongan terbuka</p>
+            {/* Kad: Pengguna Aktif (REAL-TIME) */}
+            <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+              <span className="text-[11px] font-bold text-gray-400 uppercase">🟢 Pengguna Aktif</span>
+              <span className="text-3xl font-black text-gray-900 dark:text-white mt-1 flex items-center gap-2">
+                {stats.aktifPengguna}
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+              </span>
+              <span className="text-[10px] text-gray-400">Sedang memantau & menguji</span>
+            </div>
+
+            {/* Kad: Siri Permainan (Kuiz) */}
+            <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+              <span className="text-[11px] font-bold text-gray-400 uppercase">🎮 Siri Permainan</span>
+              <span className="text-3xl font-black text-gray-900 dark:text-white block mt-1">{stats.jumlahKuiz}</span>
+              <span className="text-[10px] text-gray-400">Modular Tadrij (Active)</span>
+            </div>
+
+            {/* Kad: Sumbangan BBM */}
+            <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+              <span className="text-[11px] font-bold text-gray-400 uppercase">📁 Sumbangan BBM</span>
+              <span className="text-3xl font-black text-gray-900 dark:text-white block mt-1">{stats.jumlahBBM}</span>
+              <span className="text-[10px] text-gray-400">Bahan sokongan terbuka</span>
             </div>
 
           </div>
 
-          {/* ================= SEKSYEN 2: SHORTCUTS & QUICK ACTIONS ================= */}
-          <div className="bg-gray-100/50 dark:bg-[#11141b]/40 border border-gray-200 dark:border-gray-850 p-4 rounded-sm">
-            <h2 className="text-xs font-bold text-[#1793D1] mb-3 uppercase tracking-wider">🚀 Pintasan Pantas Panel (Quick Actions)</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Link href="/admin/cipta-kuiz" className="flex items-center justify-center gap-2 p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-sm text-xs font-bold text-center transition-all">
-                <span>✍️</span> [ Cipta Misi/Kuiz Baru ]
+          {/* ================= SEKSYEN 2: PINTASAN PANTAS (GAYA DASHBOARD) ================= */}
+          <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-sm font-black text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <span>🚀</span> Pintasan Fungsi Utama
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <Link href="/admin/murid" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
+                <span className="text-2xl">🧒</span>
+                <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Daftar Murid</span>
               </Link>
-              <Link href="/admin/pengurusan" className="flex items-center justify-center gap-2 p-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-sm text-xs font-bold text-center transition-all">
-                <span>📋</span> [ Pengurusan Murid ]
+              <Link href="/admin/cipta-kuiz" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
+                <span className="text-2xl">✍️</span>
+                <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Cipta Kuiz</span>
               </Link>
-              <Link href="/repo" className="flex items-center justify-center gap-2 p-3 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-850 dark:text-gray-200 rounded-sm text-xs font-bold text-center transition-all">
-                <span>📁</span> [ Repositori Open-BBM ]
+              <Link href="/admin/pengurusan" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
+                <span className="text-2xl">📋</span>
+                <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Pengurusan Murid</span>
               </Link>
-              <Link href="/admin/kehadiran" className="flex items-center justify-center gap-2 p-3 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-850 dark:text-gray-200 rounded-sm text-xs font-bold text-center transition-all">
-                <span>📋</span> [ Audit Kehadiran Murid ]
+              <Link href="/repo" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
+                <span className="text-2xl">📁</span>
+                <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Repositori BBM</span>
+              </Link>
+              <Link href="/admin/kehadiran" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
+                <span className="text-2xl">📅</span>
+                <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Audit Kehadiran</span>
+              </Link>
+              <Link href="/blog" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
+                <span className="text-2xl">📚</span>
+                <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Blog & Changelog</span>
               </Link>
             </div>
           </div>
@@ -394,7 +409,7 @@ export default function AdminDashboardPage() {
 
             {/* BELAH KIRI (8 KOLUM): EJEN AI ANALISIS PRESTASI (NL2SQL) */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="bg-gray-50 dark:bg-[#11141b]/60 border border-gray-200 dark:border-[#1793D1]/30 rounded-sm p-6 relative">
+              <div className="bg-white dark:bg-[#171A21] border border-[#1793D1]/30 rounded-2xl p-6 relative shadow-sm">
                 
                 <div className="flex items-center gap-2.5 mb-4">
                   <span className="text-xl">🤖</span>
@@ -478,7 +493,7 @@ export default function AdminDashboardPage() {
             <div className="lg:col-span-5 space-y-6">
               
               {/* Borang Publish Jurnal */}
-              <div className="bg-gray-50 dark:bg-[#11141b]/60 border border-gray-200 dark:border-gray-850 rounded-sm p-6">
+              <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
                 <h3 className="text-gray-900 dark:text-white font-bold text-sm mb-4 flex items-center gap-2">
                   <span>📝</span> Muat Naik Jurnal Inovasi & Blog
                 </h3>
@@ -520,7 +535,7 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* Artikel Terkini */}
-              <div className="bg-gray-50 dark:bg-[#11141b]/60 border border-gray-200 dark:border-gray-850 rounded-sm p-6">
+              <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
                 <h3 className="text-gray-950 dark:text-white font-bold text-xs uppercase tracking-wider mb-3">
                   📰 Jurnal Terbitan Terkini (CMS)
                 </h3>
@@ -543,8 +558,6 @@ export default function AdminDashboardPage() {
             </div>
 
           </div>
-
-        </div>
       </div>
     </div>
   );

@@ -24,7 +24,11 @@ export default function ProfilPage() {
     jantina: '',
     peranan: 'Murid',
     mykid: '0000000000000',
-    profile_picture_url: ''
+    profile_picture_url: '',
+    jawatan: '',
+    no_tel: '',
+    alamat: '',
+    kokurikulum: ''
   });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -38,6 +42,12 @@ export default function ProfilPage() {
   const [showPassForm, setShowPassForm] = useState(false);
 
   const [dataKerajinan, setDataKerajinan] = useState<HariKerajinan[]>([]);
+
+  // 🎓 E-Profil: pencapaian akademik + kokurikulum
+  const [hasilAkademik, setHasilAkademik] = useState<any[]>([]);
+  const [rekodKoku, setRekodKoku] = useState<any[]>([]);
+  const [kokuForm, setKokuForm] = useState({ aktiviti: '', kategori: 'Kelab & Persatuan', peringkat: 'Sekolah', tahun: '', pencapaian: '' });
+  const [simpanKoku, setSimpanKoku] = useState(false);
 
   useEffect(() => {
     semakSesi();
@@ -68,6 +78,10 @@ export default function ProfilPage() {
         peranan: data.peranan || 'Murid',
         mykid: mykidMurid,
         profile_picture_url: data.profile_picture_url || '',
+        jawatan: data.jawatan || '',
+        no_tel: data.no_tel || '',
+        alamat: data.alamat || '',
+        kokurikulum: data.kokurikulum || '',
       });
 
       // 🔑 SEDUT REKOD KERAJINAN SEBENAR DARI SUPABASE
@@ -87,14 +101,30 @@ export default function ProfilPage() {
           }));
           setDataKerajinan(formattedData);
         }
+
+        // 🎓 SEDUT HASIL AKADEMIK (markah_murid) UNTUK E-PROFIL
+        const { data: markah } = await supabase
+          .from('markah_murid')
+          .select('*')
+          .eq('mykid', mykidMurid)
+          .order('bulan_tahun');
+        if (markah) setHasilAkademik(markah);
       }
+
+      // 🏅 SEDUT REKOD KOKURIKULUM SENDIRI (abaikan jika jadual belum wujud)
+      const { data: koku } = await supabase
+        .from('rulaf_kokurikulum')
+        .select('*')
+        .eq('email', session.user.email)
+        .order('tahun', { ascending: false });
+      if (koku) setRekodKoku(koku);
     }
     setIsChecking(false);
   };
 
   const simpanProfil = async () => {
     setIsUpdating(true);
-    const { error } = await supabase.from('profil_pengguna').upsert({
+    const asas = {
       email: userEmail,
       nama: profil.nama,
       umur: profil.umur,
@@ -102,11 +132,59 @@ export default function ProfilPage() {
       peranan: profil.peranan,
       mykid: profil.mykid || '0000000000000',
       profile_picture_url: profil.profile_picture_url || ''
-    }, { onConflict: 'email' });
+    };
+    const penuh = {
+      ...asas,
+      jawatan: profil.jawatan || '',
+      no_tel: profil.no_tel || '',
+      alamat: profil.alamat || '',
+      kokurikulum: profil.kokurikulum || ''
+    };
+    let { error } = await supabase.from('profil_pengguna').upsert(penuh, { onConflict: 'email' });
+    if (error && /column|42703|PGRST204/i.test(`${error.message} ${error.code || ''}`)) {
+      // Jadual belum migrasi — simpan medan asas sahaja
+      const r2 = await supabase.from('profil_pengguna').upsert(asas, { onConflict: 'email' });
+      error = r2.error;
+      if (!error) alert('[!] Disimpan tanpa medan E-Profil baharu. Jalankan supabase/migrasi-eprofil.sql di SQL Editor.');
+    }
 
     if (error) alert('Ralat kemas kini: ' + error.message);
     else alert('[+] Profil berjaya dikemas kini!');
     setIsUpdating(false);
+  };
+
+  // 🏅 TAMBAH REKOD KOKURIKULUM
+  const tambahKoku = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!kokuForm.aktiviti.trim()) return alert('[!] Nama aktiviti diperlukan.');
+    setSimpanKoku(true);
+    const { error } = await supabase.from('rulaf_kokurikulum').insert([{
+      email: userEmail,
+      mykid: profil.mykid !== '0000000000000' ? profil.mykid : null,
+      aktiviti: kokuForm.aktiviti.trim(),
+      kategori: kokuForm.kategori,
+      peringkat: kokuForm.peringkat,
+      tahun: kokuForm.tahun.trim(),
+      pencapaian: kokuForm.pencapaian.trim(),
+    }]);
+    if (error) {
+      if (/column|42703|PGRST204|relation|42P01/i.test(`${error.message} ${error.code || ''}`))
+        alert('[!] Jadual rulaf_kokurikulum belum wujud. Jalankan supabase/migrasi-eprofil.sql di SQL Editor.');
+      else alert('Ralat: ' + error.message);
+    } else {
+      setKokuForm({ aktiviti: '', kategori: 'Kelab & Persatuan', peringkat: 'Sekolah', tahun: '', pencapaian: '' });
+      const { data } = await supabase.from('rulaf_kokurikulum').select('*').eq('email', userEmail).order('tahun', { ascending: false });
+      if (data) setRekodKoku(data);
+    }
+    setSimpanKoku(false);
+  };
+
+  // 🗑️ PADAM REKOD KOKURIKULUM
+  const padamKoku = async (id: number) => {
+    if (!window.confirm('Padam rekod kokurikulum ini?')) return;
+    const { error } = await supabase.from('rulaf_kokurikulum').delete().eq('id', id);
+    if (error) alert('Ralat: ' + error.message);
+    else setRekodKoku((r) => r.filter((x: any) => x.id !== id));
   };
 
 
@@ -364,6 +442,46 @@ export default function ProfilPage() {
               </select>
               <p className="text-[11px] text-red-400 mt-1.5">*Hanya Admin boleh menukar akses peranan.</p>
             </div>
+            <div>
+              <label className="text-xs text-[#1793D1] font-bold block mb-1">JAWATAN / PERANAN KHAS</label>
+              <input
+                type="text"
+                value={profil.jawatan}
+                onChange={(e) => setProfil({ ...profil, jawatan: e.target.value })}
+                className="w-full bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none font-sans"
+                placeholder="Cth: Ketua Kelas, Pengawas, Guru Kelas..."
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#1793D1] font-bold block mb-1">NO. TELEFON</label>
+              <input
+                type="text"
+                value={profil.no_tel}
+                onChange={(e) => setProfil({ ...profil, no_tel: e.target.value })}
+                className="w-full bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none font-sans"
+                placeholder="01X-XXXXXXX"
+              />
+            </div>
+            <div className="col-span-1 sm:col-span-2">
+              <label className="text-xs text-[#1793D1] font-bold block mb-1">ALAMAT</label>
+              <input
+                type="text"
+                value={profil.alamat}
+                onChange={(e) => setProfil({ ...profil, alamat: e.target.value })}
+                className="w-full bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none font-sans"
+                placeholder="Alamat tempat tinggal..."
+              />
+            </div>
+            <div className="col-span-1 sm:col-span-2">
+              <label className="text-xs text-[#1793D1] font-bold block mb-1">PENGLIBATAN KOKURIKULUM (RINGKASAN)</label>
+              <input
+                type="text"
+                value={profil.kokurikulum}
+                onChange={(e) => setProfil({ ...profil, kokurikulum: e.target.value })}
+                className="w-full bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none font-sans"
+                placeholder="Cth: Pengakap, Bola Sepak, Nasyid..."
+              />
+            </div>
 
             {isMurid && (
               <div className="col-span-1 sm:col-span-2">
@@ -387,6 +505,107 @@ export default function ProfilPage() {
           >
             {isUpdating ? 'Menyimpan...' : '💾 Simpan Profil'}
           </button>
+        </div>
+
+        {/*
+          ============================================
+          E-PROFIL: PENCAPAIAN AKADEMIK + SOFTCOPY
+          ============================================
+        */}
+        <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
+              <span>🎓</span> Pencapaian Akademik
+            </h2>
+            {hasilAkademik.length > 0 && (
+              <button onClick={() => window.print()} className="no-print ml-auto bg-[#1793D1] text-white px-4 py-1.5 rounded-lg text-[11px] font-black hover:bg-[#1272ab] transition-colors">
+                🖨️ Cetak / Simpan PDF
+              </button>
+            )}
+          </div>
+          <div id="laporan-akademik">
+            <div className="hidden print:block mb-3">
+              <p className="font-black text-base">Laporan Pencapaian Akademik — {profil.nama}</p>
+              <p className="text-xs text-gray-600">MyKid: {profil.mykid} · Dijana RuLaFHub</p>
+            </div>
+            {hasilAkademik.length === 0 ? (
+              <p className="text-xs text-gray-400">Tiada rekod markah ditemui untuk MyKid ini. Rekod akan dipaparkan selepas guru menyegerakkan gred 60:40.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs min-w-[560px]">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-800 text-gray-500 uppercase text-[10px]">
+                      <th className="py-2 pr-3">Bulan/Tahun</th>
+                      <th className="py-2 pr-3">Jawi %</th>
+                      <th className="py-2 pr-3">Ujian %</th>
+                      <th className="py-2 pr-3">Quran</th>
+                      <th className="py-2 pr-3">Hafazan</th>
+                      <th className="py-2">Tahap RuLaF</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {hasilAkademik.map((r: any, i: number) => (
+                      <tr key={i} className="border-b border-gray-100 dark:border-gray-800/60">
+                        <td className="py-2 pr-3 font-bold">{r.bulan_tahun}</td>
+                        <td className="py-2 pr-3">{r.markah_jawi ?? '—'}</td>
+                        <td className="py-2 pr-3">{r.ujian_bertulis ?? '—'}</td>
+                        <td className="py-2 pr-3">{r.bacaan_quran || '—'}</td>
+                        <td className="py-2 pr-3">{r.hafazan || '—'}</td>
+                        <td className="py-2"><span className="inline-block bg-[#1793D1]/10 text-[#1793D1] font-black px-2 py-0.5 rounded-full text-[10px]">{r.tahap_rulaf || '—'}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/*
+          ============================================
+          E-PROFIL: PENCAPAIAN KOKURIKULUM
+          ============================================
+        */}
+        <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+          <h2 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+            <span>🏅</span> Pencapaian Kokurikulum
+          </h2>
+          <form onSubmit={tambahKoku} className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
+            <input value={kokuForm.aktiviti} onChange={(e) => setKokuForm({ ...kokuForm, aktiviti: e.target.value })} placeholder="Aktiviti (cth: Bola Sepak)" className="col-span-2 sm:col-span-1 bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:border-[#1793D1] focus:outline-none" />
+            <select value={kokuForm.kategori} onChange={(e) => setKokuForm({ ...kokuForm, kategori: e.target.value })} className="bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:border-[#1793D1] focus:outline-none">
+              <option>Sukan</option><option>Unit Beruniform</option><option>Kelab &amp; Persatuan</option><option>Kesenian &amp; Kebudayaan</option><option>Akademik &amp; STEM</option><option>Khidmat Masyarakat</option>
+            </select>
+            <select value={kokuForm.peringkat} onChange={(e) => setKokuForm({ ...kokuForm, peringkat: e.target.value })} className="bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:border-[#1793D1] focus:outline-none">
+              <option>Sekolah</option><option>MSSD</option><option>MSSN</option><option>Kebangsaan</option>
+            </select>
+            <input value={kokuForm.tahun} onChange={(e) => setKokuForm({ ...kokuForm, tahun: e.target.value })} placeholder="Tahun (cth: 2026)" className="bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:border-[#1793D1] focus:outline-none" />
+            <input value={kokuForm.pencapaian} onChange={(e) => setKokuForm({ ...kokuForm, pencapaian: e.target.value })} placeholder="Pencapaian (cth: Johan)" className="bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-xs focus:border-[#1793D1] focus:outline-none" />
+            <button disabled={simpanKoku} className="bg-[#1793D1] text-white rounded-xl py-2 text-xs font-black hover:bg-[#1272ab] disabled:opacity-50">+ Tambah</button>
+          </form>
+          {rekodKoku.length === 0 ? (
+            <p className="text-xs text-gray-400">Tiada rekod kokurikulum. Tambah penglibatan pertama anda di atas.</p>
+          ) : (
+            <div className="space-y-4">
+              {['Sekolah', 'MSSD', 'MSSN', 'Kebangsaan'].map((pk) => {
+                const senarai = rekodKoku.filter((r: any) => r.peringkat === pk);
+                if (senarai.length === 0) return null;
+                return (
+                  <div key={pk}>
+                    <p className="text-[11px] font-black uppercase tracking-widest text-[#1793D1] mb-1.5">🏷️ {pk} ({senarai.length})</p>
+                    <ul className="divide-y divide-gray-100 dark:divide-gray-800 border border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden">
+                      {senarai.map((r: any) => (
+                        <li key={r.id} className="flex items-center gap-2 px-3 py-2 text-xs">
+                          <span className="font-bold">{r.aktiviti}</span>
+                          <span className="text-gray-400">· {r.kategori}{r.tahun ? ` · ${r.tahun}` : ''}{r.pencapaian ? ` — 🏆 ${r.pencapaian}` : ''}</span>
+                          <button onClick={() => padamKoku(r.id)} className="ml-auto text-red-400 hover:text-red-500 font-bold">✕</button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/*

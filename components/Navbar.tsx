@@ -85,26 +85,6 @@ export default function Navbar() {
               Blog
             </a>
             <a
-              href="/permainan"
-              className={`px-3 py-2 rounded-md text-sm font-semibold tracking-wide transition-all duration-300 ${
-                pathname === '/permainan' 
-                  ? 'text-[#1793D1] bg-[#1793D1]/10' 
-                  : 'text-gray-600 dark:text-gray-300 hover:text-[#1793D1] hover:bg-gray-100 dark:hover:bg-gray-800/40'
-              }`}
-            >
-              Permainan
-            </a>
-            <a
-              href="/semakan"
-              className={`px-3 py-2 rounded-md text-sm font-semibold tracking-wide transition-all duration-300 ${
-                pathname === '/semakan' 
-                  ? 'text-[#1793D1] bg-[#1793D1]/10' 
-                  : 'text-gray-600 dark:text-gray-300 hover:text-[#1793D1] hover:bg-gray-100 dark:hover:bg-gray-800/40'
-              }`}
-            >
-              Semakan
-            </a>
-            <a
               href="/repo"
               className={`px-3 py-2 rounded-md text-sm font-semibold tracking-wide transition-all duration-300 ${
                 pathname.startsWith('/repo') 
@@ -227,31 +207,13 @@ export default function Navbar() {
         <div className="md:hidden bg-white dark:bg-[#171a21] border-b border-gray-200 dark:border-[#1793D1]/30 transition-all duration-300">
           <div className="space-y-1 px-4 pt-2 pb-4 shadow-inner">
             <a
-              href="/"
+              href="/blog"
               onClick={() => setIsOpen(false)}
               className={`block px-3 py-2.5 rounded-md text-base font-semibold transition-colors ${
-                pathname === '/' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40'
+                pathname === '/blog' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40'
               }`}
             >
               Blog
-            </a>
-            <a
-              href="/permainan"
-              onClick={() => setIsOpen(false)}
-              className={`block px-3 py-2.5 rounded-md text-base font-semibold transition-colors ${
-                pathname === '/permainan' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40'
-              }`}
-            >
-              Permainan
-            </a>
-            <a
-              href="/semakan"
-              onClick={() => setIsOpen(false)}
-              className={`block px-3 py-2.5 rounded-md text-base font-semibold transition-colors ${
-                pathname === '/semakan' ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40'
-              }`}
-            >
-              Semakan
             </a>
             <a
               href="/repo"
