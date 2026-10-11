@@ -10,17 +10,34 @@ export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isOpen, setIsOpen] = useState(false); // Mobile menu drawer
   const [tema, setTema] = useState('dark'); // 'dark' atau 'light'
+  const [menuBuka, setMenuBuka] = useState(false); // Dropdown menu profil
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [namaPengguna, setNamaPengguna] = useState('');
 
   useEffect(() => {
-    // 1. Semak sesi log masuk
+    // 1. Semak sesi log masuk + gambar profil untuk menu avatar
     const semakSesi = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setIsLoggedIn(!!session);
+      if (session?.user?.email) {
+        const { data } = await supabase
+          .from('profil_pengguna')
+          .select('profile_picture_url,nama')
+          .eq('email', session.user.email)
+          .maybeSingle();
+        if (data) {
+          setAvatarUrl(data.profile_picture_url || '');
+          setNamaPengguna(data.nama || '');
+        }
+      } else {
+        setAvatarUrl('');
+        setNamaPengguna('');
+      }
     };
     semakSesi();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      semakSesi();
     });
 
     // 2. Setkan tema sedia ada dari localStorage (Lalai: 'dark' untuk identiti RuLaF)
@@ -36,6 +53,17 @@ export default function Navbar() {
       subscription.unsubscribe();
     };
   }, []);
+
+  // Log keluar dari menu profil
+  const logKeluar = async () => {
+    setMenuBuka(false);
+    setIsOpen(false);
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+    setAvatarUrl('');
+    setNamaPengguna('');
+    window.location.href = '/';
+  };
 
   // Fungsi untuk menukar tema secara global
   const tukarTema = () => {
@@ -127,14 +155,41 @@ export default function Navbar() {
 
             <div className="h-5 w-[1px] bg-gray-300 dark:bg-gray-700/60 mx-2" />
 
-            {/* Butang Log Masuk / Dashboard */}
+            {/* Butang Log Masuk / Menu Profil (Avatar + Dropdown) */}
             {isLoggedIn ? (
-              <a
-                href="/dashboard"
-                className="px-4 py-1.5 rounded text-sm font-bold text-[#0F1419] bg-[#1793D1] border border-[#1793D1] hover:bg-transparent hover:text-[#1793D1] transition-all duration-300 shadow-[0_0_12px_rgba(23,147,209,0.3)]"
-              >
-                Dashboard
-              </a>
+              <div className="relative">
+                <button
+                  onClick={() => setMenuBuka((b) => !b)}
+                  title={namaPengguna || 'Menu pengguna'}
+                  className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#1793D1]/60 hover:border-[#1793D1] bg-[#1793D1]/10 flex items-center justify-center text-sm font-black text-[#1793D1] transition-all focus:outline-none"
+                >
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Profil" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{(namaPengguna || 'R').trim().charAt(0).toUpperCase()}</span>
+                  )}
+                </button>
+                {menuBuka && (
+                  <>
+                    <button aria-hidden tabIndex={-1} onClick={() => setMenuBuka(false)} className="fixed inset-0 z-40 cursor-default bg-transparent border-0" />
+                    <div className="absolute right-0 mt-2 w-48 z-50 bg-white dark:bg-[#171a21] border border-gray-200 dark:border-[#1793D1]/30 rounded-xl shadow-xl overflow-hidden">
+                      <a href="/dashboard" onClick={() => setMenuBuka(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 hover:text-[#1793D1] transition-colors">
+                        <span>📊</span> Dashboard
+                      </a>
+                      <a href="/profil" onClick={() => setMenuBuka(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 hover:text-[#1793D1] transition-colors">
+                        <span>👤</span> Profil
+                      </a>
+                      <a href="/profil#tetapan" onClick={() => setMenuBuka(false)} className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/50 hover:text-[#1793D1] transition-colors">
+                        <span>⚙️</span> Tetapan
+                      </a>
+                      <div className="h-[1px] bg-gray-200 dark:bg-gray-800" />
+                      <button onClick={logKeluar} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
+                        <span>🚪</span> Log Keluar
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             ) : (
               <a
                 href="/login"
@@ -255,13 +310,35 @@ export default function Navbar() {
             <div className="h-[1px] bg-gray-200 dark:bg-gray-800 my-3" />
 
             {isLoggedIn ? (
-              <a
-                href="/dashboard"
-                onClick={() => setIsOpen(false)}
-                className="block text-center w-full py-2.5 rounded-md text-base font-bold text-[#0F1419] bg-[#1793D1] border border-[#1793D1] shadow-md"
-              >
-                Dashboard
-              </a>
+              <>
+                <a
+                  href="/dashboard"
+                  onClick={() => setIsOpen(false)}
+                  className="block px-3 py-2.5 rounded-md text-base font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40"
+                >
+                  📊 Dashboard
+                </a>
+                <a
+                  href="/profil"
+                  onClick={() => setIsOpen(false)}
+                  className="block px-3 py-2.5 rounded-md text-base font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40"
+                >
+                  👤 Profil
+                </a>
+                <a
+                  href="/profil#tetapan"
+                  onClick={() => setIsOpen(false)}
+                  className="block px-3 py-2.5 rounded-md text-base font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40"
+                >
+                  ⚙️ Tetapan
+                </a>
+                <button
+                  onClick={logKeluar}
+                  className="block w-full text-left px-3 py-2.5 rounded-md text-base font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
+                >
+                  🚪 Log Keluar
+                </button>
+              </>
             ) : (
               <a
                 onClick={() => setIsOpen(false)}

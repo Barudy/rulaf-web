@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +34,12 @@ export default function RootLayout({
         <Navbar />
         
         {/* Kandungan halaman page.tsx meluncur masuk di sini */}
-        <main className="min-h-full flex flex-col bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] transition-colors duration-300">
+        <main className="min-h-full flex flex-col flex-1 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] transition-colors duration-300">
           {children}
         </main>
+
+        {/* Footer global di setiap halaman */}
+        <Footer />
       </body>
     </html>
   );

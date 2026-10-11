@@ -183,16 +183,6 @@ export default function HomePage() {
           })}
         </div>
       </section>
-
-      {/* CTA + FOOTER */}
-      <footer className="border-t border-gray-200 dark:border-[#30363d] bg-white dark:bg-[#010409] transition-colors duration-300">
-        <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <p className="text-xs text-gray-500">
-            Semua berita &amp; changelog kini berpusat di <Link href="/blog" className="text-[#1793D1] font-bold hover:underline">/blog</Link> — dibaca terus dari jadual <span className="font-mono">blog_rulaf</span>.
-          </p>
-          <Link href="/blog" className="sm:ml-auto px-4 py-2 rounded-lg bg-[#1793D1] text-white text-xs font-black hover:bg-[#1272ab] transition-colors">Ke Halaman Blog →</Link>
-        </div>
-      </footer>
     </main>
   );
 }

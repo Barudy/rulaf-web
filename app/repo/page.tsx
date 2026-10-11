@@ -17,6 +17,10 @@ export default function RepositoryPage() {
   const [selectedDarjah, setSelectedDarjah] = useState<string | null>(null);
   const [selectedSubjek, setSelectedSubjek] = useState<string | null>(null);
   const [folderHistory, setFolderHistory] = useState<number[]>([]);
+  // 📖 README editor (gaya GitHub) untuk folder BBM semasa
+  const [readmeEdit, setReadmeEdit] = useState(false);
+  const [readmeDraf, setReadmeDraf] = useState('');
+  const [simpanReadmeBusy, setSimpanReadmeBusy] = useState(false);
 
   const [peranan, setPeranan] = useState<string>('');
   const [isUserAdmin, setIsUserAdmin] = useState(false);
@@ -67,8 +71,17 @@ export default function RepositoryPage() {
     else tarikDataRepo();
   };
 
-  const padamItem = async (id: number, pemilikItem: string) => {
-    if (pemilikItem !== userEmail && !isUserAdmin) {
+  const simpanSuntingBbm = async (id: number, medan: any) => {
+    if (!medan.tajuk.trim()) return alert('[!] Tajuk tidak boleh kosong.');
+    const { error } = await supabase
+      .from('rulaf_repo')
+      .update({ tajuk: medan.tajuk.trim(), topik: (medan.topik || '').trim(), subjek: (medan.subjek || '').trim(), darjah: (medan.darjah || '').trim() })
+      .eq('id', id);
+    if (error) alert('Ralat menyimpan suntingan: ' + error.message);
+    else tarikDataRepo();
+  };
+
+  const padamItem = async (id: number, pemilikItem: string) => {    if (pemilikItem !== userEmail && !isUserAdmin) {
       return alert('⚠️ Anda hanya dibenarkan memadam bahan atau folder milik anda sendiri!');
     }
     if (!window.confirm('⚠️ Adakah anda pasti mahu memadamkan bahan ini secara kekal?')) return;
@@ -77,7 +90,23 @@ export default function RepositoryPage() {
     else { alert('🗑️ Kandungan berjaya dipadam!'); tarikDataRepo(); }
   };
 
+  const simpanReadme = async () => {
+    if (currentFolderId === null) return;
+    if (folderSemasaObj && folderSemasaObj.penyumbang !== userEmail && !isUserAdmin) {
+      return alert('⚠️ Hanya pemilik folder atau Admin boleh menyunting README.');
+    }
+    setSimpanReadmeBusy(true);
+    const { error } = await supabase
+      .from('rulaf_repo')
+      .update({ readme_text: readmeDraf.trim() })
+      .eq('id', currentFolderId);
+    setSimpanReadmeBusy(false);
+    if (error) alert('Ralat menyimpan README: ' + error.message);
+    else { setReadmeEdit(false); tarikDataRepo(); }
+  };
+
   const bukaFolder = (id: number) => {
+    setReadmeEdit(false);
     setFolderHistory((prev) => [...prev, currentFolderId as number].filter(x => x !== null));
     setCurrentFolderId(id);
     setSelectedDarjah(null);
@@ -246,6 +275,7 @@ export default function RepositoryPage() {
                     isUserAdmin={isUserAdmin}
                     kemasKiniStatus={kemasKiniStatus}
                     padamItem={padamItem}
+                    simpanSuntingBbm={simpanSuntingBbm}
                   />
                 ))
               )}
@@ -297,12 +327,52 @@ export default function RepositoryPage() {
             </div>
           ) : selectedDarjah === null ? (
             <div className="space-y-6">
-              {readmeSemasa && (
-                <div className="border border-gray-200 dark:border-gray-800 bg-gray-100/60 dark:bg-[#11141b] rounded p-4 text-xs">
-                  <span className="text-gray-400 font-bold block mb-1">📋 MAKLUMAT KOLEKSI:</span>
-                  <p className="whitespace-pre-line text-gray-700 dark:text-gray-300 leading-relaxed">{readmeSemasa}</p>
-                </div>
-              )}
+              {/* 📖 README.md gaya GitHub — di bawah folder BBM */}
+              {(() => {
+                const bolehSunting = isUserAdmin || (folderSemasaObj && folderSemasaObj.penyumbang === userEmail);
+                return (
+                  <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+                    <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-[#11141b] border-b border-gray-200 dark:border-gray-800">
+                      <span className="text-sm">📖</span>
+                      <span className="text-xs font-bold text-gray-700 dark:text-gray-200 font-mono">README.md</span>
+                      <span className="ml-auto" />
+                      {bolehSunting && !readmeEdit && (
+                        <button
+                          onClick={() => { setReadmeDraf(readmeSemasa || ''); setReadmeEdit(true); }}
+                          className="text-[11px] font-bold text-[#1793D1] hover:underline"
+                        >
+                          {readmeSemasa ? '✏️ Sunting' : '＋ Cipta README'}
+                        </button>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      {readmeEdit ? (
+                        <div className="space-y-2">
+                          <textarea
+                            rows={6}
+                            value={readmeDraf}
+                            onChange={(e) => setReadmeDraf(e.target.value)}
+                            placeholder="Tulis penerangan koleksi ini (markdown ringkas disokong paparan teks)..."
+                            className="w-full bg-white dark:bg-[#0F1419] border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-xs text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none font-mono"
+                          />
+                          <div className="flex gap-2">
+                            <button onClick={simpanReadme} disabled={simpanReadmeBusy} className="bg-[#1793D1] text-white px-4 py-1.5 rounded text-[11px] font-black hover:bg-[#1272ab] disabled:opacity-50">
+                              {simpanReadmeBusy ? 'Menyimpan…' : '💾 Simpan README'}
+                            </button>
+                            <button onClick={() => setReadmeEdit(false)} className="border border-gray-300 dark:border-gray-700 px-4 py-1.5 rounded text-[11px] font-bold text-gray-600 dark:text-gray-300">
+                              Batal
+                            </button>
+                          </div>
+                        </div>
+                      ) : readmeSemasa ? (
+                        <p className="whitespace-pre-line text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{readmeSemasa}</p>
+                      ) : (
+                        <p className="text-[11px] text-gray-400 italic">Tiada README untuk koleksi ini{bolehSunting ? ' — klik “Cipta README” untuk menambah.' : '.'}</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <div className="space-y-3">
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
@@ -380,6 +450,7 @@ export default function RepositoryPage() {
                     isUserAdmin={isUserAdmin}
                     kemasKiniStatus={kemasKiniStatus}
                     padamItem={padamItem}
+                    simpanSuntingBbm={simpanSuntingBbm}
                   />
                 ))
               )}
@@ -393,8 +464,13 @@ export default function RepositoryPage() {
 }
 
 // 📦 KOMPONEN KAD FAIL DENGAN HAK CIPTA PEMADAMAN PENYUMBANG
-function ItemKadBBM({ item, userEmail, isUserAdmin, kemasKiniStatus, padamItem }: any) {
+function ItemKadBBM({ item, userEmail, isUserAdmin, kemasKiniStatus, padamItem, simpanSuntingBbm }: any) {
   const bolehUrus = isUserAdmin || (userEmail && item.penyumbang === userEmail);
+  const [sunting, setSunting] = useState(false);
+  const [draf, setDraf] = useState({ tajuk: item.tajuk || '', topik: item.topik || '', subjek: item.subjek || '', darjah: item.darjah || '' });
+  const [simpanBusy, setSimpanBusy] = useState(false);
+
+  const inputKecil = 'w-full bg-white dark:bg-[#0F1419] border border-gray-300 dark:border-gray-700 rounded px-2 py-1.5 text-xs text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none';
 
   return (
     <div className="p-4 border rounded bg-gray-100/40 dark:bg-[#11141b]/60 border-gray-200 dark:border-gray-800 hover:border-[#1793D1]/50 transition-all">
@@ -424,6 +500,29 @@ function ItemKadBBM({ item, userEmail, isUserAdmin, kemasKiniStatus, padamItem }
               Topik: <span className="text-gray-700 dark:text-gray-300 font-semibold">{item.topik || 'Umum'}</span> | Penyumbang: {item.penyumbang}
             </p>
 
+            {bolehUrus && sunting && (
+              <div className="mt-3 p-3 bg-gray-50 dark:bg-[#0F1419] border border-[#1793D1]/40 rounded space-y-2">
+                <input value={draf.tajuk} onChange={(e) => setDraf({ ...draf, tajuk: e.target.value })} placeholder="Tajuk BBM" className={inputKecil} />
+                <div className="grid grid-cols-3 gap-2">
+                  <input value={draf.topik} onChange={(e) => setDraf({ ...draf, topik: e.target.value })} placeholder="Topik" className={inputKecil} />
+                  <input value={draf.subjek} onChange={(e) => setDraf({ ...draf, subjek: e.target.value })} placeholder="Subjek" className={inputKecil} />
+                  <input value={draf.darjah} onChange={(e) => setDraf({ ...draf, darjah: e.target.value })} placeholder="Darjah" className={inputKecil} />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={async () => { setSimpanBusy(true); await simpanSuntingBbm(item.id, draf); setSimpanBusy(false); setSunting(false); }}
+                    disabled={simpanBusy}
+                    className="bg-[#1793D1] text-white px-3 py-1 rounded text-[11px] font-black hover:bg-[#1272ab] disabled:opacity-50"
+                  >
+                    {simpanBusy ? 'Menyimpan…' : '💾 Simpan'}
+                  </button>
+                  <button onClick={() => { setSunting(false); setDraf({ tajuk: item.tajuk || '', topik: item.topik || '', subjek: item.subjek || '', darjah: item.darjah || '' }); }} className="border border-gray-300 dark:border-gray-700 px-3 py-1 rounded text-[11px] font-bold text-gray-600 dark:text-gray-300">
+                    Batal
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Kawalan Pemilik & Admin */}
             {bolehUrus && (
               <div className="mt-3 flex flex-wrap items-center gap-2 pt-2 border-t border-gray-200/50 dark:border-gray-800/50">
@@ -443,6 +542,12 @@ function ItemKadBBM({ item, userEmail, isUserAdmin, kemasKiniStatus, padamItem }
                     </button>
                   </>
                 )}
+                <button
+                  onClick={() => setSunting((s) => !s)}
+                  className="bg-[#1793D1]/10 text-[#1793D1] border border-[#1793D1]/40 hover:bg-[#1793D1] hover:text-white px-2.5 py-0.5 rounded text-[10px] font-bold transition-all"
+                >
+                  {sunting ? '✏️ Tutup' : '✏️ Sunting'}
+                </button>
                 <button
                   onClick={() => padamItem(item.id, item.penyumbang)}
                   className="ml-auto bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-600 hover:text-white px-2.5 py-0.5 rounded text-[10px] font-bold transition-all"

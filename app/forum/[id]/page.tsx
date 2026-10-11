@@ -14,6 +14,7 @@ export default function PaparanForumSpesifik() {
   const [teksKomen, setTeksKomen] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [bolehSah, setBolehSah] = useState(false); // Guru/Admin sahaja boleh sahkan jawapan
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +29,13 @@ export default function PaparanForumSpesifik() {
     if (session) {
       setIsLoggedIn(true);
       setUserEmail(session.user.email || 'Pendidik RuLaF');
+      const { data: p } = await supabase
+        .from('profil_pengguna')
+        .select('peranan')
+        .eq('email', session.user.email)
+        .maybeSingle();
+      const per = (p?.peranan || '').toLowerCase();
+      setBolehSah(per === 'guru' || per === 'admin');
     }
   };
 
@@ -56,6 +64,7 @@ export default function PaparanForumSpesifik() {
 
   const hantarKomen = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (topik && topik.status === 'tutup') return alert('[!] Perbincangan ini telah ditutup — jawapan telah disahkan.');
     if (!teksKomen) return alert('[!] Komen kosong tidak dibenarkan!');
 
     const { error } = await supabase.from('rulaf_komen').insert([
@@ -73,6 +82,29 @@ export default function PaparanForumSpesifik() {
       // Refresh ulasan komen
       tarikTopikDanKomen();
     }
+  };
+
+  // ✅ SAHKAN JAWAPAN (guru): tanda komen + tutup perbincangan
+  const sahkanJawapan = async (komenId: number) => {
+    if (!window.confirm('Sahkan komen ini sebagai jawapan? Perbincangan akan DITUTUP.')) return;
+    const r1 = await supabase.from('rulaf_komen').update({ diterima: true }).eq('id', komenId);
+    if (r1.error) {
+      if (/column|42703|PGRST204|relation|42P01/i.test(`${r1.error.message} ${r1.error.code || ''}`))
+        return alert('[!] Jadual forum belum dikemas kini. Jalankan supabase/migrasi-forum-tutup.sql di SQL Editor.');
+      return alert('Ralat: ' + r1.error.message);
+    }
+    const r2 = await supabase.from('rulaf_forum').update({ status: 'tutup', jawapan_id: komenId }).eq('id', idForum);
+    if (r2.error) return alert('Ralat: ' + r2.error.message);
+    tarikTopikDanKomen();
+  };
+
+  // 🔓 BUKA SEMULA (guru): tarik pengesahan + buka komen
+  const bukaSemula = async () => {
+    if (!window.confirm('Buka semula perbincangan ini untuk komen?')) return;
+    if (topik?.jawapan_id) await supabase.from('rulaf_komen').update({ diterima: false }).eq('id', topik.jawapan_id);
+    const { error } = await supabase.from('rulaf_forum').update({ status: 'buka', jawapan_id: null }).eq('id', idForum);
+    if (error) alert('Ralat: ' + error.message);
+    else tarikTopikDanKomen();
   };
 
   if (isLoading) {
@@ -123,6 +155,16 @@ export default function PaparanForumSpesifik() {
           </span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 leading-relaxed">{topik.tajuk}</h1>
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {(topik.status || 'buka') === 'tutup' ? (
+            <span className="bg-gray-500/15 text-gray-500 text-[10px] px-2 py-0.5 rounded font-black">🔒 Tutup — Jawapan Disahkan</span>
+          ) : (
+            <span className="bg-green-500/15 text-green-600 text-[10px] px-2 py-0.5 rounded font-black">🟢 Buka</span>
+          )}
+          {bolehSah && (topik.status || 'buka') === 'tutup' && (
+            <button onClick={bukaSemula} className="text-[10px] font-black text-[#1793D1] hover:underline">🔓 Buka Semula</button>
+          )}
+        </div>
         <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{topik.soalan}</p>
         <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-6 font-sans">
           Penulis: {topik.penulis} | Tarikh: {new Date(topik.created_at).toLocaleString('ms-MY')}
@@ -145,9 +187,15 @@ export default function PaparanForumSpesifik() {
             </p>
           ) : (
             senaraiKomen.map((komen, index) => (
-              <div key={komen.id} className="bg-gray-100 dark:bg-[#11141b]/60 p-4 border border-gray-200 dark:border-gray-800/80 rounded pl-6 border-l-2 border-l-gray-400 dark:border-l-gray-600">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-sans font-bold">
-                  #{index + 1} | {komen.penulis} :: <span className="font-normal text-[10px]">{new Date(komen.created_at).toLocaleString('ms-MY')}</span>
+              <div key={komen.id} className={`bg-gray-100 dark:bg-[#11141b]/60 p-4 border rounded pl-6 border-l-2 ${komen.diterima ? 'border-gray-200 dark:border-green-700 border-l-green-500 dark:border-l-green-500 bg-green-50/50 dark:bg-green-950/20' : 'border-gray-200 dark:border-gray-800/80 border-l-gray-400 dark:border-l-gray-600'}`}>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-sans font-bold flex items-center gap-2 flex-wrap">
+                  <span>#{index + 1} | {komen.penulis} :: <span className="font-normal text-[10px]">{new Date(komen.created_at).toLocaleString('ms-MY')}</span></span>
+                  {komen.diterima && (
+                    <span className="bg-green-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black">✅ Jawapan Disahkan</span>
+                  )}
+                  {bolehSah && !komen.diterima && (topik.status || 'buka') === 'buka' && (
+                    <button onClick={() => sahkanJawapan(komen.id)} className="ml-auto text-[10px] font-black text-green-600 hover:underline">✓ Sahkan & Tutup</button>
+                  )}
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">{komen.komen}</p>
               </div>
@@ -156,8 +204,14 @@ export default function PaparanForumSpesifik() {
         </div>
       </div>
 
-      {/* BORANG MENULIS JAWAPAN */}
-      {isLoggedIn ? (
+      {/* BORANG MENULIS JAWAPAN (DILUMPUHKAN APABILA TUTUP) */}
+      {(topik.status || 'buka') === 'tutup' ? (
+        <div className="border-t border-gray-200 dark:border-gray-800 pt-6">
+          <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 p-4 rounded text-center text-xs text-gray-500">
+            🔒 Perbincangan ini telah <b>ditutup</b> — jawapan telah disahkan oleh guru. Komen baharu dilumpuhkan.
+          </div>
+        </div>
+      ) : isLoggedIn ? (
         <form onSubmit={hantarKomen} className="border-t border-gray-200 dark:border-gray-800 pt-6">
           <h4 className="text-gray-900 dark:text-white font-bold text-sm mb-3">Tulis Balasan / Komen Anda:</h4>
           <div className="mb-4">

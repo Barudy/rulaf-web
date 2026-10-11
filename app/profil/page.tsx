@@ -667,7 +667,7 @@ export default function ProfilPage() {
         )}
 
         {/* ============ TUKAR KATA LALUAN (SETTING BARU) ============ */}
-        <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm">
+        <div id="tetapan" className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden shadow-sm scroll-mt-24">
           <button
             onClick={() => setShowPassForm(!showPassForm)}
             className="w-full flex items-center gap-3 p-5 text-left hover:bg-gray-50 dark:hover:bg-[#11141b] transition-colors"
