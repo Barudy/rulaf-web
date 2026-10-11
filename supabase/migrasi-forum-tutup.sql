@@ -15,3 +15,13 @@ ALTER TABLE public.rulaf_komen
 
 CREATE INDEX IF NOT EXISTS idx_forum_status ON public.rulaf_forum (status);
 CREATE INDEX IF NOT EXISTS idx_komen_diterima ON public.rulaf_komen (diterima);
+
+-- Baiki id auto-increment rulaf_komen (tanpanya komen baharu dapat id NULL
+-- dan sebarang operasi eq('id', ...) gagal dengan ralat "bigint: null").
+DO $$
+BEGIN
+  ALTER TABLE public.rulaf_komen ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY;
+EXCEPTION WHEN duplicate_object OR syntax_error OR others THEN
+  -- Jujukan/default sudah wujud — abaikan dan teruskan
+  NULL;
+END $$;

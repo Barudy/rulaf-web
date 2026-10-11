@@ -288,6 +288,56 @@ export default function DocsPage() {
             )}
           </div>
 
+                {/* BAB 7: R&D - RULAFBOX & TEKNOLOGI PENGIMBASAN QR */}
+      <div className="mb-4">
+        <button 
+          onClick={() => toggleProtokol('rulafbox')}
+          className="w-full text-left bg-gray-200 dark:bg-gray-900 border border-gray-700 p-4 font-bold text-orange-500 hover:border-orange-500 dark:text-orange-400 transition-colors flex justify-between"
+        >
+          <span>[+] BAB 7: R&D - PENGINTEGRASIAN RULAFBOX & PENGIMBASAN QR (PRIVACY-FIRST)</span>
+          <span>{activeProtokol === 'rulafbox' ? '[-]' : '[+]'}</span>
+        </button>
+        
+        {activeProtokol === 'rulafbox' && (
+          <div className="bg-gray-200 dark:bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-6">
+            
+            {/* Pengenalan RuLaFBox */}
+            <div>
+              <h3 className="font-bold text-orange-400">1. RuLaFBox (Pusat R&D Pengurusan Pantas)</h3>
+              <p className="mt-1">
+                RuLaFBox (RBox) merupakan inisiatif R&D terbaharu yang direka khusus untuk akaun guru. Ia bertindak sebagai pusat imbasan pintar di dalam bilik darjah untuk merekodkan pengagihan Bahan Bantu Mengajar (BBM) dan status penyiapan modul murid secara terus ke pangkalan data (Supabase) tanpa perlu kemas kini manual.
+              </p>
+            </div>
+
+            {/* Kod QR & NFC */}
+            <div>
+              <h3 className="font-bold text-blue-400">2. Mekanisme Hibrid: NFC Fizikal & Sandaran QR</h3>
+              <p className="mt-1">
+                Sistem RuLaFHub mengambil kira keterbatasan perkakasan peranti di lapangan dengan melaksanakan sokongan imbasan dwi-fungsi:
+              </p>
+              <ul className="list-disc list-inside mt-2">
+                <li><strong>Lorong Pantas NFC (Express Lane):</strong> Kaedah utama yang membolehkan guru mengimbas kad murid dalam masa 1 saat untuk merekod kehadiran, markah sahsiah, atau serahan modul.</li>
+                <li><strong>Kod QR Sebagai Sandaran (Fallback):</strong> Sekiranya sensor NFC pada peranti guru rosak atau tidak stabil, kod QR yang dicetak pada kad murid bertindak sebagai alternatif inklusif supaya sistem tetap berfungsi pada mana-mana telefon pintar.</li>
+              </ul>
+            </div>
+
+            {/* Keselamatan & Tokenisasi */}
+            <div className="mt-4 border-l-4 border-red-500 pl-4 bg-gray-900 py-3">
+              <strong className="text-red-400 uppercase">3. Keselamatan Data & Polisi Tokenisasi (Privacy-First)</strong>
+              <p className="mt-2 text-xs">
+                Kad NFC dan Kod QR murid <strong>SAMA SEKALI TIDAK</strong> menyimpan maklumat sensitif peribadi (seperti No. MyKid atau No. Telefon Ibu Bapa). Sebaliknya, teknologi penyulitan berasaskan <strong>Token ID Rawak</strong> (contoh: <code>RULAF-SEC-89421X</code>) digunakan pada medium fizikal tersebut. 
+              </p>
+              <ul className="list-disc ml-6 mt-2 space-y-2 text-xs">
+                <li>Jika kad tercicir dan diimbas oleh aplikasi pembaca NFC pihak ketiga, data yang terpapar hanyalah kod rawak yang tidak bermakna.</li>
+                <li>Hanya aplikasi rasmi RuLaFHub yang mempunyai kunci (key) melalui pelayan Supabase untuk menterjemahkan token tersebut kembali kepada profil murid yang sah.</li>
+              </ul>
+            </div>
+
+          </div>
+        )}
+      </div>
+
+
           {/* Footer */}
           <div className="mt-10 border-t border-gray-200 dark:border-gray-800 pt-6 text-center text-xs text-gray-500 dark:text-gray-400 font-bold">
             <p>"Membetulkan yang biasa dan membiasakan yang betul — Memacu Pendidikan Jawi ke Era Digital."</p>

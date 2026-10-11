@@ -181,6 +181,7 @@ export default function ProfilPage() {
 
   // 🗑️ PADAM REKOD KOKURIKULUM
   const padamKoku = async (id: number) => {
+    if (id == null) return alert('[!] Rekod ini tiada ID (data lama) — tidak boleh dipadam.');
     if (!window.confirm('Padam rekod kokurikulum ini?')) return;
     const { error } = await supabase.from('rulaf_kokurikulum').delete().eq('id', id);
     if (error) alert('Ralat: ' + error.message);

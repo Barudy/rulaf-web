@@ -203,6 +203,7 @@ export default function AdminDashboardPage() {
   };
 
   const padamPos = async (id: number) => {
+    if (id == null) return alert('[!] Rekod ini tiada ID (data lama) — tidak boleh dipadam.');
     if (!window.confirm('Padam topik forum ini beserta semua komennya?')) return;
     await supabase.from('rulaf_komen').delete().eq('forum_id', id);
     const { error } = await supabase.from('rulaf_forum').delete().eq('id', id);
@@ -210,6 +211,7 @@ export default function AdminDashboardPage() {
   };
 
   const padamKomen = async (id: number) => {
+    if (id == null) return alert('[!] Rekod ini tiada ID (data lama) — tidak boleh dipadam.');
     if (!window.confirm('Padam komen ini?')) return;
     const { error } = await supabase.from('rulaf_komen').delete().eq('id', id);
     if (error) alert('Ralat: ' + error.message); else tarikForum();

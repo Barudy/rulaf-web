@@ -86,6 +86,7 @@ export default function PaparanForumSpesifik() {
 
   // ✅ SAHKAN JAWAPAN (guru): tanda komen + tutup perbincangan
   const sahkanJawapan = async (komenId: number) => {
+    if (komenId == null) return alert('[!] Rekod komen ini tiada ID (data lama tanpa auto-increment) — jalankan migrasi terkini dahulu.');
     if (!window.confirm('Sahkan komen ini sebagai jawapan? Perbincangan akan DITUTUP.')) return;
     const r1 = await supabase.from('rulaf_komen').update({ diterima: true }).eq('id', komenId);
     if (r1.error) {
