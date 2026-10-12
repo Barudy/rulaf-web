@@ -88,14 +88,18 @@ export default function PaparanForumSpesifik() {
   const sahkanJawapan = async (komenId: number) => {
     if (komenId == null) return alert('[!] Rekod komen ini tiada ID (data lama tanpa auto-increment) — jalankan migrasi terkini dahulu.');
     if (!window.confirm('Sahkan komen ini sebagai jawapan? Perbincangan akan DITUTUP.')) return;
-    const r1 = await supabase.from('rulaf_komen').update({ diterima: true }).eq('id', komenId);
+    const r1 = await supabase.from('rulaf_komen').update({ diterima: true }).eq('id', komenId).select('id');
     if (r1.error) {
       if (/column|42703|PGRST204|relation|42P01/i.test(`${r1.error.message} ${r1.error.code || ''}`))
         return alert('[!] Jadual forum belum dikemas kini. Jalankan supabase/migrasi-forum-tutup.sql di SQL Editor.');
       return alert('Ralat: ' + r1.error.message);
     }
-    const r2 = await supabase.from('rulaf_forum').update({ status: 'tutup', jawapan_id: komenId }).eq('id', idForum);
+    if (!r1.data || r1.data.length === 0)
+      return alert('[!] Kemas kini disekat oleh polisi RLS — jalankan polisi UPDATE forum dalam fail supabase/pembersihan-rls.sql.');
+    const r2 = await supabase.from('rulaf_forum').update({ status: 'tutup', jawapan_id: komenId }).eq('id', idForum).select('id');
     if (r2.error) return alert('Ralat: ' + r2.error.message);
+    if (!r2.data || r2.data.length === 0)
+      return alert('[!] Kemas kini disekat oleh polisi RLS — jalankan polisi UPDATE forum dalam fail supabase/pembersihan-rls.sql.');
     tarikTopikDanKomen();
   };
 
@@ -103,8 +107,9 @@ export default function PaparanForumSpesifik() {
   const bukaSemula = async () => {
     if (!window.confirm('Buka semula perbincangan ini untuk komen?')) return;
     if (topik?.jawapan_id) await supabase.from('rulaf_komen').update({ diterima: false }).eq('id', topik.jawapan_id);
-    const { error } = await supabase.from('rulaf_forum').update({ status: 'buka', jawapan_id: null }).eq('id', idForum);
+    const { data, error } = await supabase.from('rulaf_forum').update({ status: 'buka', jawapan_id: null }).eq('id', idForum).select('id');
     if (error) alert('Ralat: ' + error.message);
+    else if (!data || data.length === 0) alert('[!] Kemas kini disekat oleh polisi RLS — jalankan polisi UPDATE forum dalam fail supabase/pembersihan-rls.sql.');
     else tarikTopikDanKomen();
   };
 

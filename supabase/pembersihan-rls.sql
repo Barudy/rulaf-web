@@ -45,3 +45,41 @@ DELETE FROM public.rulaf_forum WHERE tajuk = 'UJIAN-DEBUG';
 -- DROP POLICY IF EXISTS "lin_murid_delete_admin" ON public.data_murid;
 -- CREATE POLICY "lin_murid_delete_admin" ON public.data_murid
 --   FOR DELETE USING ((auth.jwt() ->> 'email') = 'admin@rulafhub.com');
+
+-- ============================================================
+-- 4) Polisi UPDATE forum (WAJIB untuk aliran Sahkan & Tutup).
+--    Tanpa ini, update topik/komen disekat senyap (0 baris, tiada
+--    ralat) dan status kekal "buka" walaupun UI nampak berjaya.
+--    Jalankan blok ini SEKARANG (buang -- di depan setiap baris).
+-- ============================================================
+DROP POLICY IF EXISTS "lin_forum_update" ON public.rulaf_forum;
+CREATE POLICY "lin_forum_update" ON public.rulaf_forum
+  FOR UPDATE USING (
+    penulis = (auth.jwt() ->> 'email')
+    OR (auth.jwt() ->> 'email') = 'admin@rulafhub.com'
+    OR EXISTS (SELECT 1 FROM public.profil_pengguna
+               WHERE email = (auth.jwt() ->> 'email')
+               AND lower(peranan) IN ('guru', 'admin'))
+  ) WITH CHECK (
+    penulis = (auth.jwt() ->> 'email')
+    OR (auth.jwt() ->> 'email') = 'admin@rulafhub.com'
+    OR EXISTS (SELECT 1 FROM public.profil_pengguna
+               WHERE email = (auth.jwt() ->> 'email')
+               AND lower(peranan) IN ('guru', 'admin'))
+  );
+
+DROP POLICY IF EXISTS "lin_komen_update" ON public.rulaf_komen;
+CREATE POLICY "lin_komen_update" ON public.rulaf_komen
+  FOR UPDATE USING (
+    penulis = (auth.jwt() ->> 'email')
+    OR (auth.jwt() ->> 'email') = 'admin@rulafhub.com'
+    OR EXISTS (SELECT 1 FROM public.profil_pengguna
+               WHERE email = (auth.jwt() ->> 'email')
+               AND lower(peranan) IN ('guru', 'admin'))
+  ) WITH CHECK (
+    penulis = (auth.jwt() ->> 'email')
+    OR (auth.jwt() ->> 'email') = 'admin@rulafhub.com'
+    OR EXISTS (SELECT 1 FROM public.profil_pengguna
+               WHERE email = (auth.jwt() ->> 'email')
+               AND lower(peranan) IN ('guru', 'admin'))
+  );
