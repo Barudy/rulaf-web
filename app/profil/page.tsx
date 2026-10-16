@@ -335,6 +335,15 @@ export default function ProfilPage() {
     { ikon: '📂', label: 'Repositori BBM', desc: 'Bahan Bantu Mengajar terbuka', tujuan: '/repo' },
   ];
 
+  // Inisial untuk avatar fallback (elak ReferenceError ketika tiada gambar)
+  const inisial = (profil.nama || 'R')
+    .trim()
+    .split(/\s+/)
+    .map((w: string) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-sans p-3 sm:p-8 selection:bg-[#1793D1] selection:text-white">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -630,16 +639,7 @@ export default function ProfilPage() {
                 <div className="flex flex-wrap gap-1.5">
                   {dataKerajinan.map((hari, idx) => {
                     const warna = getWarnaKotak(hari);
-  // Inisial untuk avatar fallback (elak ReferenceError ketika tiada gambar)
-  const inisial = (profil.nama || 'R')
-    .trim()
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
-  return (
+                    return (
                       <div
                         key={idx}
                         title={`${hari.tarikh} | Selesai: ${hari.tugasanSiap}/${hari.tugasanDiberi}`}

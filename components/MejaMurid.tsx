@@ -25,7 +25,7 @@ export default function MejaMurid({ email, isAdmin, refreshKey }: { email: strin
 
   const [pilih, setPilih] = useState<string[]>([]);
   const [sunting, setSunting] = useState<any | null>(null);
-  const [fEdit, setFEdit] = useState({ nama: '', jantina: 'Lelaki', alamat: '', kelas: '' });
+  const [fEdit, setFEdit] = useState({ nama: '', jantina: 'Lelaki', alamat: '', kelas: '', merit: '0', demerit: '0' });
 
   const muat = async () => {
     setMemuat(true);
@@ -100,7 +100,7 @@ export default function MejaMurid({ email, isAdmin, refreshKey }: { email: strin
 
   const bukaSunting = (m: any) => {
     setSunting(m);
-    setFEdit({ nama: m.nama_murid || '', jantina: m.jantina || 'Lelaki', alamat: m.alamat || '', kelas: m.kelas_id || '' });
+    setFEdit({ nama: m.nama_murid || '', jantina: m.jantina || 'Lelaki', alamat: m.alamat || '', kelas: m.kelas_id || '', merit: String(m.merit ?? 0), demerit: String(m.demerit ?? 0) });
   };
 
   const simpanSunting = async (e: React.FormEvent) => {
@@ -108,6 +108,7 @@ export default function MejaMurid({ email, isAdmin, refreshKey }: { email: strin
     if (!sunting) return;
     const { error } = await supabase.from('data_murid').update({
       nama_murid: fEdit.nama.trim(), jantina: fEdit.jantina, alamat: fEdit.alamat.trim(), kelas_id: fEdit.kelas.trim(),
+      merit: Math.max(0, parseInt(fEdit.merit) || 0), demerit: Math.max(0, parseInt(fEdit.demerit) || 0),
     }).eq('mykid', sunting.mykid);
     if (error) alert('Ralat: ' + error.message);
     else { setSunting(null); muat(); }
@@ -187,6 +188,16 @@ export default function MejaMurid({ email, isAdmin, refreshKey }: { email: strin
             <select value={fEdit.jantina} onChange={(e) => setFEdit({ ...fEdit, jantina: e.target.value })} className={`${inputCls} w-full`}><option>Lelaki</option><option>Perempuan</option></select>
             <input value={fEdit.alamat} onChange={(e) => setFEdit({ ...fEdit, alamat: e.target.value })} placeholder="Alamat" className={`${inputCls} w-full`} />
             <input value={fEdit.kelas} onChange={(e) => setFEdit({ ...fEdit, kelas: e.target.value })} placeholder="Kelas" className={`${inputCls} w-full`} />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-green-600">✅ Merit</label>
+                <input type="number" min="0" value={fEdit.merit} onChange={(e) => setFEdit({ ...fEdit, merit: e.target.value })} className={`${inputCls} w-full`} />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-red-500">⚠️ Demerit</label>
+                <input type="number" min="0" value={fEdit.demerit} onChange={(e) => setFEdit({ ...fEdit, demerit: e.target.value })} className={`${inputCls} w-full`} />
+              </div>
+            </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => setSunting(null)} className="flex-1 border border-gray-300 dark:border-gray-700 py-2 rounded-lg text-xs font-bold">Batal</button>
               <button className="flex-1 bg-[#1793D1] text-white py-2 rounded-lg text-xs font-black hover:bg-[#1272ab]">Simpan</button>
