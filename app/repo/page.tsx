@@ -327,6 +327,35 @@ export default function RepositoryPage() {
             </div>
           ) : selectedDarjah === null ? (
             <div className="space-y-6">
+              <div className="space-y-3">
+                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  PILIH TAHUN / DARJAH DALAM KOLEKSI INI:
+                </h4>
+                {senaraiDarjahUnik.length === 0 ? (
+                  <p className="text-center py-6 text-gray-500 text-xs">Belum ada bahan didaftarkan di dalam koleksi ini.</p>
+                ) : (
+                  senaraiDarjahUnik.map(darjah => {
+                    const bilangan = failBbmDalamFolder.filter(f => (f.darjah || 'Umum') === darjah).length;
+                    return (
+                      <div
+                        key={darjah}
+                        onClick={() => setSelectedDarjah(darjah)}
+                        className="p-4 border rounded bg-gray-100/80 dark:bg-[#171A21] hover:bg-gray-200 dark:hover:bg-[#1c202a] border-gray-200 dark:border-gray-800 hover:border-[#1793D1] cursor-pointer flex justify-between items-center transition-all"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">📂</span>
+                          <div>
+                            <span className="font-bold text-sm text-gray-900 dark:text-white block">{darjah}</span>
+                            <span className="text-[11px] text-gray-400">{bilangan} fail BBM tersedia</span>
+                          </div>
+                        </div>
+                        <span className="text-xs text-[#1793D1] font-bold">Pilih Darjah ➔</span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
               {/* 📖 README.md gaya GitHub — di bawah folder BBM */}
               {(() => {
                 const bolehSunting = isUserAdmin || (folderSemasaObj && folderSemasaObj.penyumbang === userEmail);
@@ -373,35 +402,7 @@ export default function RepositoryPage() {
                   </div>
                 );
               })()}
-
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  PILIH TAHUN / DARJAH DALAM KOLEKSI INI:
-                </h4>
-                {senaraiDarjahUnik.length === 0 ? (
-                  <p className="text-center py-6 text-gray-500 text-xs">Belum ada bahan didaftarkan di dalam koleksi ini.</p>
-                ) : (
-                  senaraiDarjahUnik.map(darjah => {
-                    const bilangan = failBbmDalamFolder.filter(f => (f.darjah || 'Umum') === darjah).length;
-                    return (
-                      <div
-                        key={darjah}
-                        onClick={() => setSelectedDarjah(darjah)}
-                        className="p-4 border rounded bg-gray-100/80 dark:bg-[#171A21] hover:bg-gray-200 dark:hover:bg-[#1c202a] border-gray-200 dark:border-gray-800 hover:border-[#1793D1] cursor-pointer flex justify-between items-center transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">📂</span>
-                          <div>
-                            <span className="font-bold text-sm text-gray-900 dark:text-white block">{darjah}</span>
-                            <span className="text-[11px] text-gray-400">{bilangan} fail BBM tersedia</span>
-                          </div>
-                        </div>
-                        <span className="text-xs text-[#1793D1] font-bold">Pilih Darjah ➔</span>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+              
             </div>
           ) : selectedSubjek === null ? (
             <div className="space-y-4">
