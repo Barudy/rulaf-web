@@ -292,18 +292,18 @@ export default function DocsPage() {
       <div className="mb-4">
         <button 
           onClick={() => toggleProtokol('rulafbox')}
-          className="w-full text-left bg-gray-200 dark:bg-gray-900 border border-gray-700 p-4 font-bold text-orange-500 hover:border-orange-500 dark:text-orange-400 transition-colors flex justify-between"
+          className="w-full text-left bg-gray-100 hover:bg-gray-200/80 dark:bg-gray-900/60 dark:hover:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 font-bold text-orange-600 dark:text-orange-400 hover:border-orange-500 transition-all flex justify-between items-center rounded-t-sm"
         >
-          <span>[+] BAB 7: R&D - PENGINTEGRASIAN RULAFBOX & PENGIMBASAN QR (PRIVACY-FIRST)</span>
-          <span>{activeProtokol === 'rulafbox' ? '[-]' : '[+]'}</span>
+          <span className="text-xs sm:text-sm">[+] BAB 7: R&D - PENGINTEGRASIAN RULAFBOX & PENGIMBASAN QR (PRIVACY-FIRST)</span>
+          <span className="text-xs">{activeProtokol === 'rulafbox' ? '[-]' : '[+]'}</span>
         </button>
         
         {activeProtokol === 'rulafbox' && (
-          <div className="bg-gray-200 dark:bg-black border-x border-b border-gray-700 p-6 text-sm text-gray-300 leading-relaxed space-y-6">
+          <div className="bg-gray-50/70 dark:bg-[#0c0e14] border-x border-b border-gray-200 dark:border-gray-800 p-6 text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed space-y-6">
             
             {/* Pengenalan RuLaFBox */}
             <div>
-              <h3 className="font-bold text-orange-400">1. RuLaFBox (Pusat R&D Pengurusan Pantas)</h3>
+              <h3 className="font-bold text-orange-600 dark:text-orange-400">1. RuLaFBox (Pusat R&D Pengurusan Pantas)</h3>
               <p className="mt-1">
                 RuLaFBox (RBox) merupakan inisiatif R&D terbaharu yang direka khusus untuk akaun guru. Ia bertindak sebagai pusat imbasan pintar di dalam bilik darjah untuk merekodkan pengagihan Bahan Bantu Mengajar (BBM) dan status penyiapan modul murid secara terus ke pangkalan data (Supabase) tanpa perlu kemas kini manual.
               </p>
@@ -311,21 +311,21 @@ export default function DocsPage() {
 
             {/* Kod QR & NFC */}
             <div>
-              <h3 className="font-bold text-blue-400">2. Mekanisme Hibrid: NFC Fizikal & Sandaran QR</h3>
+              <h3 className="font-bold text-blue-600 dark:text-blue-400">2. Mekanisme Hibrid: NFC Fizikal & Sandaran QR</h3>
               <p className="mt-1">
                 Sistem RuLaFHub mengambil kira keterbatasan perkakasan peranti di lapangan dengan melaksanakan sokongan imbasan dwi-fungsi:
               </p>
-              <ul className="list-disc list-inside mt-2">
-                <li><strong>Lorong Pantas NFC (Express Lane):</strong> Kaedah utama yang membolehkan guru mengimbas kad murid dalam masa 1 saat untuk merekod kehadiran, markah sahsiah, atau serahan modul.</li>
-                <li><strong>Kod QR Sebagai Sandaran (Fallback):</strong> Sekiranya sensor NFC pada peranti guru rosak atau tidak stabil, kod QR yang dicetak pada kad murid bertindak sebagai alternatif inklusif supaya sistem tetap berfungsi pada mana-mana telefon pintar.</li>
+              <ul className="list-disc ml-6 mt-2 space-y-1">
+                <li><strong className="text-gray-900 dark:text-white">Lorong Pantas NFC (Express Lane):</strong> Kaedah utama yang membolehkan guru mengimbas kad murid dalam masa 1 saat untuk merekod kehadiran, markah sahsiah, atau serahan modul.</li>
+                <li><strong className="text-gray-900 dark:text-white">Kod QR Sebagai Sandaran (Fallback):</strong> Sekiranya sensor NFC pada peranti guru rosak atau tidak stabil, kod QR yang dicetak pada kad murid bertindak sebagai alternatif inklusif supaya sistem tetap berfungsi pada mana-mana telefon pintar.</li>
               </ul>
             </div>
 
             {/* Keselamatan & Tokenisasi */}
-            <div className="mt-4 border-l-4 border-red-500 pl-4 bg-gray-900 py-3">
-              <strong className="text-red-400 uppercase">3. Keselamatan Data & Polisi Tokenisasi (Privacy-First)</strong>
+            <div className="border-l-4 border-red-500 pl-4 bg-red-50 dark:bg-[#12161f] py-3 rounded-r-sm">
+              <strong className="text-red-600 dark:text-red-400 uppercase text-xs">3. Keselamatan Data & Polisi Tokenisasi (Privacy-First)</strong>
               <p className="mt-2 text-xs">
-                Kad NFC dan Kod QR murid <strong>SAMA SEKALI TIDAK</strong> menyimpan maklumat sensitif peribadi (seperti No. MyKid atau No. Telefon Ibu Bapa). Sebaliknya, teknologi penyulitan berasaskan <strong>Token ID Rawak</strong> (contoh: <code>RULAF-SEC-89421X</code>) digunakan pada medium fizikal tersebut. 
+                Kad NFC dan Kod QR murid <strong>SAMA SEKALI TIDAK</strong> menyimpan maklumat sensitif peribadi (seperti No. MyKid atau No. Telefon Ibu Bapa). Sebaliknya, teknologi penyulitan berasaskan <strong>Token ID Rawak</strong> (contoh: <code className="bg-gray-100 dark:bg-[#11141b] px-1.5 py-0.5 rounded text-rose-600 dark:text-rose-400">RULAF-SEC-89421X</code>) digunakan pada medium fizikal tersebut. 
               </p>
               <ul className="list-disc ml-6 mt-2 space-y-2 text-xs">
                 <li>Jika kad tercicir dan diimbas oleh aplikasi pembaca NFC pihak ketiga, data yang terpapar hanyalah kod rawak yang tidak bermakna.</li>

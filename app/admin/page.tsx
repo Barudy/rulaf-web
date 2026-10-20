@@ -24,6 +24,7 @@ export default function AdminDashboardPage() {
   // --- CMS BLOG / JURNAL ---
   const [tajukBlog, setTajukBlog] = useState('');
   const [kandunganBlog, setKandunganBlog] = useState('');
+  const [gambarBlog, setGambarBlog] = useState<File | null>(null);
   const [statusBlog, setStatusBlog] = useState('');
   const [senaraiArtikel, setSenaraiArtikel] = useState<any[]>([]);
 
@@ -256,10 +257,21 @@ export default function AdminDashboardPage() {
     
     setStatusBlog('Sedang menerbitkan artikel ke awan...');
 
+    // T2: muat naik gambar pilihan ke Storage
+    let urlGambar: string | null = null;
+    if (gambarBlog) {
+      if (gambarBlog.size > 5 * 1024 * 1024) { setStatusBlog('❌ Gagal: Had gambar 5MB.'); return; }
+      const laluan = `blog/${Date.now()}_${gambarBlog.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+      const { error: eGambar } = await supabase.storage.from('modul-rulaf').upload(laluan, gambarBlog);
+      if (eGambar) { setStatusBlog(`❌ Gagal gambar: ${eGambar.message}`); return; }
+      urlGambar = supabase.storage.from('modul-rulaf').getPublicUrl(laluan).data.publicUrl;
+    }
+
     const { error } = await supabase.from('blog_rulaf').insert([
       {
         tajuk: tajukBlog,
         kandungan: kandunganBlog,
+        gambar: urlGambar,
       }
     ]);
 
@@ -269,6 +281,7 @@ export default function AdminDashboardPage() {
       setStatusBlog('🎉 Berjaya diterbitkan!');
       setTajukBlog('');
       setKandunganBlog('');
+      setGambarBlog(null);
       tarikArtikelTerbaru();
       setTimeout(() => setStatusBlog(''), 3000);
     }
@@ -613,6 +626,14 @@ export default function AdminDashboardPage() {
                       onChange={(e) => setKandunganBlog(e.target.value)}
                       className="w-full bg-white dark:bg-[#0F1419] border border-gray-300 dark:border-gray-800 focus:border-[#1793D1] focus:outline-none rounded-sm px-3 py-2 text-xs text-gray-900 dark:text-white font-sans"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] text-gray-500 uppercase mb-1">Gambar (pilihan)</label>
+                    <label className="block cursor-pointer border border-dashed border-gray-300 dark:border-gray-700 rounded-sm px-3 py-3 text-[11px] font-bold text-center text-gray-600 dark:text-gray-400 hover:border-[#1793D1]">
+                      {gambarBlog ? `✓ ${gambarBlog.name}` : '📷 Pilih gambar (maks 5MB)…'}
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => setGambarBlog(e.target.files?.[0] || null)} />
+                    </label>
                   </div>
 
                   {statusBlog && (

@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import Link from 'next/link';
 import CountDownUpkk from '@/components/CountDownUpkk';
 import { ialahAdmin } from '../lib/akses';
+import PaparMarkdown from '@/components/PaparMarkdown';
 
 export default function RepositoryPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -381,7 +382,7 @@ export default function RepositoryPage() {
                             rows={6}
                             value={readmeDraf}
                             onChange={(e) => setReadmeDraf(e.target.value)}
-                            placeholder="Tulis penerangan koleksi ini (markdown ringkas disokong paparan teks)..."
+                            placeholder={'Cth:\n# Tajuk Koleksi\n## Subtajuk\n**Tebal** · *italik* · `kod`\n- Senarai ringkas\n1. Senarai bernombor\n[Lawati laman](https://contoh.com)\n> Petikan / nota penting\n---'}
                             className="w-full bg-white dark:bg-[#0F1419] border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-xs text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none font-mono"
                           />
                           <div className="flex gap-2">
@@ -394,7 +395,7 @@ export default function RepositoryPage() {
                           </div>
                         </div>
                       ) : readmeSemasa ? (
-                        <p className="whitespace-pre-line text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{readmeSemasa}</p>
+                        <PaparMarkdown teks={readmeSemasa} kelas="text-gray-700 dark:text-gray-300" />
                       ) : (
                         <p className="text-[11px] text-gray-400 italic">Tiada README untuk koleksi ini{bolehSunting ? ' — klik “Cipta README” untuk menambah.' : '.'}</p>
                       )}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from './../../../lib/supabaseClient';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import PaparMarkdown from './../../../../components/PaparMarkdown';
 
 export default function PaparanBBMSpesifik() {
   const params = useParams();
@@ -125,8 +126,8 @@ export default function PaparanBBMSpesifik() {
             <p>Tarikh Terbit: <span>{new Date(bahan.created_at || Date.now()).toLocaleDateString('ms-MY')}</span></p>
           </div>
           {bahan.readme_text && (
-            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 whitespace-pre-line font-sans">
-              {bahan.readme_text}
+            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 font-sans">
+              <PaparMarkdown teks={bahan.readme_text} kelas="text-gray-600 dark:text-gray-300" />
             </div>
           )}
         </div>

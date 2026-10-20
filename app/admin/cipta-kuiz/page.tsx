@@ -46,6 +46,10 @@ export default function BinaKuizGuru() {
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
+  // T11: mod sunting kuiz sedia ada
+  const [idSunting, setIdSunting] = useState<string | null>(null);
+  const [senaraiKuiz, setSenaraiKuiz] = useState<any[]>([]);
+
   useEffect(() => {
     semakSesiAkses();
   }, []);
@@ -62,6 +66,11 @@ export default function BinaKuizGuru() {
       
       if (profil && (profil.peranan === 'Guru' || profil.peranan === 'admin')) {
         setIsTeacher(true);
+        muatSenaraiKuiz();
+        // Mod sunting: ?sunting=<id>
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('sunting');
+        if (id) muatKuizUntukSunting(id);
       } else {
         alert('Ralat Akses: Seksyen ini hanya untuk Guru bertauliah.');
         router.push('/');
@@ -69,6 +78,54 @@ export default function BinaKuizGuru() {
     } else {
       router.push('/login');
     }
+  };
+
+  const muatSenaraiKuiz = async () => {
+    const { data } = await supabase.from('rulaf_kuiz').select('id, tajuk').order('id', { ascending: false });
+    setSenaraiKuiz(data || []);
+  };
+
+  // T11: balikkan JSON soalan (level1/2/3) kepada borang sunting
+  const muatKuizUntukSunting = async (id: string) => {
+    const { data, error } = await supabase.from('rulaf_kuiz').select('*').eq('id', id).maybeSingle();
+    if (error || !data) { alert('Kuiz tidak dijumpai atau tiada akses.'); return; }
+    setIdSunting(id);
+    setTajuk(data.tajuk || '');
+    setSubjek(data.subjek || 'Jawi');
+    setDarjah(data.darjah || 'Darjah 3');
+    setDeskripsi(data.deskripsi || '');
+    const lb = (opsyen: any) => {
+      const sen = Array.isArray(opsyen) ? opsyen.filter((o: any) => String(o ?? '').trim() !== '') : [];
+      while (sen.length < 3) sen.push('');
+      return sen.slice(0, 3);
+    };
+    const soalan: DynamicQuestion[] = [];
+    ([1, 2, 3] as const).forEach((lv) => {
+      const arr = data.soalan?.[`level${lv}`] || [];
+      arr.forEach((q: any) => {
+        soalan.push({
+          level: lv,
+          type: q.type === 'susun_atur' ? 'susun_atur' : 'pilihan',
+          imageUrl: q.img || '',
+          rumiQ: q.rumi?.q || '',
+          rumiOptions: lb(q.rumi?.options),
+          rumiA: q.rumi?.a || '',
+          jawiQ: q.jawi?.q || '',
+          jawiOptions: lb(q.jawi?.options),
+          jawiA: q.jawi?.a || '',
+        });
+      });
+    });
+    setQuestions(soalan.length > 0 ? soalan : [{
+      level: 1, type: 'pilihan', imageUrl: '', rumiQ: '', rumiOptions: ['', '', ''], rumiA: '', jawiQ: '', jawiOptions: ['', '', ''], jawiA: '',
+    }]);
+  };
+
+  const tamatModSunting = () => {
+    setIdSunting(null);
+    setTajuk(''); setSubjek('Jawi'); setDarjah('Darjah 3'); setDeskripsi('');
+    setQuestions([{ level: 1, type: 'pilihan', imageUrl: '', rumiQ: '', rumiOptions: ['', '', ''], rumiA: '', jawiQ: '', jawiOptions: ['', '', ''], jawiA: '' }]);
+    if (window.history.replaceState) window.history.replaceState({}, '', '/admin/cipta-kuiz');
   };
 
   const tambahSoalanBaru = () => {
@@ -201,13 +258,15 @@ export default function BinaKuizGuru() {
       }
     };
 
-    const { error } = await supabase.from('rulaf_kuiz').insert([finalPayload]);
+    const { error } = idSunting
+      ? await supabase.from('rulaf_kuiz').update(finalPayload).eq('id', idSunting)
+      : await supabase.from('rulaf_kuiz').insert([finalPayload]);
 
     setIsSaving(false);
     if (error) {
       alert('Ralat menyimpan kuiz: ' + error.message);
     } else {
-      alert('🎉 Tahniah! Misi permainan berjaya diterbitkan!');
+      alert(idSunting ? '✅ Kuiz berjaya dikemas kini!' : '🎉 Tahniah! Misi permainan berjaya diterbitkan!');
       router.push('/permainan');
     }
   };
@@ -225,9 +284,34 @@ export default function BinaKuizGuru() {
       <div className="max-w-4xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1] rounded shadow-lg overflow-hidden">
         
         <div className="bg-[#1793D1] text-[#0F1419] px-6 py-4 flex justify-between items-center font-bold text-sm">
-          <span>🛠️ BINA MISI PERMAINAN (PILIHAN & SUSUN KALIMAT)</span>
+          <span>{idSunting ? '✏️ SUNTING MISI PERMAINAN' : '🛠️ BINA MISI PERMAINAN (PILIHAN & SUSUN KALIMAT)'}</span>
           <Link href="/admin" className="text-white hover:underline">[ cd ~/ Admin ]</Link>
         </div>
+
+        {/* Pemilih kuiz sedia ada untuk disunting */}
+        {!idSunting && senaraiKuiz.length > 0 && (
+          <div className="px-6 sm:px-10 pt-6">
+            <label className="block text-xs text-gray-500 mb-1 font-bold">✏️ Atau sunting kuiz sedia ada:</label>
+            <select
+              value=""
+              onChange={(e) => { if (e.target.value) window.location.href = `/admin/cipta-kuiz?sunting=${e.target.value}`; }}
+              className="w-full sm:w-96 bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 p-2 rounded text-sm focus:outline-none focus:border-[#1793D1] text-gray-900 dark:text-white"
+            >
+              <option value="">— Pilih kuiz untuk disunting —</option>
+              {senaraiKuiz.map((k) => <option key={k.id} value={k.id}>{k.tajuk}</option>)}
+            </select>
+          </div>
+        )}
+        {idSunting && (
+          <div className="px-6 sm:px-10 pt-6 flex items-center gap-3">
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded">
+              ✏️ Mod Sunting — Kuiz #{idSunting}
+            </span>
+            <button type="button" onClick={tamatModSunting} className="text-xs font-bold text-[#1793D1] hover:underline">
+              ← Cipta kuiz baharu
+            </button>
+          </div>
+        )}
 
         <form onSubmit={simpanKuizBaru} className="p-6 sm:p-10 space-y-8">
           
@@ -474,7 +558,7 @@ export default function BinaKuizGuru() {
               disabled={isSaving}
               className="px-8 py-3 bg-[#1793D1] text-[#0F1419] font-black text-sm rounded shadow hover:bg-blue-600 transition-all disabled:opacity-50"
             >
-              {isSaving ? "SEDANG MENYIMPAN MISI..." : "[ TERBITKAN KUIZ GURU ]"}
+              {isSaving ? "SEDANG MENYIMPAN MISI..." : idSunting ? "[ 💾 KEMAS KINI KUIZ ]" : "[ TERBITKAN KUIZ GURU ]"}
             </button>
           </div>
 

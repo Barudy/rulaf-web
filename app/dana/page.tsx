@@ -165,19 +165,40 @@ export default function DanaPage() {
           </p>
         </div>
 
-        {/* Kiraan Sasaran Bulanan */}
+        {/* Kiraan Sasaran Bulanan (reset automatik setiap 1 haribulan — sejarah kekal di lejar) */}
 {(() => {
   const targetBulanan = 100.0;
-  const peratusTercapai = Math.min(Math.round((totalMasuk / targetBulanan) * 100), 100);
+  const bulanKini = new Date().toISOString().slice(0, 7); // YYYY-MM
+  const masukBulanKini = lejar
+    .filter((item) => item.jenis === 'masuk' && String(item.tarikh || '').slice(0, 7) === bulanKini)
+    .reduce((acc, curr) => acc + Number(curr.jumlah), 0);
+  const peratusTercapai = Math.min(Math.round((masukBulanKini / targetBulanan) * 100), 100);
+
+  // Sejarah bulanan lepas (masuk sahaja), bulan semasa + 5 sebelumnya
+  const sejarahBulanan: { bulan: string; jumlah: number }[] = [];
+  for (let i = 0; i < 6; i++) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const b = d.toISOString().slice(0, 7);
+    const jumlah = lejar
+      .filter((item) => item.jenis === 'masuk' && String(item.tarikh || '').slice(0, 7) === b)
+      .reduce((acc, curr) => acc + Number(curr.jumlah), 0);
+    sejarahBulanan.push({ bulan: b, jumlah });
+  }
+  const labelBulan = (b: string) => {
+    const [tahun, bulan] = b.split('-');
+    const nama = ['Jan', 'Feb', 'Mac', 'Apr', 'Me', 'Jun', 'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+    return `${nama[parseInt(bulan, 10) - 1]} ${tahun}`;
+  };
 
   return (
     <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-xl p-5 shadow-sm space-y-3">
       <div className="flex justify-between items-center text-xs">
         <span className="font-bold text-gray-700 dark:text-gray-300">
-          🎯 Sasaran Dana Operasi Bulan Ini:
+          🎯 Sasaran Dana Operasi Bulan Ini ({labelBulan(bulanKini)}):
         </span>
         <span className="font-black text-[#1793D1]">
-          RM {totalMasuk.toFixed(2)} / RM {targetBulanan.toFixed(2)} ({peratusTercapai}%)
+          RM {masukBulanKini.toFixed(2)} / RM {targetBulanan.toFixed(2)} ({peratusTercapai}%)
         </span>
       </div>
 
@@ -190,8 +211,21 @@ export default function DanaPage() {
       </div>
 
       <p className="text-[10px] text-gray-500 dark:text-gray-400">
-        *Sasaran RM100/bulan ini dikhususkan bagi membiayai pelayan pangkalan data Supabase & penyediaan cip kad NFC murid rintis.
+        *Sasaran RM100/bulan ini dikhususkan bagi membiayai pelayan pangkalan data Supabase. Sasaran dikemas kini automatik setiap 1 haribulan — semua rekod bayaran lepas kekal dalam lejar dan sejarah di bawah.
       </p>
+
+      {/* Sejarah kutipan bulanan */}
+      <div className="pt-2 border-t border-gray-200 dark:border-gray-800">
+        <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">📜 Sejarah Kutipan Bulanan</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {sejarahBulanan.map((s) => (
+            <div key={s.bulan} className={`rounded-lg border px-3 py-2 ${s.bulan === bulanKini ? 'border-[#1793D1] bg-[#1793D1]/5' : 'border-gray-200 dark:border-gray-800'}`}>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold">{labelBulan(s.bulan)}</p>
+              <p className={`text-xs font-black ${s.jumlah >= targetBulanan ? 'text-emerald-500' : 'text-gray-800 dark:text-white'}`}>RM {s.jumlah.toFixed(2)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 })()}

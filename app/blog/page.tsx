@@ -9,6 +9,8 @@ export default function HalamanBlog() {
   const [posts, setPosts] = useState<any[]>([]);
   const [memuat, setMemuat] = useState(true);
   const [bolehTulis, setBolehTulis] = useState(false);
+  const [arkibTerbuka, setArkibTerbuka] = useState(false);
+  const PAPAR_TERKINI = 5;
 
   useEffect(() => {
     (async () => {
@@ -68,11 +70,15 @@ export default function HalamanBlog() {
             )}
           </div>
         ) : (
+          <>
           <ol className="relative border-l-2 border-gray-200 dark:border-gray-800 ml-3 space-y-6">
-            {posts.map((p) => (
+            {(arkibTerbuka ? posts : posts.slice(0, PAPAR_TERKINI)).map((p) => (
               <li key={p.id} className="ml-6">
                 <span className="absolute -left-[9px] mt-1 w-4 h-4 rounded-full bg-[#1793D1] ring-4 ring-white dark:ring-[#0d1117]" />
                 <article className="bg-white dark:bg-[#161b22] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+                  {p.gambar && (
+                    <img src={p.gambar} alt={p.tajuk || 'Gambar catatan'} className="w-full max-h-64 object-cover border-b border-gray-200 dark:border-gray-800" loading="lazy" />
+                  )}
                   <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 flex flex-wrap items-center gap-2">
                     <span className="text-sm font-black text-[#1793D1]">{p.tajuk}</span>
                     <span className="ml-auto font-mono text-[10px] text-gray-400">
@@ -89,6 +95,20 @@ export default function HalamanBlog() {
               </li>
             ))}
           </ol>
+          {/* Arkib: buka/rapat catatan lama */}
+          {posts.length > PAPAR_TERKINI && (
+            <div className="mt-6 ml-3">
+              <button
+                onClick={() => setArkibTerbuka((b) => !b)}
+                className="w-full py-3 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-[#161b22] text-xs font-black text-gray-600 dark:text-gray-300 hover:border-[#1793D1] hover:text-[#1793D1] transition-all"
+              >
+                {arkibTerbuka
+                  ? '▲ Rapatkan arkib'
+                  : `📦 Arkib (${posts.length - PAPAR_TERKINI} catatan lama) — papar semua ▼`}
+              </button>
+            </div>
+          )}
+          </>
         )}
       </section>
     </main>
