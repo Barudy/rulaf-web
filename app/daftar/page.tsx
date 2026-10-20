@@ -101,7 +101,7 @@ export default function HalamanDaftar() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-[10px] text-gray-400 mb-1 font-bold">Nama Penuh</label>
-                <input type="text" required value={nama} onChange={(e) => setNama(e.target.value)} placeholder="Cth: Mohd Ismail bin Noor" className={inputCls} />
+                <input type="text" required value={nama} onChange={(e) => setNama(e.target.value)} placeholder="Cth: Fulan bin Fulan" className={inputCls} />
               </div>
               <div>
                 <label className="block text-[10px] text-gray-400 mb-1 font-bold">Umur</label>
