@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { supabase } from './../lib/supabaseClient'; 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -78,7 +79,10 @@ export default function LoginPage() {
 
         {/* Bantuan / Footer */}
         <div className="mt-8 pt-4 border-t border-gray-700 text-center text-xs text-gray-500">
-          <p>Belum mempunyai akses? Sila hubungi Admin Mail untuk pendaftaran akaun PAK21.</p>
+          <p>Belum mempunyai akaun? Boleh daftar akaun untuk akses ke RuLaFHub.</p>
+          <Link href="/daftar" className="block mt-3 bg-[#1793D1]/10 border border-[#1793D1] text-[#1793D1] py-2.5 rounded font-black hover:bg-[#1793D1] hover:text-[#0F1419] transition-colors">
+            ✨ Daftar Akaun RuLaFHub Sekarang!
+          </Link>
           <a href="/" className="text-[#1793D1] hover:underline mt-3 inline-block">
             [ Kembali ke Laman Utama ]
           </a>

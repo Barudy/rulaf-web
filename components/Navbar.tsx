@@ -120,7 +120,7 @@ export default function Navbar() {
                   : 'text-gray-600 dark:text-gray-300 hover:text-[#1793D1] hover:bg-gray-100 dark:hover:bg-gray-800/40'
               }`}
             >
-              Repositori
+              RUR
             </a>
             <a
               href="/forum"
@@ -277,7 +277,7 @@ export default function Navbar() {
                 pathname.startsWith('/repo') ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40'
               }`}
             >
-              Repositori
+              RUR
             </a>
             <a
               href="/forum"

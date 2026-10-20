@@ -44,6 +44,10 @@ export default function AdminDashboardPage() {
     jumlahBBM: 0,
   });
 
+  // Pendaftaran guru terbuka — kelulusan admin
+  const [senaraiPendaftaran, setSenaraiPendaftaran] = useState<any[]>([]);
+  const [sedangProses, setSedangProses] = useState<number | null>(null);
+
   useEffect(() => {
     // 1. Laraskan tema sedia ada daripada LocalStorage
     const temaSediaAda = localStorage.getItem('theme') || 'dark';
@@ -66,8 +70,47 @@ export default function AdminDashboardPage() {
       tarikLaporanBbm();
       tarikForum();
       tarikBug();
+      tarikPendaftaran();
     }
   }, [isLocked]);
+
+  // --- PENDAFTARAN GURU TERBUKA: senarai menunggu kelulusan ---
+  const tarikPendaftaran = async () => {
+    const { data } = await supabase
+      .from('rulaf_pendaftaran_guru')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (data) setSenaraiPendaftaran(data);
+  };
+
+  const lulusPendaftaran = async (p: any) => {
+    if (!window.confirm(`✅ Luluskan permohonan ${p.nama} (${p.email})?\n\nMereka akan mendapat akses penuh Guru (RUR/BBM, Kuiz, Forum, Rvids).`)) return;
+    setSedangProses(p.id);
+    const { error: e1 } = await supabase.from('rulaf_pendaftaran_guru').update({ status: 'lulus', nota_admin: 'Diluluskan oleh admin' }).eq('id', p.id);
+    let { error: e2 } = await supabase.from('profil_pengguna').upsert({
+      email: p.email, nama: p.nama, peranan: 'Guru', status: 'lulus',
+    }, { onConflict: 'email' });
+    if (e2) {
+      // Fallback: tiada sekatan unik emel — cuba update sahaja, kalau 0 baris biarkan (profil mungkin wujud)
+      const { error: e2b } = await supabase.from('profil_pengguna').update({ status: 'lulus' }).eq('email', p.email);
+      e2 = e2b && !e2b.message.includes('0 rows') ? e2b : null;
+    }
+    setSedangProses(null);
+    if (e1 || e2) alert('Gagal meluluskan: ' + (e1?.message || e2?.message));
+    else alert(`🎉 ${p.nama} berjaya diluluskan!`);
+    tarikPendaftaran();
+  };
+
+  const tolakPendaftaran = async (p: any) => {
+    const nota = window.prompt(`🚫 Tolak permohonan ${p.nama}?\n\nNota untuk rekod (pilihan):`);
+    if (nota === null) return;
+    setSedangProses(p.id);
+    const { error: e1 } = await supabase.from('rulaf_pendaftaran_guru').update({ status: 'tolak', nota_admin: nota || 'Ditolak oleh admin' }).eq('id', p.id);
+    const { error: e2 } = await supabase.from('profil_pengguna').update({ status: 'tolak' }).eq('email', p.email);
+    setSedangProses(null);
+    if (e1 || e2) alert('Gagal menolak: ' + (e1?.message || e2?.message));
+    tarikPendaftaran();
+  };
 
   const semakSesi = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -490,7 +533,7 @@ export default function AdminDashboardPage() {
               </Link>
               <Link href="/repo" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
                 <span className="text-2xl">📁</span>
-                <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Repositori BBM</span>
+                <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">RUR (Users Repository)</span>
               </Link>
               <Link href="/admin/kehadiran" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
                 <span className="text-2xl">📅</span>
@@ -502,6 +545,41 @@ export default function AdminDashboardPage() {
               </Link>
             </div>
           </div>
+
+          {/* ================= SEKSYEN 2B: PENDAFTARAN GURU TERBUKA (ADMIN SAHAJA) ================= */}
+          {bolehUrusBlog(userEmail, perananPengguna) && senaraiPendaftaran.filter((p) => p.status === 'menunggu').length > 0 && (
+            <div className="bg-white dark:bg-[#171A21] border border-amber-400/50 rounded-2xl p-6 shadow-sm">
+              <h3 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2 mb-1">
+                <span>📝</span> Pendaftaran Guru Menunggu Kelulusan ({senaraiPendaftaran.filter((p) => p.status === 'menunggu').length})
+              </h3>
+              <p className="text-[11px] text-gray-500 mb-4">Semak 3 jawapan screener sebelum meluluskan akses penuh Guru (RUR/BBM, Kuiz, Forum, Rvids).</p>
+              <div className="space-y-3">
+                {senaraiPendaftaran.filter((p) => p.status === 'menunggu').map((p) => (
+                  <div key={p.id} className="border border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-gray-50 dark:bg-[#0F1419]/60 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-black text-gray-900 dark:text-white">{p.nama}</span>
+                      <span className="font-mono text-[10px] text-[#1793D1]">{p.email}</span>
+                      <span className="text-[10px] text-gray-500">{p.umur ? `${p.umur} thn · ` : ''}{p.jantina || '—'}</span>
+                      <span className="ml-auto font-mono text-[10px] text-gray-400">{new Date(p.created_at).toLocaleString('ms-MY')}</span>
+                    </div>
+                    <div className="text-[11px] space-y-1.5 bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+                      <p><span className="font-bold text-emerald-600 dark:text-emerald-400">Q1:</span> {p.jawapan_1}</p>
+                      <p><span className="font-bold text-amber-600 dark:text-amber-400">Q2 (subjektif):</span> <span className="text-gray-700 dark:text-gray-300">{p.jawapan_2}</span></p>
+                      <p><span className="font-bold text-emerald-600 dark:text-emerald-400">Q3:</span> {p.jawapan_3}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => lulusPendaftaran(p)} disabled={sedangProses === p.id} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded-lg text-xs font-black disabled:opacity-50">
+                        ✅ Luluskan
+                      </button>
+                      <button onClick={() => tolakPendaftaran(p)} disabled={sedangProses === p.id} className="bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-lg text-xs font-black disabled:opacity-50">
+                        🚫 Tolak
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* ================= SEKSYEN 3: REKA BENTUK GRID BELAH KIRI & KANAN ================= */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

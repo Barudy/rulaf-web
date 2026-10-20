@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ambilSesi, ambilPerananDinormal, ialahAdmin } from '../lib/akses';
+import { kiraPangkat } from '../lib/pangkat';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function DashboardPage() {
   const [peranan, setPeranan] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [profil, setProfil] = useState<any>(null);
+  const [statusAkaun, setStatusAkaun] = useState('lulus');
 
   useEffect(() => {
     (async () => {
@@ -20,10 +22,14 @@ export default function DashboardPage() {
         router.push('/login');
         return;
       }
-      setUserEmail(session.user.email || '');
-      const norm = await ambilPerananDinormal(session.user.email || '');
+      const emel = session.user.email || '';
+      setUserEmail(emel);
+      const norm = await ambilPerananDinormal(emel);
       setPeranan(norm);
       setProfil(session.user);
+      // Gate pendaftaran terbuka: status kelulusan akaun
+      const { data: pr } = await supabase.from('profil_pengguna').select('status').eq('email', emel).maybeSingle();
+      setStatusAkaun(pr?.status || 'lulus');
       setIsChecking(false);
     })();
   }, []);
@@ -32,6 +38,39 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center font-mono">
         <p className="text-[#1793D1] animate-pulse">Memuatkan Papan Pemuka...</p>
+      </div>
+    );
+  }
+
+  // Gate pendaftaran terbuka: akaun menunggu/ditolak
+  if (statusAkaun === 'menunggu') {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center p-6 font-mono">
+        <div className="max-w-md w-full bg-white dark:bg-[#171A21] border border-amber-400/60 rounded-xl p-8 shadow-lg text-center space-y-4">
+          <span className="text-5xl block">⏳</span>
+          <h1 className="text-lg font-black text-gray-900 dark:text-white">Permohonan Menunggu Kelulusan</h1>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Akaun <span className="font-bold text-[#1793D1]">{userEmail}</span> sedang disemak oleh pentadbir RuLaFHub.
+            Anda akan mendapat akses penuh (RUR/BBM, Kuiz, Forum, Rvids) setelah diluluskan.
+          </p>
+          <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login'; }} className="block w-full border border-gray-300 dark:border-gray-700 py-2.5 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300 hover:border-[#1793D1] hover:text-[#1793D1]">
+            [ Log Keluar ]
+          </button>
+        </div>
+      </div>
+    );
+  }
+  if (statusAkaun === 'tolak') {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center p-6 font-mono">
+        <div className="max-w-md w-full bg-white dark:bg-[#171A21] border border-red-400/60 rounded-xl p-8 shadow-lg text-center space-y-4">
+          <span className="text-5xl block">🚫</span>
+          <h1 className="text-lg font-black text-gray-900 dark:text-white">Permohonan Ditolak</h1>
+          <p className="text-xs text-gray-500">Permohonan akaun <span className="font-bold">{userEmail}</span> tidak diluluskan. Sila hubungi pentadbir RuLaFHub untuk maklumat lanjut.</p>
+          <button onClick={async () => { await supabase.auth.signOut(); window.location.href = '/login'; }} className="block w-full border border-gray-300 dark:border-gray-700 py-2.5 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300 hover:border-[#1793D1] hover:text-[#1793D1]">
+            [ Log Keluar ]
+          </button>
+        </div>
       </div>
     );
   }
@@ -78,6 +117,12 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
   const [bbmTertunggak, setBbmTertunggak] = useState(0);
   const [cariMurid, setCariMurid] = useState('');
   const [kelasSayaLabel, setKelasSayaLabel] = useState('');
+  const [pangkat, setPangkat] = useState<{ nama: string; badge: string }>({ nama: 'Guru', badge: '👨🏫' });
+
+  // Pangkat RUR (Founder/Moderator/Master/Guru/Adopted)
+  useEffect(() => {
+    kiraPangkat(email).then(setPangkat);
+  }, [email]);
 
   // 📸 Ambil gambar profil guru untuk badge header (fallback: inisial nama)
   useEffect(() => {
@@ -262,6 +307,9 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
                 <p className="text-[11px] uppercase tracking-widest text-sky-200/80 font-bold">Papan Pemuka {isAdmin ? 'Pentadbir' : 'Guru'}</p>
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight">Dashboard RuLaFHub</h1>
                 <p className="text-xs text-sky-200/70 font-mono mt-1 truncate">{email}</p>
+                <span className="inline-block mt-1.5 text-[10px] font-black bg-white/15 border border-white/25 px-2 py-0.5 rounded-full">
+                  {pangkat.badge} {pangkat.nama}
+                </span>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -464,7 +512,7 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
             <div>
               <h2 className="text-base font-black text-gray-900 dark:text-white flex items-center gap-2">
-                <span>📂</span> Ruang BBM Peribadi Guru
+                <span>📂</span> RUR Saya — Ruang Peribadi Guru
               </h2>
               <p className="text-[11px] text-gray-500 mt-0.5">
                 Koleksi ini hanya memaparkan bahan milik <span className="font-bold text-[#1793D1]">{email}</span>. Guru lain tidak dapat mengubah folder anda.

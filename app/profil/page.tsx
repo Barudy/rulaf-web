@@ -332,7 +332,7 @@ export default function ProfilPage() {
       { ikon: '🔍', label: 'Semakan Waris', desc: 'Semak prestasi melalui MyKid', tujuan: '/semakan' },
     ] : []),
     { ikon: '💬', label: 'Forum Komuniti', desc: 'Sertai perbincangan PAK21', tujuan: '/forum' },
-    { ikon: '📂', label: 'Repositori BBM', desc: 'Bahan Bantu Mengajar terbuka', tujuan: '/repo' },
+    { ikon: '📂', label: 'RUR (Users Repository)', desc: 'Bahan Bantu Mengajar terbuka', tujuan: '/repo' },
   ];
 
   // Inisial untuk avatar fallback (elak ReferenceError ketika tiada gambar)

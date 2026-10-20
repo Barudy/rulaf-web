@@ -63,7 +63,7 @@ export default function PaparanBBMSpesifik() {
             onClick={() => router.push('/repo')} 
             className="bg-gray-800 text-white px-5 py-2.5 rounded text-xs font-bold hover:bg-[#1793D1]"
           >
-            [ Kembali ke Repositori Utama ]
+            [ Kembali ke RUR ]
           </button>
         </div>
       </div>
@@ -77,7 +77,7 @@ export default function PaparanBBMSpesifik() {
         {/* 🧭 Breadcrumbs Navigasi Hirarki Terperinci */}
         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-6 pb-4 border-b border-gray-200 dark:border-gray-800 overflow-x-auto whitespace-nowrap">
           <Link href="/repo" className="hover:text-[#1793D1]">
-            📁 Repositori
+            📁 RUR — RuLaFHub Users Repository
           </Link>
           <span>/</span>
           <Link href={`/repo?darjah=${encodeURIComponent(bahan.darjah || 'Semua')}`} className="hover:text-[#1793D1] font-bold text-gray-700 dark:text-gray-300">

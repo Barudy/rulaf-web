@@ -25,7 +25,7 @@ const SKRIP = [
 const CIRI = [
   { id: 'prestasi', ikon: '📊', nama: 'Performance Tracking', href: '/semakan', ringkas: 'Jejak prestasi murid & rekod formatif.', detail: 'Carian MyKid, gred 60:40 dan analisis markah Jawi, Arab & Al-Quran mengikut kelas.' },
   { id: 'arked', ikon: '🎮', nama: 'RPG Arcade', href: '/permainan', ringkas: 'Misi permainan & kuiz interaktif.', detail: 'Tebus mata, papan pendahulu dan misi bertema yang memotivasikan murid.' },
-  { id: 'repo', ikon: '📂', nama: 'BBM Repository', href: '/repo', ringkas: 'Bahan Bantu Mengajar terbuka.', detail: 'Koleksi PDF, pautan dan folder guru — boleh kongsi dan muat turun.' },
+  { id: 'repo', ikon: '📂', nama: 'RUR — Users Repository', href: '/repo', ringkas: 'Bahan Bantu Mengajar terbuka.', detail: 'Koleksi PDF, pautan dan folder guru — boleh kongsi dan muat turun.' },
   { id: 'forum', ikon: '💬', nama: 'Forum', href: '/forum', ringkas: 'Perbincangan komuniti PAK21.', detail: 'Topik, balasan dan perkongsian amalan bilik darjah sesama guru.' },
   { id: 'rbox', ikon: '🔒', nama: 'RBox NFC/QR', href: '/docs', ringkas: 'Privacy-first, disambung via NFC/QR.', detail: 'Reka bentuk privacy-first: data murid terkawal, akses mengikut peranan, disambung melalui RBox.' },
   { id: 'dana', ikon: '❤️', nama: 'Bantu Kami', href: '/dana', ringkas: 'Bantu pengembangan RuLaFHub.', detail: 'Bantu pengembangan dan pembangunan infrastruktur RuLaFHub dengan sumbangan anda.' },
@@ -118,7 +118,7 @@ export default function HomePage() {
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
               <Link href={isLoggedIn ? '/dashboard' : '/login'} className="px-4 py-2 rounded-lg bg-[#1793D1] text-white text-sm font-black hover:bg-[#1272ab] transition-colors">Mula Sekarang →</Link>
-              <Link href="/repo" className="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#30363d] text-sm font-bold text-gray-700 dark:text-gray-200 hover:border-[#1793D1] hover:text-[#1793D1] transition-colors">📂 Repositori</Link>
+              <Link href="/repo" className="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#30363d] text-sm font-bold text-gray-700 dark:text-gray-200 hover:border-[#1793D1] hover:text-[#1793D1] transition-colors">📂 RUR</Link>
               <Link href="/blog" className="px-4 py-2 rounded-lg border border-gray-300 dark:border-[#30363d] text-sm font-bold text-gray-700 dark:text-gray-200 hover:border-[#1793D1] hover:text-[#1793D1] transition-colors">📚 Log Pembangunan</Link>
             </div>
           </div>

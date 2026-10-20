@@ -177,7 +177,7 @@ export default function RepositoryPage() {
 
         {/* Banner Navigasi Atas */}
         <div className="bg-[#1793D1] text-white dark:text-[#0F1419] px-4 py-3 flex justify-between items-center font-bold text-sm">
-          <span>📂 RULAF-HUB :: REPOSITORI KANDUNGAN TERBUKA</span>
+          <span>📂 RUR :: RULAFHUB USERS REPOSITORY (PARODY AUR)</span>
           <span>{isLoggedIn ? `[ ${userEmail} ]` : '[ TETAMU ]'}</span>
         </div>
 
@@ -214,7 +214,7 @@ export default function RepositoryPage() {
           <div className="bg-gray-100 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 px-4 py-3 rounded mb-6 flex flex-wrap justify-between items-center gap-3 text-xs">
             <div className="flex items-center gap-2 flex-wrap">
               <button onClick={pergiKeRoot} className="text-[#1793D1] hover:underline font-bold">
-                [ 🏠 Root Repositori ]
+                [ 🏠 Root RUR ]
               </button>
 
               {currentFolderId !== null && (
@@ -283,7 +283,7 @@ export default function RepositoryPage() {
             </div>
           ) : currentFolderId === null ? (
             <div className="space-y-4">
-              <h4 className="text-xs font-bold text-gray-400 uppercase">Koleksi Utama Repositori</h4>
+              <h4 className="text-xs font-bold text-gray-400 uppercase">Koleksi Utama RUR (RuLaFHub Users Repository)</h4>
               {itemFolderSemasa.length === 0 ? (
                 <p className="text-center py-8 text-gray-500 text-xs">Tiada koleksi ditemui.</p>
               ) : (
