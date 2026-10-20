@@ -72,6 +72,13 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
   const [bahanRepo, setBahanRepo] = useState<any[]>([]);
   const [fotoProfil, setFotoProfil] = useState('');
 
+  // T8: Kad Player murid, tugas menunggu, senarai kuiz guru
+  const [senaraiMurid, setSenaraiMurid] = useState<any[]>([]);
+  const [senaraiKuizGuru, setSenaraiKuizGuru] = useState<any[]>([]);
+  const [bbmTertunggak, setBbmTertunggak] = useState(0);
+  const [cariMurid, setCariMurid] = useState('');
+  const [kelasSayaLabel, setKelasSayaLabel] = useState('');
+
   // 📸 Ambil gambar profil guru untuk badge header (fallback: inisial nama)
   useEffect(() => {
     (async () => {
@@ -122,8 +129,28 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
     (async () => {
       const { count } = await supabase.from('data_murid').select('*', { count: 'exact', head: true });
       setStat((s) => ({ ...s, jumlahMurid: count || 58 }));
+
+      // T8: murid kelas sendiri + markah terkini + merit/demerit
+      const { data: kelasSaya } = await supabase.from('rulaf_kelas').select('nama_kelas').eq('email_guru', email);
+      const namaKelas = (kelasSaya || []).map((k: any) => k.nama_kelas);
+      setKelasSayaLabel(namaKelas.join(', '));
+      const { data: murid } = await supabase.from('data_murid').select('*').order('nama_murid');
+      let senarai = murid || [];
+      if (namaKelas.length > 0) senarai = senarai.filter((m: any) => namaKelas.includes(m.kelas_id));
+      const { data: mk } = await supabase.from('markah_murid').select('mykid, tahap_rulaf, markah_jawi, bacaan_quran').order('id', { ascending: false });
+      const peta = new Map<string, any>();
+      (mk || []).forEach((r: any) => { if (r.mykid && !peta.has(r.mykid)) peta.set(r.mykid, r); });
+      setSenaraiMurid(senarai.map((m: any) => ({ ...m, markah: peta.get(m.mykid) || null })));
+
+      // T8: senarai kuiz ciptaan guru
+      const { data: kuiz } = await supabase.from('rulaf_kuiz').select('id, tajuk, subjek, darjah').order('id', { ascending: false }).limit(6);
+      setSenaraiKuizGuru(kuiz || []);
+
+      // T8: tugas menunggu (BBM milik sendiri belum diluluskan)
+      const { count: tertunggak } = await supabase.from('rulaf_repo').select('*', { count: 'exact', head: true }).eq('penyumbang', email).neq('status', 'approved');
+      setBbmTertunggak(tertunggak || 0);
     })();
-  }, [tarikRepoSendiri]);
+  }, [tarikRepoSendiri, email]);
 
   const handleUploadKeStorage = async (file: File) => {
     if (file.size > 50 * 1024 * 1024) return alert('Saiz fail melebihi had 50MB!');
@@ -317,6 +344,121 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
           </div>
         </div>
 
+        {/* ===== T8: TUGAS + KAD PLAYER MURID + SENARAI KUIZ ===== */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* KAD PLAYER: SENARAI MURID KELAS SENDIRI */}
+          <div className="lg:col-span-2 bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <div>
+                <h2 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
+                  <span>🕹️</span> Kad Player Murid
+                </h2>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  {kelasSayaLabel ? `Kelas: ${kelasSayaLabel} · ` : ''}Skop: murid kelas anda sahaja · RuLaF Ta (50 merit) = level up
+                </p>
+              </div>
+              <input
+                value={cariMurid}
+                onChange={(e) => setCariMurid(e.target.value)}
+                placeholder="Cari nama / MyKid…"
+                className="bg-gray-50 dark:bg-[#11141b] border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-900 dark:text-white focus:border-[#1793D1] focus:outline-none sm:w-56"
+              />
+            </div>
+
+            {senaraiMurid.length === 0 ? (
+              <p className="text-center py-10 text-xs text-gray-500">
+                Tiada murid dalam kelas anda. Daftar murid dahulu → <Link href="/admin/murid" className="text-[#1793D1] font-bold">Daftar Murid</Link>
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[420px] overflow-y-auto pr-1">
+                {senaraiMurid
+                  .filter((m: any) => !cariMurid.trim() || (m.nama_murid || '').toLowerCase().includes(cariMurid.toLowerCase()) || (m.mykid || '').includes(cariMurid))
+                  .map((m: any) => {
+                    const merit = m.merit || 0;
+                    const demerit = m.demerit || 0;
+                    const peratusMerit = Math.min(Math.round((merit / 50) * 100), 100);
+                    const warnaAvatar = ['bg-rose-500', 'bg-sky-500', 'bg-emerald-500', 'bg-amber-500', 'bg-violet-500'][(m.nama_murid || 'R').charCodeAt(0) % 5];
+                    return (
+                      <div key={m.mykid} className="p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-[#11141b]/60 hover:border-[#1793D1]/50 transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-11 h-11 rounded-xl ${warnaAvatar} text-white flex items-center justify-center font-black text-sm shadow shrink-0`}>
+                            {(m.nama_murid || '?')[0].toUpperCase()}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-black text-gray-900 dark:text-white truncate">{m.nama_murid}</p>
+                            <p className="text-[10px] text-gray-500 font-mono truncate">{m.mykid} · {m.kelas_id || '—'}</p>
+                            <span className="inline-block mt-0.5 text-[9px] font-bold bg-[#1793D1]/10 text-[#1793D1] px-1.5 py-0.5 rounded">
+                              {m.markah?.tahap_rulaf || 'RuLaF Alif'}{m.markah?.markah_jawi != null ? ` · Jawi ${m.markah.markah_jawi}%` : ''}
+                            </span>
+                          </div>
+                        </div>
+                        {/* Bar progress merit gaya Android */}
+                        <div className="mt-2.5">
+                          <div className="flex justify-between text-[10px] font-bold mb-1">
+                            <span className="text-emerald-600 dark:text-emerald-400">✅ {merit}/50 merit</span>
+                            <span className={demerit > 0 ? 'text-red-500' : 'text-gray-400'}>⚠️ {demerit} demerit</span>
+                          </div>
+                          <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
+                            <div className="bg-gradient-to-r from-emerald-400 to-[#1793D1] h-2 rounded-full transition-all" style={{ width: `${peratusMerit}%` }} />
+                          </div>
+                        </div>
+                        <div className="mt-2.5 flex gap-1.5">
+                          <Link href="/admin/pengurusan" className="flex-1 text-center text-[10px] font-bold bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 rounded-lg py-1.5 text-gray-700 dark:text-gray-300 hover:border-[#1793D1] hover:text-[#1793D1]">📋 Markah</Link>
+                          <Link href="/admin/kehadiran" className="flex-1 text-center text-[10px] font-bold bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 rounded-lg py-1.5 text-gray-700 dark:text-gray-300 hover:border-[#1793D1] hover:text-[#1793D1]">📅 Hadir</Link>
+                          <Link href="/admin/murid" className="flex-1 text-center text-[10px] font-bold bg-white dark:bg-[#171A21] border border-gray-300 dark:border-gray-700 rounded-lg py-1.5 text-gray-700 dark:text-gray-300 hover:border-[#1793D1] hover:text-[#1793D1]">🧒 Murid</Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+
+          {/* KOLUM KANAN: TUGAS + KUIZ GURU */}
+          <div className="space-y-6">
+            {/* Pemberitahuan Tugas */}
+            <div className={`border rounded-2xl p-5 shadow-sm ${bbmTertunggak > 0 ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-400/50' : 'bg-white dark:bg-[#171A21] border-gray-200 dark:border-gray-800'}`}>
+              <h3 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span>🔔</span> Tugas Menunggu
+              </h3>
+              {bbmTertunggak > 0 ? (
+                <p className="text-xs text-amber-700 dark:text-amber-400 font-bold">
+                  📤 {bbmTertunggak} sumbangan BBM anda masih menunggu kelulusan pentadbir.
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500">Semua tugas diselesaikan. Tiada tunggakan. ✨</p>
+              )}
+            </div>
+
+            {/* Senarai Kuiz Guru */}
+            <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <span>🎮</span> Kuiz Saya
+                </h3>
+                <Link href="/admin/cipta-kuiz" className="text-[11px] font-bold text-[#1793D1] hover:underline">+ Baharu</Link>
+              </div>
+              {senaraiKuizGuru.length === 0 ? (
+                <p className="text-[11px] text-gray-500 py-3">Belum ada kuiz. Cipta yang pertama!</p>
+              ) : (
+                <ul className="space-y-2">
+                  {senaraiKuizGuru.map((k) => (
+                    <li key={k.id} className="flex items-center gap-2 text-xs border-b border-gray-100 dark:border-gray-800 pb-2 last:border-0">
+                      <span className="flex-1 min-w-0">
+                        <span className="block font-bold text-gray-900 dark:text-white truncate">{k.tajuk}</span>
+                        <span className="text-[10px] text-gray-500">{k.subjek} · {k.darjah}</span>
+                      </span>
+                      <Link href={`/permainan`} className="text-[10px] font-bold text-emerald-600 hover:underline shrink-0">Main</Link>
+                      <Link href={`/admin/cipta-kuiz?sunting=${k.id}`} className="text-[10px] font-bold text-[#1793D1] hover:underline shrink-0">Sunting</Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* RUANG BBM PERIBADI GURU (RELOCATED DARI /repo) */}
         <div className="bg-white dark:bg-[#171A21] border border-[#1793D1]/30 rounded-2xl p-6 shadow-md">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
@@ -494,6 +636,8 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
    ===================================================================== */
 function PapanPemukaMurid({ email }: { email: string }) {
   const [profil, setProfil] = useState<any>(null);
+  const [merit, setMerit] = useState(0);
+  const [demerit, setDemerit] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -508,6 +652,11 @@ function PapanPemukaMurid({ email }: { email: string }) {
           .order('id', { ascending: false })
           .limit(1);
         if (hasil && hasil[0]) setProfil((p: any) => ({ ...p, markah: hasil[0] }));
+        // T9: merit/demerit murid (kad progress gaya Android)
+        if (data.mykid) {
+          const { data: dm } = await supabase.from('data_murid').select('merit, demerit').eq('mykid', data.mykid).maybeSingle();
+          if (dm) { setMerit(dm.merit || 0); setDemerit(dm.demerit || 0); }
+        }
       }
       setLoading(false);
     })();
@@ -516,10 +665,13 @@ function PapanPemukaMurid({ email }: { email: string }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] flex items-center justify-center font-mono">
-        <p className="text-[#1793D1] animate-pulse">Memuatkan profil pelajar...</p>
+        <p className="text-[#1793D1] animate-pulse">Menyiapkan dashboard seronok anda...</p>
       </div>
     );
   }
+
+  const peratusMerit = Math.min(Math.round((merit / 50) * 100), 100);
+  const taraf = peratusMerit >= 100 ? '⭐ RuLaF Ta!' : peratusMerit >= 40 ? '🔥 Hampir Ta!' : '🌱 RuLaF Alif';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-sans p-4 sm:p-8">
@@ -531,19 +683,20 @@ function PapanPemukaMurid({ email }: { email: string }) {
               {(profil?.nama || 'P')[0].toUpperCase()}
             </div>
             <div>
-              <p className="text-[11px] uppercase tracking-widest text-emerald-100 font-bold">Papan Pemuka Pelajar</p>
+              <p className="text-[11px] uppercase tracking-widest text-emerald-100 font-bold">Hai & Selamat Datang! 👋</p>
               <h1 className="text-xl font-black">{profil?.nama || 'Pelajar RuLaF'}</h1>
-              <p className="text-xs text-emerald-100 font-mono">{email}</p>
+              <p className="text-xs text-emerald-100 font-mono">{profil?.markah?.tahap_rulaf || taraf}</p>
             </div>
           </div>
         </div>
 
+        {/* Kad statistik + bar merit */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: 'Kelas', value: profil?.markah?.kelas_id || '-', ikon: '🏫' },
-            { label: 'Tahap RuLaF', value: profil?.markah?.tahap_rulaf || '-', ikon: '🏅' },
             { label: 'Jawi', value: profil?.markah?.markah_jawi != null ? `${profil.markah.markah_jawi}%` : '-', ikon: '📝' },
             { label: 'Quran', value: profil?.markah?.bacaan_quran || '-', ikon: '📖' },
+            { label: 'Demerit', value: demerit, ikon: '⚠️' },
           ].map((k) => (
             <div key={k.label} className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-4 shadow-sm">
               <span className="text-lg">{k.ikon}</span>
@@ -553,35 +706,34 @@ function PapanPemukaMurid({ email }: { email: string }) {
           ))}
         </div>
 
+        {/* Bar merit — gaya progress Android */}
+        <div className="bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
+          <div className="flex justify-between items-center text-xs mb-2">
+            <span className="font-black text-gray-900 dark:text-white">✅ Merit Saya: {merit}/50 — {taraf}</span>
+            <span className="text-[10px] text-gray-500">⭐ 50 merit = RuLaF Ta</span>
+          </div>
+          <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3.5 overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-400 to-[#1793D1] h-3.5 rounded-full transition-all duration-700" style={{ width: `${peratusMerit}%` }} />
+          </div>
+        </div>
+
+        {/* Modul mesra kanak-kanak */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Link href="/semakan" className="group flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 hover:border-emerald-500 transition-all">
-            <span className="text-2xl">🔍</span>
-            <div>
-              <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-emerald-500">Fungsi Semakan Prestasi</p>
-              <p className="text-[11px] text-gray-500">Lihat markah formatif & pencapaian anda</p>
-            </div>
-          </Link>
-          <Link href="/permainan" className="group flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 hover:border-emerald-500 transition-all">
-            <span className="text-2xl">🎮</span>
-            <div>
-              <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-emerald-500">Arked Permainan</p>
-              <p className="text-[11px] text-gray-500">Misi RPG & pentaksiran interaktif (Tadrij)</p>
-            </div>
-          </Link>
-          <Link href="/profil" className="group flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 hover:border-emerald-500 transition-all">
-            <span className="text-2xl">👤</span>
-            <div>
-              <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-emerald-500">Profil & Tetapan</p>
-              <p className="text-[11px] text-gray-500">Kemas kini profil & tukar kata laluan</p>
-            </div>
-          </Link>
-          <Link href="/forum" className="group flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 hover:border-emerald-500 transition-all">
-            <span className="text-2xl">💬</span>
-            <div>
-              <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-emerald-500">Forum Komuniti</p>
-              <p className="text-[11px] text-gray-500">Baca topik & beri komen</p>
-            </div>
-          </Link>
+          {[
+            { href: '/semakan', ikon: '🔍', warna: 'hover:border-emerald-500', tajuk: 'Semakan Prestasi', desc: 'Lihat markah & pencapaian anda' },
+            { href: '/permainan', ikon: '🎮', warna: 'hover:border-violet-500', tajuk: 'Arked Permainan', desc: 'Misi RPG & kuiz interaktif' },
+            { href: '/rvids', ikon: '🎬', warna: 'hover:border-rose-500', tajuk: 'Rvids', desc: 'Tonton video belajar pendek' },
+            { href: '/forum', ikon: '💬', warna: 'hover:border-sky-500', tajuk: 'Forum Komuniti', desc: 'Baca topik & beri komen' },
+            { href: '/profil', ikon: '👤', warna: 'hover:border-amber-500', tajuk: 'Profil Saya', desc: 'Kemas kini profil & tetapan' },
+          ].map((m) => (
+            <Link key={m.href} href={m.href} className={`group flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-[#171A21] border border-gray-200 dark:border-gray-800 ${m.warna} transition-all hover:-translate-y-0.5`}>
+              <span className="text-3xl group-hover:scale-110 transition-transform">{m.ikon}</span>
+              <div>
+                <p className="text-sm font-bold text-gray-900 dark:text-white">{m.tajuk}</p>
+                <p className="text-[11px] text-gray-500">{m.desc}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

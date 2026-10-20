@@ -762,6 +762,66 @@ export default function ProfilPage() {
           </div>
         </div>
 
+        {/* ============ KESELAMATAN AKAUN (T8) ============ */}
+        <div className="bg-white dark:bg-[#171A21] border border-red-300/40 dark:border-red-900/40 rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-5 pt-5 pb-3">
+            <h2 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-2">
+              <span>🔐</span> Keselamatan Akaun
+            </h2>
+            <p className="text-[11px] text-gray-500 mt-0.5">Pautkan Google untuk log masuk pantas, atau padamkan akaun anda.</p>
+          </div>
+          <div className="px-5 pb-5 space-y-3">
+            <button
+              onClick={async () => {
+                try {
+                  const auth: any = supabase.auth;
+                  if (typeof auth.linkIdentity === 'function') {
+                    const { error } = await auth.linkIdentity({ provider: 'google', options: { redirectTo: window.location.origin + '/profil' } });
+                    if (error) throw error;
+                  } else {
+                    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/profil' } });
+                    if (error) throw error;
+                  }
+                } catch (err: any) {
+                  alert('Gagal memautkan Google: ' + (err.message || err) + '\n\nNota: admin perlu benarkan provider Google di Supabase Dashboard → Authentication → Providers.');
+                }
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#11141b] hover:border-[#1793D1] transition-all text-left"
+            >
+              <span className="text-xl">🔗</span>
+              <span className="flex-1">
+                <span className="block text-sm font-bold text-gray-900 dark:text-white">Pautkan Akaun Google</span>
+                <span className="block text-[11px] text-gray-500">Log masuk pada masa hadapan tanpa kata laluan</span>
+              </span>
+            </button>
+
+            <button
+              onClick={async () => {
+                const ok = window.confirm(
+                  '⚠️ PADAM AKAUN\n\nIni akan:\n1. Memadam profil, tetapan dan data peribadi RuLaFHub anda\n2. Mengeluarkan sesi semasa\n\nNota: ID log masuk e-mel kekal dalam sistem keselamatan Supabase sehingga pentadbir mengemas kininya secara manual.\n\nAdakah anda pasti?'
+                );
+                if (!ok) return;
+                try {
+                  const { error } = await supabase.from('profil_pengguna').delete().eq('email', userEmail);
+                  if (error) throw error;
+                  await supabase.auth.signOut();
+                  alert('✓ Akaun anda telah dipadam. Sehingga jumpa lagi!');
+                  window.location.href = '/';
+                } catch (err: any) {
+                  alert('Gagal memadam akaun: ' + (err.message || err));
+                }
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-red-300 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all text-left"
+            >
+              <span className="text-xl">🗑️</span>
+              <span className="flex-1">
+                <span className="block text-sm font-bold text-red-600 dark:text-red-400">Padam Akaun Saya</span>
+                <span className="block text-[11px] text-red-400/80">Tindakan kekal — profil & data peribadi dipadam</span>
+              </span>
+            </button>
+          </div>
+        </div>
+
         <div className="text-center text-[11px] text-gray-400 pb-6">
           RuLaFHub :: V2.0-Stable — Komuniti pendidikan Jawi.
         </div>
