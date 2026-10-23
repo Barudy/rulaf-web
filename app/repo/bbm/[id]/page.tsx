@@ -5,6 +5,8 @@ import { supabase } from './../../../lib/supabaseClient';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PaparMarkdown from './../../../../components/PaparMarkdown';
+import { ialahAdmin } from './../../../lib/akses';
+import { formatTarikh, masaRelatif, tarikhKemasKini } from './../../../lib/tarikh';
 
 export default function PaparanBBMSpesifik() {
   const params = useParams();
@@ -13,6 +15,7 @@ export default function PaparanBBMSpesifik() {
 
   const [bahan, setBahan] = useState<any>(null);
   const [bahanBerkaitan, setBahanBerkaitan] = useState<any[]>([]);
+  const [disekat, setDisekat] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -25,16 +28,53 @@ export default function PaparanBBMSpesifik() {
         .single();
       
       if (data) {
+        // 🔒 Semak status blok pada item DAN semua folder induknya
+        const { data: semua } = await supabase
+          .from('rulaf_repo')
+          .select('id, parent_id, status');
+        const peta = new Map<number, any>((semua || []).map((r: any) => [r.id, r]));
+
+        const disekatMengikutPeta = (row: any): boolean => {
+          if (!row) return false;
+          if (row.status === 'danger') return true;
+          let parentId = row.parent_id;
+          const dilihat = new Set<number>();
+          while (parentId !== null && parentId !== undefined && !dilihat.has(parentId)) {
+            dilihat.add(parentId);
+            const induk = peta.get(parentId);
+            if (!induk) break;
+            if (induk.status === 'danger') return true;
+            parentId = induk.parent_id;
+          }
+          return false;
+        };
+
+        const disekatItem = disekatMengikutPeta(data);
+        const { data: { session } } = await supabase.auth.getSession();
+        const admin = ialahAdmin(session?.user?.email || '');
+
+        // Publik tidak boleh melihat kandungan yang disekat — nampak seperti tidak wujud
+        if (disekatItem && !admin) {
+          setBahan(null);
+          setIsLoading(false);
+          return;
+        }
+
+        setDisekat(disekatItem);
         setBahan(data);
-        // Tarik 3 bahan berkaitan dalam subjek & darjah yang sama
+
+        // Tarik 3 bahan berkaitan (kecuali yang disekat / bawah folder disekat)
         const { data: related } = await supabase
           .from('rulaf_repo')
-          .select('id, tajuk, subjek, darjah')
+          .select('id, tajuk, subjek, darjah, parent_id, status')
           .eq('darjah', data.darjah)
           .eq('subjek', data.subjek)
           .neq('id', idBBM)
-          .limit(3);
-        if (related) setBahanBerkaitan(related);
+          .neq('status', 'danger')
+          .limit(20);
+        if (related) {
+          setBahanBerkaitan(related.filter((r: any) => !disekatMengikutPeta(r)).slice(0, 3));
+        }
       }
       setIsLoading(false);
     }
@@ -98,17 +138,23 @@ export default function PaparanBBMSpesifik() {
               {bahan.darjah} • {bahan.subjek}
             </span>
             
-            {(!bahan.status || bahan.status === 'approved') && (
+            {(!bahan.status || bahan.status === 'approved') && !disekat && (
               <span className="bg-emerald-500/10 text-emerald-500 text-xs px-3 py-1 rounded font-bold border border-emerald-500/30">
                 ✓ Disahkan (Approved)
               </span>
             )}
-            {bahan.status === 'danger' && (
+            {disekat && (
               <span className="bg-rose-500/10 text-rose-500 text-xs px-3 py-1 rounded font-bold border border-rose-500/30">
                 🚫 Disekat (Danger)
               </span>
             )}
           </div>
+
+          {disekat && (
+            <div className="bg-rose-500/10 border border-rose-500/40 text-rose-600 dark:text-rose-400 rounded-lg px-4 py-3 text-[11px] font-semibold">
+              ⚠️ Kandungan ini disekat dan tidak dipaparkan kepada publik. Admin boleh melihatnya untuk tujuan moderasi.
+            </div>
+          )}
 
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
             {bahan.tajuk}
@@ -123,7 +169,8 @@ export default function PaparanBBMSpesifik() {
           <h3 className="font-bold text-gray-900 dark:text-white text-sm">📌 Butiran Bahan:</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-500 dark:text-gray-400">
             <p>Penyumbang: <span className="text-[#1793D1] font-semibold">{bahan.penyumbang}</span></p>
-            <p>Tarikh Terbit: <span>{new Date(bahan.created_at || Date.now()).toLocaleDateString('ms-MY')}</span></p>
+            <p>Tarikh Terbit: <span>{formatTarikh(bahan.created_at)}</span></p>
+            <p>Kemas Kini: <span>{masaRelatif(tarikhKemasKini(bahan))}</span> <span className="text-gray-400">({formatTarikh(tarikhKemasKini(bahan))})</span></p>
           </div>
           {bahan.readme_text && (
             <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 font-sans">
@@ -134,7 +181,7 @@ export default function PaparanBBMSpesifik() {
 
         {/* Butang Muat Turun */}
         <div className="mb-8">
-          {bahan.status === 'danger' ? (
+          {disekat ? (
             <button disabled className="w-full py-4 bg-gray-800 text-gray-500 rounded-lg font-bold text-xs cursor-not-allowed">
               ⛔ PAUTAN INI TELAH DISEKAT ATAS SEBAB KESELAMATAN
             </button>

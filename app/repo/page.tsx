@@ -6,7 +6,7 @@ import Link from 'next/link';
 import CountDownUpkk from '@/components/CountDownUpkk';
 import { ialahAdmin } from '../lib/akses';
 import PaparMarkdown from '@/components/PaparMarkdown';
-import { formatTarikh, tidakDiurus } from '../lib/tarikh';
+import { formatTarikh, tidakDiurus, masaRelatif, tarikhKemasKini } from '../lib/tarikh';
 
 export default function RepositoryPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -23,6 +23,7 @@ export default function RepositoryPage() {
   const [readmeEdit, setReadmeEdit] = useState(false);
   const [readmeDraf, setReadmeDraf] = useState('');
   const [simpanReadmeBusy, setSimpanReadmeBusy] = useState(false);
+  const [adaUpdatedAt, setAdaUpdatedAt] = useState(false);
 
   const [peranan, setPeranan] = useState<string>('');
   const [isUserAdmin, setIsUserAdmin] = useState(false);
@@ -60,7 +61,11 @@ export default function RepositoryPage() {
       .select('*')
       .order('is_folder', { ascending: false })
       .order('tajuk', { ascending: true });
-    if (data) setBahanRepo(data);
+    if (data) {
+      setBahanRepo(data);
+      // Kesan sama ada lajur updated_at sudah dimigrasi (tanpa memecahkan aliran lama)
+      setAdaUpdatedAt(data.length > 0 && Object.prototype.hasOwnProperty.call(data[0], 'updated_at'));
+    }
   };
 
   const kemasKiniStatus = async (id: number, statusBaharu: string) => {
@@ -75,9 +80,16 @@ export default function RepositoryPage() {
 
   const simpanSuntingBbm = async (id: number, medan: any) => {
     if (!medan.tajuk.trim()) return alert('[!] Tajuk tidak boleh kosong.');
+    const muatan: any = {
+      tajuk: medan.tajuk.trim(),
+      topik: (medan.topik || '').trim(),
+      subjek: (medan.subjek || '').trim(),
+      darjah: (medan.darjah || '').trim(),
+    };
+    if (adaUpdatedAt) muatan.updated_at = new Date().toISOString();
     const { error } = await supabase
       .from('rulaf_repo')
-      .update({ tajuk: medan.tajuk.trim(), topik: (medan.topik || '').trim(), subjek: (medan.subjek || '').trim(), darjah: (medan.darjah || '').trim() })
+      .update(muatan)
       .eq('id', id);
     if (error) alert('Ralat menyimpan suntingan: ' + error.message);
     else tarikDataRepo();
@@ -98,9 +110,11 @@ export default function RepositoryPage() {
       return alert('⚠️ Hanya pemilik folder atau Admin boleh menyunting README.');
     }
     setSimpanReadmeBusy(true);
+    const muatanReadme: any = { readme_text: readmeDraf.trim() };
+    if (adaUpdatedAt) muatanReadme.updated_at = new Date().toISOString();
     const { error } = await supabase
       .from('rulaf_repo')
-      .update({ readme_text: readmeDraf.trim() })
+      .update(muatanReadme)
       .eq('id', currentFolderId);
     setSimpanReadmeBusy(false);
     if (error) alert('Ralat menyimpan README: ' + error.message);
@@ -133,7 +147,27 @@ export default function RepositoryPage() {
     setSelectedSubjek(null);
   };
 
-  const itemFolderSemasa = bahanRepo.filter((item) => {
+  // 🔒 Keselamatan: kandungan 'danger' atau di bawah folder 'danger' tidak dipaparkan kepada publik.
+  // Admin masih boleh melihatnya untuk tujuan moderasi.
+  const adaLeluhurDisekat = (item: any): boolean => {
+    let parentId = item?.parent_id;
+    const dilihat = new Set<number>();
+    while (parentId !== null && parentId !== undefined && !dilihat.has(parentId)) {
+      dilihat.add(parentId);
+      const induk = bahanRepo.find((b) => b.id === parentId);
+      if (!induk) break;
+      if (induk.status === 'danger') return true;
+      parentId = induk.parent_id;
+    }
+    return false;
+  };
+
+  const bolehLihat = (item: any) =>
+    isUserAdmin || (item?.status !== 'danger' && !adaLeluhurDisekat(item));
+
+  const bahanRepoTerlihat = bahanRepo.filter(bolehLihat);
+
+  const itemFolderSemasa = bahanRepoTerlihat.filter((item) => {
     if (currentFolderId === null) {
       return item.parent_id === null || item.parent_id === undefined;
     }
@@ -158,7 +192,7 @@ export default function RepositoryPage() {
     return padanDarjah && padanSubjek;
   });
 
-  const failCarian = bahanRepo.filter(item =>
+  const failCarian = bahanRepoTerlihat.filter(item =>
     !item.is_folder && (
       item.tajuk.toLowerCase().includes(carianRepo.toLowerCase()) ||
       item.subjek?.toLowerCase().includes(carianRepo.toLowerCase()) ||
@@ -167,13 +201,23 @@ export default function RepositoryPage() {
     )
   );
 
-  const folderSemasaObj = bahanRepo.find(f => f.id === currentFolderId);
+  // 🕒 Aktiviti terkini ala GitHub: 5 fail terbaharu (ikut kemas kini/ muat naik)
+  const aktivitiTerkini = [...bahanRepoTerlihat]
+    .filter((i) => !i.is_folder)
+    .sort((a, b) => {
+      const ma = new Date(tarikhKemasKini(a) || 0).getTime();
+      const mb = new Date(tarikhKemasKini(b) || 0).getTime();
+      return mb - ma;
+    })
+    .slice(0, 5);
+
+  const folderSemasaObj = bahanRepoTerlihat.find(f => f.id === currentFolderId);
   const readmeSemasa = folderSemasaObj?.readme_text;
 
   // 📅 Tarikh aktiviti terakhir (gaya GitHub) untuk folder RUR
   const aktivitiTerakhir = (item: any) => {
-    const anak = bahanRepo.filter((b) => b.parent_id === item.id);
-    const masa = [item.created_at, ...anak.map((a) => a.created_at)]
+    const anak = bahanRepoTerlihat.filter((b) => b.parent_id === item.id);
+    const masa = [tarikhKemasKini(item), ...anak.map((a) => tarikhKemasKini(a))]
       .filter(Boolean)
       .map((t) => new Date(t as string).getTime())
       .filter((t) => !Number.isNaN(t));
@@ -294,6 +338,36 @@ export default function RepositoryPage() {
             </div>
           ) : currentFolderId === null ? (
             <div className="space-y-4">
+              {aktivitiTerkini.length > 0 && (
+                <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-[#11141b] border-b border-gray-200 dark:border-gray-800">
+                    <span className="text-sm">🕒</span>
+                    <span className="text-xs font-bold text-gray-700 dark:text-gray-200">Aktiviti Terkini RUR</span>
+                    <span className="ml-auto text-[10px] text-gray-400">ala GitHub</span>
+                  </div>
+                  <div className="divide-y divide-gray-200 dark:divide-gray-800">
+                    {aktivitiTerkini.map((item) => (
+                      <Link
+                        key={item.id}
+                        href={`/repo/bbm/${item.id}`}
+                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-[#1c202a] transition-colors"
+                      >
+                        <span className="text-base">📄</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-xs font-bold text-gray-800 dark:text-gray-200">{item.tajuk}</p>
+                          <p className="truncate text-[10px] text-gray-500">
+                            {item.subjek || 'Umum'} · {item.darjah || 'Umum'} · {item.penyumbang}
+                          </p>
+                        </div>
+                        <span className="shrink-0 text-[10px] font-bold text-[#1793D1]">
+                          {masaRelatif(tarikhKemasKini(item))}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <h4 className="text-xs font-bold text-gray-400 uppercase">Koleksi Utama RUR (RuLaFHub Users Repository)</h4>
               {itemFolderSemasa.length === 0 ? (
                 <p className="text-center py-8 text-gray-500 text-xs">Tiada koleksi ditemui.</p>
@@ -313,7 +387,7 @@ export default function RepositoryPage() {
                           <h3 className="font-bold text-base text-gray-900 dark:text-white">{item.tajuk}</h3>
                           <p className="text-xs text-gray-500 mt-0.5">Pemilik: {item.penyumbang}</p>
                           <p className="text-[10px] text-gray-400 mt-0.5">
-                            📅 Dicipta {formatTarikh(item.created_at)} · ⏱️ Aktif {formatTarikh(aktivitiTerakhir(item))}
+                            📅 Dicipta {formatTarikh(item.created_at)} · ⏱️ Aktif {formatTarikh(aktivitiTerakhir(item))} · {masaRelatif(aktivitiTerakhir(item))}
                           </p>
                           {tidakDiurus(aktivitiTerakhir(item)) && (
                             <span className="inline-block mt-1 bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[10px] font-black px-2 py-0.5 rounded border border-amber-300 dark:border-amber-900/50">
@@ -519,6 +593,9 @@ function ItemKadBBM({ item, userEmail, isUserAdmin, kemasKiniStatus, padamItem, 
             <h2 className="text-base font-bold text-gray-900 dark:text-white mb-1">{item.tajuk}</h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Topik: <span className="text-gray-700 dark:text-gray-300 font-semibold">{item.topik || 'Umum'}</span> | Penyumbang: {item.penyumbang}
+            </p>
+            <p className="text-[10px] text-gray-400 mt-0.5">
+              🕒 Dikemas kini {masaRelatif(tarikhKemasKini(item))} · {formatTarikh(tarikhKemasKini(item))}
             </p>
 
             {bolehUrus && sunting && (

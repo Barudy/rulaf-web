@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ambilSesi, ambilPerananDinormal, ialahAdmin } from '../lib/akses';
 import { kiraPangkat } from '../lib/pangkat';
-import { formatTarikh, tidakDiurus } from '../lib/tarikh';
+import { formatTarikh, tidakDiurus, masaRelatif, tarikhKemasKini } from '../lib/tarikh';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -284,15 +284,35 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
     setCurrentFolderId(folderSebelum !== undefined ? folderSebelum : null);
   };
 
-  const itemTahapSemasa = currentFolderId === null
-    ? bahanRepo.filter((i) => i.parent_id === null || i.parent_id === undefined)
-    : bahanRepo.filter((i) => i.parent_id === currentFolderId);
+  // 🔒 Sembunyikan kandungan disekat (termasuk anak folder disekat) daripada ruang kerja
+  const adaLeluhurDisekat = (item: any): boolean => {
+    let parentId = item?.parent_id;
+    const dilihat = new Set<number>();
+    while (parentId !== null && parentId !== undefined && !dilihat.has(parentId)) {
+      dilihat.add(parentId);
+      const induk = bahanRepo.find((b) => b.id === parentId);
+      if (!induk) break;
+      if (induk.status === 'danger') return true;
+      parentId = induk.parent_id;
+    }
+    return false;
+  };
+
+  const itemSelamat = isAdmin
+    ? bahanRepo
+    : bahanRepo.filter((i) => i.status !== 'danger' && !adaLeluhurDisekat(i));
+
+  const itemTahapSelamat = currentFolderId === null
+    ? itemSelamat.filter((i) => i.parent_id === null || i.parent_id === undefined)
+    : itemSelamat.filter((i) => i.parent_id === currentFolderId);
+
+  const worldFolderSelamat = itemSelamat.find((f) => f.id === currentFolderId);
 
   // 📅 Aktiviti terakhir folder = tarikh folder dicipta atau anak terbaharu di dalamnya
   const aktivitiTerakhir = (item: any) => {
-    if (!item?.is_folder) return item?.created_at;
-    const anak = bahanRepo.filter((b) => b.parent_id === item.id);
-    const masa = [item.created_at, ...anak.map((a) => a.created_at)]
+    if (!item?.is_folder) return tarikhKemasKini(item);
+    const anak = itemSelamat.filter((b) => b.parent_id === item.id);
+    const masa = [tarikhKemasKini(item), ...anak.map((a) => tarikhKemasKini(a))]
       .filter(Boolean)
       .map((t) => new Date(t as string).getTime())
       .filter((t) => !Number.isNaN(t));
@@ -654,9 +674,9 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
               {currentFolderId === null ? 'Koleksi & Folder Milik Saya' : `Isi Kandungan: ${worldFolderSemasa?.tajuk || ''}`}
             </h4>
-            {itemTahapSemasa.length === 0 ? (
+            {itemTahapSelamat.length === 0 ? (
               <p className="text-center py-8 text-gray-500 text-xs">Tiada koleksi ditemui. Mula cipta BBM anda di atas.</p>
-            ) : itemTahapSemasa.map((item) => (
+            ) : itemTahapSelamat.map((item) => (
               <div key={item.id} className="p-4 border rounded-xl bg-gray-50 dark:bg-[#11141b]/60 hover:border-[#1793D1]/50 transition-all">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                   {item.is_folder ? (
@@ -665,7 +685,7 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
                       <div>
                         <h3 className="font-bold text-base text-gray-900 dark:text-white">{item.tajuk}</h3>
                         <p className="text-[11px] text-gray-500 mt-0.5">
-                          📅 Dicipta {formatTarikh(item.created_at)} · ⏱️ Aktif {formatTarikh(aktivitiTerakhir(item))}
+                          📅 Dicipta {formatTarikh(item.created_at)} · ⏱️ Aktif {formatTarikh(aktivitiTerakhir(item))} · {masaRelatif(aktivitiTerakhir(item))}
                         </p>
                         {tidakDiurus(aktivitiTerakhir(item)) && (
                           <span className="inline-block mt-1 bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[10px] font-black px-2 py-0.5 rounded border border-amber-300 dark:border-amber-900/50">
@@ -682,7 +702,7 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
                         <span className="inline-block bg-[#1793D1]/10 text-[#1793D1] text-[10px] px-2 py-0.5 rounded font-bold mb-1">{item.subjek} - {item.darjah}</span>
                         <h3 className="font-bold text-sm text-gray-900 dark:text-white">{item.tajuk}</h3>
                         <p className="text-[11px] text-gray-500">Topik: {item.topik || 'Umum'}</p>
-                        <p className="text-[10px] text-gray-400 mt-0.5">📅 {formatTarikh(item.created_at)}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">📅 {formatTarikh(item.created_at)} · {masaRelatif(tarikhKemasKini(item))}</p>
                       </div>
                       <a href={item.pautan} target="_blank" rel="noopener noreferrer" className="ml-auto text-xs bg-gray-200 dark:bg-gray-800 px-3 py-1.5 rounded font-bold text-gray-700 dark:text-gray-200 hover:bg-[#1793D1] hover:text-white transition-all">
                         [ Buka / Muat Turun ]
