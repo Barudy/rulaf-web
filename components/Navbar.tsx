@@ -123,6 +123,16 @@ export default function Navbar() {
               RUR
             </a>
             <a
+              href="/flashcard"
+              className={`px-3 py-2 rounded-md text-sm font-semibold tracking-wide transition-all duration-300 ${
+                pathname.startsWith('/flashcard') 
+                  ? 'text-[#1793D1] bg-[#1793D1]/10' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-[#1793D1] hover:bg-gray-100 dark:hover:bg-gray-800/40'
+              }`}
+            >
+              Flashcard
+            </a>
+            <a
               href="/forum"
               className={`px-3 py-2 rounded-md text-sm font-semibold tracking-wide transition-all duration-300 ${
                 pathname.startsWith('/forum') 
@@ -278,6 +288,15 @@ export default function Navbar() {
               }`}
             >
               RUR
+            </a>
+            <a
+              href="/flashcard"
+              onClick={() => setIsOpen(false)}
+              className={`block px-3 py-2.5 rounded-md text-base font-semibold transition-colors ${
+                pathname.startsWith('/flashcard') ? 'text-[#1793D1] bg-[#1793D1]/10' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/40'
+              }`}
+            >
+              Flashcard
             </a>
             <a
               href="/forum"

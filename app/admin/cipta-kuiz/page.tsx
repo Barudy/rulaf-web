@@ -7,7 +7,7 @@ import Link from 'next/link';
 
 interface DynamicQuestion {
   level: 1 | 2 | 3;
-  type: 'pilihan' | 'susun_atur'; // 🧹 Diringkaskan kepada 2 mod stabil
+  type: 'pilihan' | 'susun_atur' | 'isi_kosong'; // ⌨️ isi_kosong = jawapan ditaip (Jawi/Rumi/Dwi)
   imageUrl?: string;
   rumiQ: string;
   rumiOptions: string[];
@@ -105,7 +105,7 @@ export default function BinaKuizGuru() {
       arr.forEach((q: any) => {
         soalan.push({
           level: lv,
-          type: q.type === 'susun_atur' ? 'susun_atur' : 'pilihan',
+          type: q.type === 'susun_atur' ? 'susun_atur' : q.type === 'isi_kosong' ? 'isi_kosong' : 'pilihan',
           imageUrl: q.img || '',
           rumiQ: q.rumi?.q || '',
           rumiOptions: lb(q.rumi?.options),
@@ -227,6 +227,12 @@ export default function BinaKuizGuru() {
       if (q.type === 'susun_atur') {
         jawiOptionsFinal = q.jawiA.trim().split(/\s+/).filter(Boolean);
         rumiOptionsFinal = q.rumiA.trim().split(/\s+/).filter(Boolean);
+      }
+
+      // ⌨️ Isi tempat kosong: tiada pilihan, jawapan diterima disimpan dalam `a`
+      if (q.type === 'isi_kosong') {
+        jawiOptionsFinal = [];
+        rumiOptionsFinal = [];
       }
 
       formatted.jawi = {
@@ -397,6 +403,7 @@ export default function BinaKuizGuru() {
                     >
                       <option value="pilihan">🔘 Pilihan Jawapan (Standard / Bergambar)</option>
                       <option value="susun_atur">🧩 Susun Kalimat (Pecahan Perkataan)</option>
+                      <option value="isi_kosong">⌨️ Isi Tempat Kosong (Taip Jawi / Rumi / Dwi)</option>
                     </select>
                   </div>
                 </div>
@@ -479,15 +486,23 @@ export default function BinaKuizGuru() {
                         <input type="text" required value={q.jawiOptions[1] || ''} onChange={(e) => handleOptionChange(idx, 'jawi', 1, e.target.value)} placeholder="Pilihan 2" className="w-full bg-white dark:bg-[#171A21] border p-2 text-xs text-right rounded text-gray-900 dark:text-white focus:outline-none" />
                         <input type="text" required value={q.jawiOptions[2] || ''} onChange={(e) => handleOptionChange(idx, 'jawi', 2, e.target.value)} placeholder="Pilihan 3" className="w-full bg-white dark:bg-[#171A21] border p-2 text-xs text-right rounded text-gray-900 dark:text-white focus:outline-none" />
                       </div>
-                    ) : (
+                    ) : q.type === 'susun_atur' ? (
                       <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 p-2.5 rounded border border-emerald-500/20">
                         💡 Mod Susun Ayat: Masukkan susunan ayat lengkap yang betul di bawah. Sistem akan memecahkannya menjadi kad perkataan secara automatik.
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-purple-600 dark:text-purple-400 font-bold bg-purple-500/10 p-2.5 rounded border border-purple-500/20">
+                        ⌨️ Mod Isi Tempat Kosong: murid menaip jawapan guna papan kekunci Jawi, Rumi, atau kedua-duanya. Letak jawapan Jawi yang diterima di bawah.
                       </p>
                     )}
 
                     <div>
                       <label className="block text-[10px] text-gray-400 mb-1 font-bold">
-                        {q.type === 'susun_atur' ? 'Ayat Lengkap Yang Betul (Jawi/Arab):' : 'Jawapan Tepat Jawi:'}
+                        {q.type === 'susun_atur'
+                          ? 'Ayat Lengkap Yang Betul (Jawi/Arab):'
+                          : q.type === 'isi_kosong'
+                            ? 'Jawapan Diterima (Jawi) — pisah variasi dengan koma:'
+                            : 'Jawapan Tepat Jawi:'}
                       </label>
                       <input
                         type="text"
@@ -525,15 +540,23 @@ export default function BinaKuizGuru() {
                         <input type="text" required={q.level === 1} value={q.rumiOptions[1] || ''} onChange={(e) => handleOptionChange(idx, 'rumi', 1, e.target.value)} placeholder="Pilihan 2" className="w-full bg-white dark:bg-[#171A21] border p-2 text-xs rounded text-gray-900 dark:text-white focus:outline-none" />
                         <input type="text" required={q.level === 1} value={q.rumiOptions[2] || ''} onChange={(e) => handleOptionChange(idx, 'rumi', 2, e.target.value)} placeholder="Pilihan 3" className="w-full bg-white dark:bg-[#171A21] border p-2 text-xs rounded text-gray-900 dark:text-white focus:outline-none" />
                       </div>
-                    ) : (
+                    ) : q.type === 'susun_atur' ? (
                       <p className="text-[11px] text-gray-500 font-bold bg-gray-500/10 p-2.5 rounded border border-gray-500/20">
                         💡 Taip terjemahan ayat lengkap yang betul sebagai panduan dwibahasa di Tahap 1.
+                      </p>
+                    ) : (
+                      <p className="text-[11px] text-purple-600 dark:text-purple-400 font-bold bg-purple-500/10 p-2.5 rounded border border-purple-500/20">
+                        ⌨️ Letak jawapan Rumi yang diterima di bawah. Murid boleh jawab dalam Jawi ATAU Rumi (atau kedua-duanya).
                       </p>
                     )}
 
                     <div>
                       <label className="block text-[10px] text-gray-400 mb-1 font-bold">
-                        {q.type === 'susun_atur' ? 'Ayat Lengkap Yang Betul (Rumi):' : 'Jawapan Tepat Rumi:'}
+                        {q.type === 'susun_atur'
+                          ? 'Ayat Lengkap Yang Betul (Rumi):'
+                          : q.type === 'isi_kosong'
+                            ? 'Jawapan Diterima (Rumi) — pisah variasi dengan koma:'
+                            : 'Jawapan Tepat Rumi:'}
                       </label>
                       <input
                         type="text"

@@ -527,6 +527,10 @@ export default function AdminDashboardPage() {
                 <span className="text-2xl">✍️</span>
                 <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Cipta Kuiz</span>
               </Link>
+              <Link href="/admin/cipta-flashcard" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-violet-500 hover:-translate-y-0.5 transition-all">
+                <span className="text-xl">🃏</span>
+                <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-violet-500">Cipta Flashcard</span>
+              </Link>
               <Link href="/admin/pengurusan" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
                 <span className="text-2xl">📋</span>
                 <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Pengurusan Murid</span>

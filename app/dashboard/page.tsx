@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ambilSesi, ambilPerananDinormal, ialahAdmin } from '../lib/akses';
 import { kiraPangkat } from '../lib/pangkat';
+import { formatTarikh, tidakDiurus } from '../lib/tarikh';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -287,6 +288,17 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
     ? bahanRepo.filter((i) => i.parent_id === null || i.parent_id === undefined)
     : bahanRepo.filter((i) => i.parent_id === currentFolderId);
 
+  // 📅 Aktiviti terakhir folder = tarikh folder dicipta atau anak terbaharu di dalamnya
+  const aktivitiTerakhir = (item: any) => {
+    if (!item?.is_folder) return item?.created_at;
+    const anak = bahanRepo.filter((b) => b.parent_id === item.id);
+    const masa = [item.created_at, ...anak.map((a) => a.created_at)]
+      .filter(Boolean)
+      .map((t) => new Date(t as string).getTime())
+      .filter((t) => !Number.isNaN(t));
+    return masa.length > 0 ? new Date(Math.max(...masa)).toISOString() : item.created_at;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-sans p-4 sm:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -366,6 +378,10 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
             <Link href="/admin/cipta-kuiz" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
               <span className="text-2xl">✍️</span>
               <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-[#1793D1]">Cipta Kuiz</span>
+            </Link>
+            <Link href="/admin/cipta-flashcard" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-violet-500 hover:-translate-y-0.5 transition-all">
+              <span className="text-2xl">🃏</span>
+              <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 group-hover:text-violet-500">Cipta Flashcard</span>
             </Link>
             {isAdmin && (
             <Link href="/blog" className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 dark:bg-[#11141b] border border-gray-200 dark:border-gray-800 hover:border-[#1793D1] hover:-translate-y-0.5 transition-all">
@@ -648,7 +664,14 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
                       <span className="text-3xl">📁</span>
                       <div>
                         <h3 className="font-bold text-base text-gray-900 dark:text-white">{item.tajuk}</h3>
-                        <p className="text-xs text-gray-500">Folder peribadi anda</p>
+                        <p className="text-[11px] text-gray-500 mt-0.5">
+                          📅 Dicipta {formatTarikh(item.created_at)} · ⏱️ Aktif {formatTarikh(aktivitiTerakhir(item))}
+                        </p>
+                        {tidakDiurus(aktivitiTerakhir(item)) && (
+                          <span className="inline-block mt-1 bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[10px] font-black px-2 py-0.5 rounded border border-amber-300 dark:border-amber-900/50">
+                            ⚠️ Tidak diurus 6+ bulan — akan ditutup/dipadam
+                          </span>
+                        )}
                       </div>
                       <button onClick={() => bukaFolder(item.id)} className="ml-auto text-xs text-[#1793D1] font-bold hover:underline">[ Buka ➔ ]</button>
                     </div>
@@ -659,6 +682,7 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
                         <span className="inline-block bg-[#1793D1]/10 text-[#1793D1] text-[10px] px-2 py-0.5 rounded font-bold mb-1">{item.subjek} - {item.darjah}</span>
                         <h3 className="font-bold text-sm text-gray-900 dark:text-white">{item.tajuk}</h3>
                         <p className="text-[11px] text-gray-500">Topik: {item.topik || 'Umum'}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">📅 {formatTarikh(item.created_at)}</p>
                       </div>
                       <a href={item.pautan} target="_blank" rel="noopener noreferrer" className="ml-auto text-xs bg-gray-200 dark:bg-gray-800 px-3 py-1.5 rounded font-bold text-gray-700 dark:text-gray-200 hover:bg-[#1793D1] hover:text-white transition-all">
                         [ Buka / Muat Turun ]
@@ -770,6 +794,7 @@ function PapanPemukaMurid({ email }: { email: string }) {
           {[
             { href: '/semakan', ikon: '🔍', warna: 'hover:border-emerald-500', tajuk: 'Semakan Prestasi', desc: 'Lihat markah & pencapaian anda' },
             { href: '/permainan', ikon: '🎮', warna: 'hover:border-violet-500', tajuk: 'Arked Permainan', desc: 'Misi RPG & kuiz interaktif' },
+            { href: '/flashcard', ikon: '🃏', warna: 'hover:border-fuchsia-500', tajuk: 'Flashcard', desc: 'Ulangkaji interaktif mesra kanak-kanak' },
             { href: '/rvids', ikon: '🎬', warna: 'hover:border-rose-500', tajuk: 'Rvids', desc: 'Tonton video belajar pendek' },
             { href: '/forum', ikon: '💬', warna: 'hover:border-sky-500', tajuk: 'Forum Komuniti', desc: 'Baca topik & beri komen' },
             { href: '/profil', ikon: '👤', warna: 'hover:border-amber-500', tajuk: 'Profil Saya', desc: 'Kemas kini profil & tetapan' },

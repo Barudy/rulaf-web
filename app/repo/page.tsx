@@ -6,6 +6,7 @@ import Link from 'next/link';
 import CountDownUpkk from '@/components/CountDownUpkk';
 import { ialahAdmin } from '../lib/akses';
 import PaparMarkdown from '@/components/PaparMarkdown';
+import { formatTarikh, tidakDiurus } from '../lib/tarikh';
 
 export default function RepositoryPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -169,6 +170,16 @@ export default function RepositoryPage() {
   const folderSemasaObj = bahanRepo.find(f => f.id === currentFolderId);
   const readmeSemasa = folderSemasaObj?.readme_text;
 
+  // 📅 Tarikh aktiviti terakhir (gaya GitHub) untuk folder RUR
+  const aktivitiTerakhir = (item: any) => {
+    const anak = bahanRepo.filter((b) => b.parent_id === item.id);
+    const masa = [item.created_at, ...anak.map((a) => a.created_at)]
+      .filter(Boolean)
+      .map((t) => new Date(t as string).getTime())
+      .filter((t) => !Number.isNaN(t));
+    return masa.length > 0 ? new Date(Math.max(...masa)).toISOString() : item.created_at;
+  };
+
   return (
     <div className="min-h-screen transition-colors duration-300 bg-gray-50 dark:bg-[#0F1419] text-gray-800 dark:text-[#A5B2D9] font-mono p-4 sm:p-10 selection:bg-[#1793D1] selection:text-white">
       <div className="max-w-5xl mx-auto bg-white dark:bg-[#171A21] border border-gray-200 dark:border-[#1793D1]/40 rounded shadow-md overflow-hidden">
@@ -301,6 +312,14 @@ export default function RepositoryPage() {
                         <div>
                           <h3 className="font-bold text-base text-gray-900 dark:text-white">{item.tajuk}</h3>
                           <p className="text-xs text-gray-500 mt-0.5">Pemilik: {item.penyumbang}</p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            📅 Dicipta {formatTarikh(item.created_at)} · ⏱️ Aktif {formatTarikh(aktivitiTerakhir(item))}
+                          </p>
+                          {tidakDiurus(aktivitiTerakhir(item)) && (
+                            <span className="inline-block mt-1 bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 text-[10px] font-black px-2 py-0.5 rounded border border-amber-300 dark:border-amber-900/50">
+                              ⚠️ Tidak diurus 6+ bulan
+                            </span>
+                          )}
                         </div>
                       </div>
 

@@ -6,6 +6,27 @@ import { supabase } from '../../lib/supabaseClient';
 import bankSoalan from '../../data/soalan.json';
 import Link from 'next/link';
 
+// 🧼 Normalisasi jawapan taip: buang harakat, samakan alef/ya/ta marbutah,
+// abaikan huruf besar-kecil & ruang berganda supaya Jawi/Rumi diterima.
+const normalizeJawapan = (teks: string) =>
+  (teks || '')
+    .normalize('NFC')
+    .replace(/[\u064B-\u0652\u0670\u0640]/g, '')
+    .replace(/[إأآا]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/[’'`´]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+// Beberapa variasi jawapan boleh dipisah dengan koma / koma Arab / titik koma / |
+const pecahJawapan = (nilai?: string) =>
+  (nilai || '')
+    .split(/[,،;|]/)
+    .map(normalizeJawapan)
+    .filter(Boolean);
+
 export default function PermainanKonsolRPGPage() {
   const params = useParams();
   const router = useRouter();
@@ -45,6 +66,8 @@ export default function PermainanKonsolRPGPage() {
   const [selectedOpt, setSelectedOpt] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [battleLog, setBattleLog] = useState('');
+  // ⌨️ Jawapan taip untuk soalan isi tempat kosong (Jawi / Rumi / Dwi)
+  const [jawapanTaip, setJawapanTaip] = useState('');
 
   const [userProfile, setUserProfile] = useState<{ mykid: string; nama: string; peranan: string } | null>(null);
   const [isAccessDenied, setIsAccessDenied] = useState(false);
@@ -109,6 +132,7 @@ export default function PermainanKonsolRPGPage() {
     setCurrentIdx(0);
     setIsAnswered(false);
     setSelectedOpt(null);
+    setJawapanTaip('');
 
     const isBoss = currentLevel === maxLevel;
     setIsBossLevel(isBoss);
@@ -253,6 +277,7 @@ export default function PermainanKonsolRPGPage() {
   const resetTurnWithTimer = () => {
     setIsAnswered(false);
     setSelectedOpt(null);
+    setJawapanTaip('');
     if (difficulty === 'sederhana') setTimeLeft(30);
     else if (difficulty === 'sukar') setTimeLeft(15);
     else setTimeLeft(null);
@@ -286,7 +311,7 @@ export default function PermainanKonsolRPGPage() {
     setAvailableChips((prev) => prev.map((c) => ({ ...c, used: false })));
   };
 
-  const serang = (jawapanDipilih: string, idx: number) => {
+  const serang = (jawapanDipilih: string, idx: number, paksaBetul?: boolean) => {
     if (isAnswered || isGameOver || isVictory) return;
 
     setSelectedOpt(idx);
@@ -298,7 +323,9 @@ export default function PermainanKonsolRPGPage() {
         ? soalanSemasa?.rumi 
         : (soalanSemasa?.jawi || soalanSemasa?.rumi);
     const jawapanBetul = targetObj?.a || '';
-    const isCorrect = jawapanDipilih.trim() === jawapanBetul.trim() && jawapanDipilih !== '[MASA TAMAT]';
+    const isCorrect = paksaBetul !== undefined
+      ? paksaBetul && jawapanDipilih !== '[MASA TAMAT]'
+      : jawapanDipilih.trim() === jawapanBetul.trim() && jawapanDipilih !== '[MASA TAMAT]';
     const damageDealt = Math.ceil(maxEnemyHp / Math.max(soalanList.length, 1));
     const damageTaken = 25;
 
@@ -327,6 +354,19 @@ export default function PermainanKonsolRPGPage() {
         setBattleLog('💀 HERO TEWAS! Nyawa anda telah habis.');
       }
     }
+  };
+
+  const serangIsiKosong = () => {
+    const teks = jawapanTaip.trim();
+    if (!teks || isAnswered) return;
+
+    // Terima jawapan dalam Jawi ATAU Rumi (atau dwi-tulisan) — rujuk kedua-dua `a`
+    const diterima = [
+      ...pecahJawapan(soalanSemasa?.jawi?.a),
+      ...pecahJawapan(soalanSemasa?.rumi?.a),
+    ];
+    const betul = diterima.includes(normalizeJawapan(teks));
+    serang(teks, 0, betul);
   };
 
   const maraPusingan = () => {
@@ -634,8 +674,54 @@ export default function PermainanKonsolRPGPage() {
                 )}
               </div>
 
-              {/* 🎯 KAWASAN JAWAPAN TUNGGAL (PILIHAN ATAU SUSUN ATUR) */}
-              {soalanSemasa?.type === 'susun_atur' ? (
+              {/* 🎯 KAWASAN JAWAPAN TUNGGAL (PILIHAN / SUSUN ATUR / ISI KOSONG) */}
+              {soalanSemasa?.type === 'isi_kosong' ? (
+                <div className="space-y-3">
+                  <div className="bg-purple-50 dark:bg-purple-950/20 border-2 border-dashed border-purple-400/60 rounded-xl p-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-bold">
+                      <span className="bg-white dark:bg-[#171A21] border border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-full">🕌 Jawi</span>
+                      <span className="bg-white dark:bg-[#171A21] border border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-full">🔤 Rumi</span>
+                      <span className="bg-white dark:bg-[#171A21] border border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300 px-2.5 py-1 rounded-full">🌗 Dwi-Tulisan</span>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={jawapanTaip}
+                      onChange={(e) => setJawapanTaip(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); serangIsiKosong(); } }}
+                      disabled={isAnswered}
+                      dir="auto"
+                      autoComplete="off"
+                      placeholder="Taip jawapan di sini… (Jawi atau Rumi)"
+                      className="w-full bg-white dark:bg-[#11141b] border-2 border-purple-300 dark:border-purple-800 focus:border-purple-500 rounded-xl px-4 py-3 text-lg text-center text-gray-900 dark:text-white placeholder:text-gray-400 outline-none disabled:opacity-60"
+                    />
+                    <p className="text-center text-[10px] text-gray-500">
+                      💡 Boleh jawab guna papan kekunci Jawi, Rumi, atau kedua-duanya.
+                    </p>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <button
+                      type="button"
+                      disabled={isAnswered || jawapanTaip.trim() === ''}
+                      onClick={serangIsiKosong}
+                      className="px-8 py-3 bg-purple-600 hover:bg-purple-500 text-white text-xs font-black rounded-xl shadow-md disabled:opacity-50 active:scale-95 transition-all"
+                    >
+                      ⌨️ [ HANTAR JAWAPAN & SERANG ]
+                    </button>
+                  </div>
+
+                  {isAnswered && (
+                    <p className={`text-center text-[11px] font-bold px-3 py-2 rounded-lg ${
+                      jawapanTaip.trim() === (objSoalan?.a || '').trim()
+                        ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
+                        : 'text-gray-600 dark:text-gray-300 bg-gray-500/10'
+                    }`}>
+                      ✅ Jawapan diterima: <span className="font-sans">{objSoalan?.a || '—'}</span>
+                    </p>
+                  )}
+                </div>
+              ) : soalanSemasa?.type === 'susun_atur' ? (
   <div className="space-y-4">
     {/* 1. Kotak Ayat Terbina - Diberikan sokongan RTL dinamik */}
     <div 
