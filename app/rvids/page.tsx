@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import Link from 'next/link';
 import { supabase } from '../lib/supabaseClient';
 import RvidsKad from '../../components/RvidsKad';
+import RvidsPanel from '../../components/RvidsPanel';
 
 const KATEGORI = ['Jawi', 'Ibadat', 'Bahasa Arab', 'Sirah', 'Tauhid', 'Adab', 'Leaderboard'];
 
@@ -21,6 +21,7 @@ export default function RvidsPage() {
   const sentuhY = useRef<number | null>(null);
 
   const [bukaMuat, setBukaMuat] = useState(false);
+  const [bukaPanel, setBukaPanel] = useState(false);
   const [fTajuk, setFTajuk] = useState('');
   const [fPenerangan, setFPenerangan] = useState('');
   const [fKategori, setFKategori] = useState('Jawi');
@@ -58,6 +59,13 @@ export default function RvidsPage() {
       setBolehMuat(per === 'guru' || per === 'admin');
     })();
   }, [muatFeed]);
+
+  // 🔒 Kunci scroll halaman supaya video sentiasa satu skrin penuh
+  useEffect(() => {
+    const asal = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = asal; };
+  }, []);
 
   const videoKini = turutan.length > 0 && video.length > 0 ? video[turutan[pos]] : null;
 
@@ -121,58 +129,94 @@ export default function RvidsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white flex flex-col">
-      <nav className="bg-[#010409] border-b border-gray-800 z-10">
-        <div className="max-w-4xl mx-auto px-4 h-12 flex items-center gap-3 text-sm">
-          <Link href="/" className="font-bold hover:text-[#1793D1]">⬡ RuLaFHub</Link>
-          <span className="text-gray-600">/</span>
-          <span className="font-mono text-xs text-gray-400">🎬 RVIDS :: BELAJAR MICRO</span>
-        </div>
-      </nav>
+    <main className="h-[calc(100dvh-4rem)] overflow-hidden bg-black text-white">
+      <div className="mx-auto flex h-full w-full max-w-7xl lg:gap-4 lg:p-4">
+        {/* Panel kiri (desktop): deskripsi + komen — bukan gaya Shorts/TikTok */}
+        <aside className="hidden h-full w-[340px] shrink-0 overflow-hidden rounded-2xl border border-white/10 lg:block xl:w-[380px]">
+          {videoKini ? (
+            <RvidsPanel video={videoKini} userEmail={email} />
+          ) : (
+            <div className="flex h-full items-center justify-center p-4 text-center text-xs text-gray-500">
+              Tiada video untuk dipaparkan.
+            </div>
+          )}
+        </aside>
 
-      {/* Pentas satu video — sapu/klik untuk seterusnya */}
-      <div
-        className="relative mx-auto w-full max-w-[430px] border-x border-gray-800 bg-black overflow-hidden"
-        style={{ height: 'calc(100vh - 3rem)' }}
-        onTouchStart={(e) => { sentuhY.current = e.touches[0].clientY; }}
-        onTouchEnd={(e) => {
-          if (sentuhY.current == null) return;
-          const beza = sentuhY.current - e.changedTouches[0].clientY;
-          sentuhY.current = null;
-          if (Math.abs(beza) > 50) pergi(beza > 0 ? 1 : -1);
-        }}
-        onWheel={(e) => { if (Math.abs(e.deltaY) > 20) pergi(e.deltaY > 0 ? 1 : -1); }}
-      >
-        {memuat ? (
-          <p className="text-center pt-20 text-xs text-gray-400 animate-pulse">Memuatkan Rvids…</p>
-        ) : !videoKini ? (
-          <p className="text-center pt-20 text-xs text-gray-400">Tiada video buat masa ini.</p>
-        ) : (
-          <div key={videoKini.id} className="h-full w-full">
-            <RvidsKad video={videoKini} userEmail={email} aktif />
-          </div>
-        )}
+        {/* Pentas video — tinggi tepat satu skrin, sapu/roda untuk seterusnya */}
+        <div
+          className="relative flex h-full min-w-0 flex-1 items-center justify-center overflow-hidden bg-black lg:rounded-2xl lg:border lg:border-white/10"
+          onTouchStart={(e) => { sentuhY.current = e.touches[0].clientY; }}
+          onTouchEnd={(e) => {
+            if (sentuhY.current == null) return;
+            const beza = sentuhY.current - e.changedTouches[0].clientY;
+            sentuhY.current = null;
+            if (Math.abs(beza) > 50) pergi(beza > 0 ? 1 : -1);
+          }}
+          onWheel={(e) => { if (Math.abs(e.deltaY) > 20) pergi(e.deltaY > 0 ? 1 : -1); }}
+        >
+          {memuat ? (
+            <p className="text-xs text-gray-400 animate-pulse">Memuatkan Rvids…</p>
+          ) : !videoKini ? (
+            <p className="text-xs text-gray-400">Tiada video buat masa ini.</p>
+          ) : (
+            <div
+              key={videoKini.id}
+              className="relative h-full"
+              style={{ aspectRatio: '9 / 16', maxWidth: '100%' }}
+            >
+              <RvidsKad
+                video={videoKini}
+                userEmail={email}
+                aktif
+                onBukaPanel={() => setBukaPanel(true)}
+              />
+            </div>
+          )}
 
-        {/* Penunjuk + kocok */}
-        {videoKini && (
-          <div className="absolute top-2 left-2 z-10 flex items-center gap-2">
-            <span className="font-mono text-[10px] bg-black/60 px-2 py-1 rounded-full text-white/80">
-              {pos + 1} / {video.length} · rawak 🔀
-            </span>
-            <button onClick={kocokSemula} title="Kocok semula" className="font-mono text-[10px] bg-black/60 px-2 py-1 rounded-full text-white/80 hover:text-white">
-              🔀
+          {/* Penunjuk + kocok */}
+          {videoKini && (
+            <div className="absolute left-2 top-2 z-10 flex items-center gap-2">
+              <span className="rounded-full bg-black/60 px-2 py-1 font-mono text-[10px] text-white/80">
+                {pos + 1} / {video.length} · rawak 🔀
+              </span>
+              <button onClick={kocokSemula} title="Kocok semula" className="rounded-full bg-black/60 px-2 py-1 font-mono text-[10px] text-white/80 hover:text-white">
+                🔀
+              </button>
+            </div>
+          )}
+
+          {/* Butang info (mudah alih) */}
+          {videoKini && (
+            <button
+              onClick={() => setBukaPanel(true)}
+              aria-label="Buka deskripsi & komen"
+              className="absolute right-2 top-2 z-10 rounded-full bg-black/60 px-3 py-1.5 text-[10px] font-bold text-white/90 hover:text-white lg:hidden"
+            >
+              ℹ️ Info & Komen
             </button>
-          </div>
-        )}
+          )}
 
-        {/* Butang atas/bawah (desktop) */}
-        {videoKini && (
-          <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden sm:flex flex-col gap-2">
-            <button onClick={() => pergi(-1)} aria-label="Sebelumnya" className="w-8 h-8 rounded-full bg-black/60 text-white/80 hover:text-white text-sm">▲</button>
-            <button onClick={() => pergi(1)} aria-label="Seterusnya" className="w-8 h-8 rounded-full bg-black/60 text-white/80 hover:text-white text-sm">▼</button>
-          </div>
-        )}
+          {/* Butang atas/bawah */}
+          {videoKini && (
+            <div className="absolute right-2 top-1/2 z-10 hidden -translate-y-1/2 flex-col gap-2 sm:flex">
+              <button onClick={() => pergi(-1)} aria-label="Sebelumnya" className="h-8 w-8 rounded-full bg-black/60 text-sm text-white/80 hover:text-white">▲</button>
+              <button onClick={() => pergi(1)} aria-label="Seterusnya" className="h-8 w-8 rounded-full bg-black/60 text-sm text-white/80 hover:text-white">▼</button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Panel kiri (mudah alih) — drawer dari kiri */}
+      {bukaPanel && videoKini && (
+        <div className="fixed inset-0 z-[60] bg-black/60 lg:hidden" onClick={() => setBukaPanel(false)}>
+          <div
+            className="h-full w-[86%] max-w-sm border-r border-white/10 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <RvidsPanel video={videoKini} userEmail={email} onTutup={() => setBukaPanel(false)} />
+          </div>
+        </div>
+      )}
 
       {bolehMuat && (
         <button onClick={() => setBukaMuat(true)} aria-label="Cipta video"
