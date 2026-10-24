@@ -180,10 +180,30 @@ function PapanPemukaGuru({ email, isAdmin }: { email: string; isAdmin: boolean }
       const { data: kelasSaya } = await supabase.from('rulaf_kelas').select('nama_kelas').eq('email_guru', email);
       const namaKelas = (kelasSaya || []).map((k: any) => k.nama_kelas);
       setKelasSayaLabel(namaKelas.join(', '));
-      const { data: murid } = await supabase.from('data_murid').select('*').order('nama_murid');
+      
+      // Ambil mengikut sekolah / guru atau kelas sendiri. Jika bukan admin, tapis ketat ikut sekolah_id atau guru.
+      // Semak sama ada jadual data_murid mempunyai lajur emel_guru / sekolah_id
+      let qMurid = supabase.from('data_murid').select('*');
+      if (email !== 'admin@rulafhub.com') {
+        // Cuba tapis ikut sekolah_id milik guru ini terlebih dahulu
+        const { data: sk } = await supabase.from('rulaf_sekolah').select('id').eq('email_guru', email);
+        const ids = (sk || []).map((s: any) => s.id);
+        if (ids.length > 0) {
+          qMurid = qMurid.in('sekolah_id', ids);
+        } else if (namaKelas.length > 0) {
+          qMurid = qMurid.in('kelas_id', namaKelas);
+        } else {
+          // Jika tiada kaitan kelas/sekolah langsung, jangan paparkan murid guru lain (privasi mutlak)
+          qMurid = qMurid.eq('sekolah_id', -999999);
+        }
+      }
+      const { data: murid } = await qMurid.order('nama_murid');
       let senarai = murid || [];
-      if (namaKelas.length > 0) senarai = senarai.filter((m: any) => namaKelas.includes(m.kelas_id));
-      const { data: mk } = await supabase.from('markah_murid').select('mykid, tahap_rulaf, markah_jawi, bacaan_quran').order('id', { ascending: false });
+      if (email !== 'admin@rulafhub.com' && namaKelas.length > 0 && (!senarai.length || senarai.length > 0)) {
+        // tambahan penapisan selamat kelas
+        // senarai sudah ditapis di atas
+      }
+      const { data: mk } = await supabase.from('markah_markah').select('mykid, tahap_rulaf, markah_jawi, bacaan_quran').order('id', { ascending: false });
       const peta = new Map<string, any>();
       (mk || []).forEach((r: any) => { if (r.mykid && !peta.has(r.mykid)) peta.set(r.mykid, r); });
       setSenaraiMurid(senarai.map((m: any) => ({ ...m, markah: peta.get(m.mykid) || null })));
