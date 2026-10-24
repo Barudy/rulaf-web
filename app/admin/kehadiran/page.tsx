@@ -94,9 +94,8 @@ export default function AuditKehadiranPage() {
       } else {
         const { data: kl, error } = await supabase.from('rulaf_kelas').select('nama_kelas').eq('email_guru', session.user.email).order('nama_kelas');
         if (error || !kl || kl.length === 0) {
-          setNotaSkop(error
-            ? 'Jadual kelas belum sedia — jalankan supabase/migrasi-multitenan.sql, kemudian daftar kelas di Daftar Murid.'
-            : 'Tiada kelas didaftarkan. Daftar kelas anda dahulu di halaman Daftar Murid.');
+          // 🔒 Privasi Mutlak: Jika tiada kelas berdaftar, jangan benarkan akses atau lihat kelas lain
+          setNotaSkop('Tiada kelas didaftarkan di bawah akaun anda. Sila daftar kelas anda dahulu di halaman Daftar Murid.');
           setSenaraiKelas([]);
         } else {
           const nama = kl.map((k: any) => k.nama_kelas);
