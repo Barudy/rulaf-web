@@ -92,15 +92,17 @@ export default function AuditKehadiranPage() {
         setSenaraiKelas(sen);
         setKelas(sen[0]);
       } else {
+        // 🔒 Privasi Mutlak: Hanya tarik kelas yang disahkan milik guru ini dalam rulaf_kelas
         const { data: kl, error } = await supabase.from('rulaf_kelas').select('nama_kelas').eq('email_guru', session.user.email).order('nama_kelas');
-        if (error || !kl || kl.length === 0) {
-          // 🔒 Privasi Mutlak: Jika tiada kelas berdaftar, jangan benarkan akses atau lihat kelas lain
+        const namaKelasMilikGuru = (kl || []).map((k: any) => k.nama_kelas);
+
+        if (error || namaKelasMilikGuru.length === 0) {
           setNotaSkop('Tiada kelas didaftarkan di bawah akaun anda. Sila daftar kelas anda dahulu di halaman Daftar Murid.');
           setSenaraiKelas([]);
+          setKelas('');
         } else {
-          const nama = kl.map((k: any) => k.nama_kelas);
-          setSenaraiKelas(nama);
-          setKelas(nama[0]);
+          setSenaraiKelas(namaKelasMilikGuru);
+          setKelas(namaKelasMilikGuru[0]);
         }
       }
       setIsCheckingAuth(false);
