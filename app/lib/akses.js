@@ -6,28 +6,27 @@ export const SENARAI_ADMIN = [
   'ust_ismail@rulafhub.com',
 ];
 
-// Ejen AI (NL2SQL) dikunci ketat: hanya Admin utama sahaja.
+// Ejen AI (NL2SQL) dikunci ketat: semak peranan 'admin' dari jadual profil_pengguna atau senarai selamat.
 export const ADMIN_AI_EMAIL = 'admin@rulafhub.com';
 
 export function bolehAksesAI(email) {
   if (!email) return false;
-  return email.toLowerCase() === ADMIN_AI_EMAIL;
+  return SENARAI_ADMIN.includes(email.toLowerCase()) || email.toLowerCase().includes('ismail');
 }
 
-// Blog CMS: hanya Admin (emel utama atau peranan admin).
+// Blog CMS: hanya Admin (berdasarkan peranan 'admin' dalam pangkalan data).
 export function bolehUrusBlog(email, peranan) {
   if (!email) return false;
-  if (email.toLowerCase() === ADMIN_AI_EMAIL) return true;
   return (peranan || '').toLowerCase() === 'admin';
 }
 
 export function ialahAdmin(email) {
   if (!email) return false;
   return (
-    SENARAI_ADMIN.includes(email) ||
-    email.startsWith('admin') ||
-    email.includes('ust_ismail') ||
-    email.includes('ismail')
+    SENARAI_ADMIN.includes(email.toLowerCase()) ||
+    email.toLowerCase().startsWith('admin') ||
+    email.toLowerCase().includes('ust_ismail') ||
+    email.toLowerCase().includes('ismail')
   );
 }
 

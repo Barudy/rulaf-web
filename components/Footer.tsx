@@ -24,9 +24,12 @@ export default function Footer() {
             <Link href="/dashboard" className="hover:text-[#1793D1] transition-colors">Dashboard</Link>
           </nav>
         </div>
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 text-center">
+        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 text-center space-y-1">
           <p className="text-[11px] text-gray-500 dark:text-gray-500">
             © {tahun} RuLaFHub oleh <span className="font-bold text-gray-700 dark:text-gray-300">Al-BabDev</span> (Ustaz Mohamad Ismail bin Mohd Noor) · Hak Cipta Terpelihara
+          </p>
+          <p className="text-[10px] font-mono text-[#1793D1]">
+            Code by Ust_Ismail(Al-BabDev)
           </p>
         </div>
       </div>
