@@ -700,13 +700,22 @@ export default function AdminDashboardPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] text-gray-500 uppercase mb-1">Kandungan Jurnal</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[10px] text-gray-500 uppercase">Kandungan Jurnal (Format GitHub & YouTube)</label>
+                      <div className="flex gap-1 text-[10px] font-mono">
+                        <button type="button" onClick={() => setKandunganBlog(kandunganBlog + '\n# Tajuk Utama\n')} className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-300 hover:bg-sky-500 hover:text-white" title="Header #"># H1</button>
+                        <button type="button" onClick={() => setKandunganBlog(kandunganBlog + '\n## Subtajuk\n')} className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-300 hover:bg-sky-500 hover:text-white" title="Subheader ##">## H2</button>
+                        <button type="button" onClick={() => setKandunganBlog(kandunganBlog + ' **teks tebal** ')} className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-300 hover:bg-sky-500 hover:text-white" title="Bold **text**"><b>B</b></button>
+                        <button type="button" onClick={() => setKandunganBlog(kandunganBlog + ' *teks condong* ')} className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-300 hover:bg-sky-500 hover:text-white" title="Italic *text*"><i>I</i></button>
+                        <button type="button" onClick={() => setKandunganBlog(kandunganBlog + '\nhttps://www.youtube.com/watch?v=XXXXXXXXXXX\n')} className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-rose-500 hover:bg-rose-500 hover:text-white font-bold" title="Sisip Video YouTube">▶ YouTube</button>
+                      </div>
+                    </div>
                     <textarea
-                      rows={4}
-                      placeholder="Tulis huraian perkembangan, hasil amali, atau berita terkini di sini..."
+                      rows={12}
+                      placeholder="Tulis huraian perkembangan, rujukan teks, atau letakkan pautan video YouTube di sini..."
                       value={kandunganBlog}
                       onChange={(e) => setKandunganBlog(e.target.value)}
-                      className="w-full bg-white dark:bg-[#0F1419] border border-gray-300 dark:border-gray-800 focus:border-[#1793D1] focus:outline-none rounded-sm px-3 py-2 text-xs text-gray-900 dark:text-white font-sans"
+                      className="w-full bg-white dark:bg-[#0F1419] border border-gray-300 dark:border-gray-800 focus:border-[#1793D1] focus:outline-none rounded-lg px-4 py-3 text-xs text-gray-900 dark:text-white font-mono leading-relaxed"
                     />
                   </div>
 

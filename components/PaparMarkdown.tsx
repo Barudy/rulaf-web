@@ -4,12 +4,15 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 
 /**
- * PaparMarkdown — renderer ringkas gaya GitHub untuk README/blog.
- * Sokong: #/##/### heading, **bold**, *italic*, `code`, pautan [teks](url),
- * senarai -, senarai bernombor 1., sebut >, pemisah ---, dan imej ![alt](url).
+ * PaparMarkdown — renderer ringkas gaya GitHub untuk README/blog + Sokongan Pemain YouTube.
  */
 export default function PaparMarkdown({ teks, kelas = '' }: { teks: string; kelas?: string }) {
   if (!teks) return null;
+
+  // 📺 Sokongan YouTube Embed secara automatik jika URL YouTube dikesan
+  const youtubeRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?/;
+  const matchYoutube = youtubeRegex.exec(teks);
+  const youtubeEmbedId = matchYoutube ? matchYoutube[1] : null;
 
   const baris = teks.split('\n');
 
@@ -74,6 +77,25 @@ export default function PaparMarkdown({ teks, kelas = '' }: { teks: string; kela
   baris.forEach((b, idx) => {
     const bTrim = b.trim();
     if (!bTrim) { tutupSenarai(); return; }
+
+    // Jika baris adalah URL YouTube tunggal, paparkan video player iframe responsive
+    const ytMatch = /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:\S+)?$/.exec(bTrim);
+    if (ytMatch) {
+      tutupSenarai();
+      const vidId = ytMatch[1];
+      senarai.push(
+        <div key={idx} className="my-4 aspect-video w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-black shadow-lg">
+          <iframe
+            src={`https://www.youtube-embed.netlify.app/embed/${vidId} || https://www.youtube.com/embed/${vidId}`}
+            title="YouTube video player"
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      );
+      return;
+    }
 
     const mTajuk = /^(#{1,4})\s+(.+)$/.exec(bTrim);
     if (mTajuk) {
